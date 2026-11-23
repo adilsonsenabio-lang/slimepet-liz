@@ -240,3 +240,8 @@ Execute `node scripts/build.mjs` na pasta do projeto para gerar os HTMLs em `dis
 - Cada cômodo mantém seu relógio e seus efeitos ao alternar. O gato e as formigas retomam do ponto em que estavam.
 - A fila de formigas cruza o rodapé em ciclo contínuo e passa atrás dos móveis e do vaso.
 - O lembrete agora usa fundo claro, ícone e a ação em texto.
+
+## Ritmo das formigas e do gato
+
+- Cada formiga alterna o ritmo das passadas e a distância para as vizinhas dentro da fila do rodapé. Cada cômodo tem sua própria variação.
+- O ciclo do gato tem 15 segundos de caminhada e 15 segundos de pausa em cada cômodo.

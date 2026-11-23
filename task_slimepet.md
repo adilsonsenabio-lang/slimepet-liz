@@ -17,6 +17,7 @@
 - [x] Criar e integrar os quadros de caminhada do gato nos três cômodos (2026-11-23). A seleção das duas spritesheets foi conferida em simulação.
 - [x] Corrigir o passeio do gato, renovar os lembretes, retirar Modo de cuidado e adicionar formigas no rodapé dos três cômodos (2026-11-23).
 - [x] Refazer a passada do gato, preservar o tempo dos cômodos, pôr as formigas atrás dos móveis e simplificar o balão (2026-11-23).
+- [x] Variar o ritmo das formigas no rodapé e conferir os 15 segundos de caminhada e pausa do gato em cada cômodo (2026-11-23).
 
 
 

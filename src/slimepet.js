@@ -1689,15 +1689,15 @@ function updateDragonfly(v,time,reduced,random=Math.random){
  v.frame=Math.floor(time/rule.wingFrameMs)%FAUNA_FRAMES;
 }
 const CAT_SHELF={sala:{y:154,bookX:550},quarto:{y:153,bookX:548},cozinha:{y:151,bookX:543}};
-const CAT_SHELF_CYCLE_MS=30000,CAT_SHELF_REST_MS=15000;
+const CAT_SHELF_WALK_MS=15000,CAT_SHELF_REST_MS=15000;
+const CAT_SHELF_CYCLE_MS=CAT_SHELF_WALK_MS+CAT_SHELF_REST_MS;
 const CAT_WALK_SRC='../assets/gatinho_caminhando.png',CAT_STRIDE_PX=19;
 function updateCat(v,time,reduced){
  const room=Casa.getRoom();
  const shelf=CAT_SHELF[room];
- const walkMs=CAT_SHELF_CYCLE_MS-CAT_SHELF_REST_MS;
  const elapsed=Casa.elapsed()/.90%CAT_SHELF_CYCLE_MS;
- const walking=elapsed<walkMs;
- const leg=elapsed/(walkMs/2);
+ const walking=elapsed<CAT_SHELF_WALK_MS;
+ const leg=elapsed/(CAT_SHELF_WALK_MS/2);
  const returning=leg>=1;
  const progress=ease(leg%1);
  const distance=progress*(v.residentX-shelf.bookX);
@@ -2492,6 +2492,14 @@ const ANT_BASEBOARD={
  cozinha:{y:245,furniture:[[8,222],[233,222],[234,248],[232,253],[8,253]]},
 };
 const ANT_TRAIL={count:12,speed:21,frameMs:78,scale:.22};
+const ANT_TRAIL_PATTERNS=Object.fromEntries(CASA_ROOMS.map(room=>[room,
+ Array.from({length:ANT_TRAIL.count},()=>({
+  offset:v41Mix(-.16,.16,Math.random()),
+  phase:Math.random()*Math.PI*2,
+  rhythm:v41Mix(.28,.85,Math.random()),
+  frame:Math.floor(Math.random()*FAUNA_FRAMES),
+ }))
+]));
 function drawHomeAnts(g,room,elapsed){
  const sprite=assets.visitors.formiga;
  if(!sprite||!faunaPresent('formiga'))return;
@@ -2500,13 +2508,18 @@ function drawHomeAnts(g,room,elapsed){
  const time=elapsed*(reducedMotion.matches?.5:1);
  const w=Math.round(FAUNA_FRAME_W*scale),h=Math.round(FAUNA_FRAME_H*scale);
  const distance=g.canvas.width+w;
+ const spacing=distance/count,seconds=time/1000;
  g.save();
  g.beginPath();g.rect(0,0,g.canvas.width,g.canvas.height);
  furniture.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));
  g.closePath();g.clip('evenodd');
  for(let i=0;i<count;i++){
-  const x=(time*speed/1000+i*distance/count)%distance-w;
-  const frame=Math.floor(time/frameMs+i*3)%FAUNA_FRAMES;
+  const ant=ANT_TRAIL_PATTERNS[room][i];
+  const sway=Math.sin(seconds*ant.rhythm+ant.phase)*.11;
+  const traveled=seconds*speed+sway*spacing;
+  const position=traveled+(i+ant.offset)*spacing;
+  const x=((position%distance+distance)%distance)-w;
+  const frame=(Math.floor(Math.max(0,traveled)/speed*1000/frameMs)+ant.frame)%FAUNA_FRAMES;
   g.drawImage(sprite,frame*FAUNA_FRAME_W,0,FAUNA_FRAME_W,FAUNA_FRAME_H,
     Math.round(x),Math.round(y-VISITOR_SPEC.formiga.anchor.y*scale),w,h);
  }

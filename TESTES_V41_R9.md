@@ -187,3 +187,7 @@
 ## Animação e continuidade dos cômodos
 
 - Inspecionei a nova spritesheet e simulei a retomada do gato e dos efeitos ao alternar cômodos. Verifiquei a repetição das posições das formigas e a aplicação do recorte dos móveis nos três cenários. Os builds offline e Pages são idênticos. A conferência visual no navegador ficou pendente.
+
+## Ritmo das formigas e do gato
+
+- Simulei 90 segundos de fila em cada cômodo. Conferi os retornos pelas bordas, a altura no rodapé, o espaçamento entre formigas e a aplicação do recorte dos móveis. Verifiquei os limites de 15 e 30 segundos do ciclo do gato. A conferência visual no navegador ficou pendente.
