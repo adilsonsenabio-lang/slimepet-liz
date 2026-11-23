@@ -233,3 +233,10 @@ Execute `node scripts/build.mjs` na pasta do projeto para gerar os HTMLs em `dis
 - O gato começa a caminhada ao trocar de cômodo. Com “Pouco movimento”, a sequência usa menos quadros por segundo. O trajeto na prateleira tem espaço próprio, separado das colisões do piso.
 - Sete formigas reutilizam a animação original em uma fila no rodapé de cada cômodo.
 - Redesenhei o balão do slime e os botões das necessidades. Retirei “Modo de cuidado” e mantive os controles em “Som e movimento”. A dificuldade já salva continua sendo usada pelo jogo.
+
+## Animação e continuidade dos cômodos
+
+- Refiz as 20 poses de caminhada do gato e sincronizei as passadas à distância percorrida.
+- Cada cômodo mantém seu relógio e seus efeitos ao alternar. O gato e as formigas retomam do ponto em que estavam.
+- A fila de formigas cruza o rodapé em ciclo contínuo e passa atrás dos móveis e do vaso.
+- O lembrete agora usa fundo claro, ícone e a ação em texto.

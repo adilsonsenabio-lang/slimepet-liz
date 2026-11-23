@@ -183,3 +183,7 @@
 ## Gato, formigas e lembretes da Casa
 
 - Simulei a caminhada e a pausa do gato nos três cômodos com as duas preferências de movimento. Conferi o avanço e a altura da fila de formigas, a remoção do controle de dificuldade e o desenho do lembrete junto à margem da tela. Os HTMLs offline e do Pages têm o mesmo conteúdo. Conferência visual no navegador e teste de salvamento antigo pendentes.
+
+## Animação e continuidade dos cômodos
+
+- Inspecionei a nova spritesheet e simulei a retomada do gato e dos efeitos ao alternar cômodos. Verifiquei a repetição das posições das formigas e a aplicação do recorte dos móveis nos três cenários. Os builds offline e Pages são idênticos. A conferência visual no navegador ficou pendente.

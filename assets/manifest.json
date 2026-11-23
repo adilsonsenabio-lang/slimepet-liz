@@ -6,7 +6,8 @@
       "quadros": 20,
       "largura": 72,
       "altura": 56,
-      "fps": 10
+      "fps": 14,
+      "passada_px": 19
     },
     {
       "nome": "casinha_joao_de_barro",

@@ -1087,7 +1087,8 @@ const CASA_ROOM_KEY='slime_pet_liz_v41_comodo';
 const Casa=(()=>{
  const cv=document.createElement('canvas');cv.width=480;cv.height=360;
  const g=cv.getContext('2d');
- let room='sala',time=0,timers={},lastKey='',topOffset=0;
+ let room='sala',time=0,lastKey='',roomEnteredAt=0;
+ const roomState=Object.fromEntries(CASA_ROOMS.map(name=>[name,{timers:{},topOffset:0,elapsed:0}]));
  try{const s=localStorage.getItem(CASA_ROOM_KEY);if(CASA_ROOMS.includes(s))room=s;}catch(e){}
  const clockFmt=new Intl.DateTimeFormat('pt-BR',{hour:'2-digit',minute:'2-digit'});
  const sprite=src=>{const i=new Image();i.src=src;return i};
@@ -1098,11 +1099,17 @@ const Casa=(()=>{
  function oval(x,y,rx,ry,c){g.fillStyle=c;g.beginPath();g.ellipse(x,y,rx,ry,0,0,7);g.fill()}
  function poly(p,c){g.fillStyle=c;g.beginPath();p.forEach(([x,y],i)=>i?g.lineTo(Math.round(x),Math.round(y)):g.moveTo(Math.round(x),Math.round(y)));g.closePath();g.fill()}
  function line(x,y,X,Y,c,w=1){g.strokeStyle=c;g.lineWidth=w;g.beginPath();g.moveTo(x,y);g.lineTo(X,Y);g.stroke()}
- function age(id){return time-(timers[id]??-1000)}
+ function elapsed(){
+  const parked=parkedScenes.get('care');
+  const clock=parked?parked.parkedAt-parked.sceneryOrigin:sceneryTime();
+  return roomState[room].elapsed+clock-roomEnteredAt;
+ }
+ function age(id){return time-(roomState[room].timers[id]??-1000)}
  function spinBoost(){return 26*(1-Math.exp(-age('top')));}
  function trigger(id){
   if(!id)return;
-  if(id==='top'&&timers.top!==undefined)topOffset=(topOffset+spinBoost())%12;
+  const state=roomState[room],{timers}=state;
+  if(id==='top'&&timers.top!==undefined)state.topOffset=(state.topOffset+spinBoost())%12;
   timers[id]=time;
  }
  function clock(){let x=427,y=40,d=new Date(),s=d.getSeconds()+d.getMilliseconds()/1000,m=d.getMinutes()+s/60,h=d.getHours()%12+m/60;oval(x+1,y+2,18,18,'#46544866');oval(x,y,18,18,'#734833');oval(x,y-1,17,17,'#e6ad59');oval(x,y,14.7,14.7,'#fff1c6');for(let i=0;i<12;i++){let a=i*Math.PI/6;rect(x+12*Math.sin(a),y-12*Math.cos(a),1,2,'#916c4d')}for(let [v,period,len,c,w] of [[h,12,7,'#593e34',2],[m,60,10,'#593e34',1.6],[s,60,12,'#c47c4e',.8]]){let a=v*2*Math.PI/period;line(x,y,x+len*Math.sin(a),y-len*Math.cos(a),c,w)}oval(x,y,2,2,'#b18143')}
@@ -1139,6 +1146,7 @@ const Casa=(()=>{
   g.save();g.translate(281,31);g.rotate(.045*Math.sin(time*1.7)+w*.11+Math.sin(age('chime')*8)*Math.exp(-age('chime')));
   rect(-1,0,2,8,'#755239');for(let j=0;j<4;j++)rect(-2*j,8+j,1+4*j,1,j%2?'#b57945':'#d09b56');
   for(let i=-1;i<=1;i++){let x=i*5+Math.round(Math.sin(time*2+i)*.8);rect(x,12,1,6,'#856645');rect(x-1,17,3,9-i*2,'#996337');rect(x-1,17,1,8-i*2,'#ffe0a1')}rect(0,27,1,5,'#766042');rect(-1,32,3,4,'#b97a53');g.restore();
+  const {topOffset,timers}=roomState[room];
   const frame=Math.floor(time*5+topOffset+(timers.top===undefined?0:spinBoost()))%12;
   oval(427,311,9,2,'#62483148');
   if(topSheet.complete&&topSheet.naturalWidth)g.drawImage(topSheet,frame*29,0,29,26,412,287,29,26)
@@ -1155,8 +1163,8 @@ const Casa=(()=>{
   else rect(x,y,1,1,'#fff8e7')
  }g.globalAlpha=1}
  // Desenha o cômodo atual no canvas interno de 480x360 (só redesenha a cada 1/16 s).
- function render(bg,ms,force){
-  const tick=Math.floor(ms*16/1000),key=room+':'+tick;
+ function render(bg,force){
+  const tick=Math.floor(elapsed()*16/1000),key=room+':'+tick+':'+faunaPresent('formiga')+':'+Boolean(assets.visitors.formiga)+':'+reducedMotion.matches;
   if(!force&&key===lastKey)return;lastKey=key;time=tick/16;
   g.imageSmoothingEnabled=false;g.clearRect(0,0,480,360);
   if(bg)g.drawImage(bg,0,0,480,360);
@@ -1164,6 +1172,7 @@ const Casa=(()=>{
   curtains();
   const drift=Math.sin(time*.19)*7;
   for(let k=0;k<3;k++){let x=70+23*k;poly([[x,146],[x+7,146],[x+105+drift,344],[x+75+drift,344]],'rgba(255,237,171,'+(.026+.015*Math.sin(time+k))+')')}
+  drawHomeAnts(g,room,time*1000);
   picture(breeze);clock();pottery(breeze);ornaments(breeze);dust(breeze);
   const effects=[['chime',281,59,'♫','#b08451'],['water',435,188,'•','#76c3da'],['rug',240,287,'✦','#d9993b'],['rest',80,207,room==='quarto'?'z':'♥','#cf6981'],['tea',177,166,'∿','#fff6df'],['pans',52,170,'♪','#95593d'],['clock',428,58,'♪','#89693d']];
   for(const [id,x,y,ch,c] of effects){const a=age(id);if(a>=3)continue;g.save();g.fillStyle=c;g.font='bold 9px Georgia';for(let i=0;i<4;i++){const p=(a*.7+i*.25)%1;g.globalAlpha=Math.sin(Math.PI*p);g.fillText(ch,x+(i-1.5)*4+Math.sin(p*5+i)*2,y+(id==='water'?1:-1)*p*18)}g.restore()}
@@ -1192,9 +1201,11 @@ const Casa=(()=>{
   }
   return L;
  }
- return{canvas:cv,render,spots,trigger,
+ return{canvas:cv,render,spots,trigger,elapsed,
   getRoom:()=>room,
-  setRoom(r){if(!CASA_ROOMS.includes(r))return false;if(r===room)return false;room=r;timers={};lastKey='';topOffset=0;
+  setRoom(r){if(!CASA_ROOMS.includes(r))return false;if(r===room)return false;
+   roomState[room].elapsed=elapsed();roomEnteredAt=sceneryTime();room=r;
+   time=roomState[room].elapsed/1000;
    try{localStorage.setItem(CASA_ROOM_KEY,r)}catch(e){}return true;}};
 })();
 function casaBg(){return assets['casa_'+Casa.getRoom()]||null}
@@ -1202,7 +1213,7 @@ function casaBg(){return assets['casa_'+Casa.getRoom()]||null}
 function paintCasa(){
  const bg=casaBg();
  if(!bg){pixel(0,0,W,398,'#A3D6B8');pixel(0,398,W,145,'#C09A70');return;}
- Casa.render(bg,sceneTime,false);
+ Casa.render(bg,false);
  ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
  ctx.drawImage(Casa.canvas,0,0,W,H);ctx.restore();
 }
@@ -1679,24 +1690,24 @@ function updateDragonfly(v,time,reduced,random=Math.random){
 }
 const CAT_SHELF={sala:{y:154,bookX:550},quarto:{y:153,bookX:548},cozinha:{y:151,bookX:543}};
 const CAT_SHELF_CYCLE_MS=30000,CAT_SHELF_REST_MS=15000;
-const CAT_WALK_SRC='../assets/gatinho_caminhando.png',CAT_WALK_FRAME_MS=100;
-function updateCat(v,time,reduced,dt){
+const CAT_WALK_SRC='../assets/gatinho_caminhando.png',CAT_STRIDE_PX=19;
+function updateCat(v,time,reduced){
  const room=Casa.getRoom();
  const shelf=CAT_SHELF[room];
  const walkMs=CAT_SHELF_CYCLE_MS-CAT_SHELF_REST_MS;
- const elapsed=v.shelfRoom===room?v.shelfElapsed:0;
+ const elapsed=Casa.elapsed()/.90%CAT_SHELF_CYCLE_MS;
  const walking=elapsed<walkMs;
  const leg=elapsed/(walkMs/2);
  const returning=leg>=1;
- v.x=walking?v41Mix(v.residentX,shelf.bookX,ease(returning?2-leg:leg)):v.residentX;
+ const progress=ease(leg%1);
+ const distance=progress*(v.residentX-shelf.bookX);
+ v.x=walking?(returning?shelf.bookX+distance:v.residentX-distance):v.residentX;
  v.drawY=v.laneY=shelf.y*H/360;
  v.facing=walking&&returning?-v.residentFacing:v.residentFacing;
  v.walking=walking;
  v.visible=true;
- v.shelfRoom=room;
- v.shelfElapsed=(elapsed+dt)%CAT_SHELF_CYCLE_MS;
- const frameMs=CAT_WALK_FRAME_MS*(reduced?2:1);
- v.frame=walking?Math.floor(elapsed/frameMs)%FAUNA_FRAMES:faunaFrame(v,time,reduced);
+ const strideFrame=Math.floor(distance/CAT_STRIDE_PX*FAUNA_FRAMES);
+ v.frame=walking?(reduced?strideFrame-strideFrame%2:strideFrame)%FAUNA_FRAMES:faunaFrame(v,time,reduced);
 }
 const FROG_WATER={puddle:{x:618,y:403},pond:{x:665,y:398}};
 const FROG_SPLASH={
@@ -1851,7 +1862,7 @@ function updateVisitors(dt){
   const v=visitors[i],age=sceneTime-v.started;
   if(v.screen!==currentScreen){visitors.splice(i,1);continue;}
   if(v.residentRabbit||v.residentCycle){updateMeadowWalker(v,gardenArrivalTime(),sceneTime,reduced);continue;}
-  if(v.kind==='gatinho'){updateCat(v,sceneTime,reduced,dt);continue;}
+  if(v.kind==='gatinho'){updateCat(v,sceneTime,reduced);continue;}
   if(v.kind==='libelula'){updateDragonfly(v,sceneTime,reduced);continue;}
   if(v.kind==='joao_de_barro'){
    updateBirdHouse(v,sceneTime,faunaSchedule.elapsedFor(v.kind,wildlifeElapsed),reduced);
@@ -2474,30 +2485,36 @@ function drawGardenForeground(){
   ctx.restore();
  }
 }
-const ANT_BASEBOARD={sala:{left:214,y:360},quarto:{left:210,y:353},cozinha:{left:365,y:366}};
-const ANT_TRAIL={count:7,speed:19,frameMs:85,scale:.31,fade:26};
-function drawHomeAnts(){
+// Silhuetas dos móveis na faixa do rodapé, na escala original dos cenários.
+const ANT_BASEBOARD={
+ sala:{y:244,furniture:[[10,222],[135,222],[138,235],[135,247],[130,251],[10,251]]},
+ quarto:{y:240,furniture:[[12,218],[143,218],[145,236],[143,248],[14,249]]},
+ cozinha:{y:245,furniture:[[8,222],[233,222],[234,248],[232,253],[8,253]]},
+};
+const ANT_TRAIL={count:12,speed:21,frameMs:78,scale:.22};
+function drawHomeAnts(g,room,elapsed){
  const sprite=assets.visitors.formiga;
  if(!sprite||!faunaPresent('formiga'))return;
- const {left,y}=ANT_BASEBOARD[Casa.getRoom()];
- const {count,speed,frameMs,scale,fade}=ANT_TRAIL;
- const time=reducedMotion.matches?0:sceneryTime();
- const distance=W-left;
+ const {y,furniture}=ANT_BASEBOARD[room];
+ const {count,speed,frameMs,scale}=ANT_TRAIL;
+ const time=elapsed*(reducedMotion.matches?.5:1);
  const w=Math.round(FAUNA_FRAME_W*scale),h=Math.round(FAUNA_FRAME_H*scale);
- ctx.save();
+ const distance=g.canvas.width+w;
+ g.save();
+ g.beginPath();g.rect(0,0,g.canvas.width,g.canvas.height);
+ furniture.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));
+ g.closePath();g.clip('evenodd');
  for(let i=0;i<count;i++){
-  const x=left+(time*speed/1000+i*distance/count)%distance;
-  ctx.globalAlpha=clamp(Math.min(x-left,W-x)/fade,0,1);
+  const x=(time*speed/1000+i*distance/count)%distance-w;
   const frame=Math.floor(time/frameMs+i*3)%FAUNA_FRAMES;
-  ctx.drawImage(sprite,frame*FAUNA_FRAME_W,0,FAUNA_FRAME_W,FAUNA_FRAME_H,
-    Math.round(x-w/2),Math.round(y-VISITOR_SPEC.formiga.anchor.y*scale),w,h);
+  g.drawImage(sprite,frame*FAUNA_FRAME_W,0,FAUNA_FRAME_W,FAUNA_FRAME_H,
+    Math.round(x),Math.round(y-VISITOR_SPEC.formiga.anchor.y*scale),w,h);
  }
- ctx.restore();
+ g.restore();
 }
 // CASA V41: sala, quarto e cozinha animados (ver módulo Casa).
 function drawHome(){
  paintCasa();
- drawHomeAnts();
  // Responsive feedback in the room itself (without needing extra buttons).
  if(pet.act==='dormir'){
   const frame=pet.frame;ctx.fillStyle='rgba(250,247,221,.76)';
@@ -2727,26 +2744,21 @@ function drawPetReaction(){
 function drawNeedBubble(){
  if(currentScreen==='evolve'||transition||pet.act!=='idle')return;
  const item=petVisual.request;if(!item)return;
- const sc=slimeScale(currentScreen,STAGES[0]);
- const bob=reducedMotion?.matches?0:Math.sin(sceneTime/480)*2;
- const y=Math.round(clamp(currentGround()-118*sc+bob,24,H-60));
+ const sc=slimeScale(currentScreen);
+ const y=Math.round(clamp(currentGround()-110*sc,24,H-60));
  ctx.save();
  const label=NEED_ACTION_LABEL[item.key];
  ctx.font='700 15px system-ui';
- const width=Math.ceil(ctx.measureText(label).width)+72, left=-width/2;
- const x=Math.round(clamp(pet.x+35*sc,4-left,W+left-4));
+ const width=Math.ceil(ctx.measureText(label).width)+48, left=-width/2;
+ const x=Math.round(clamp(pet.x,5-left,W+left-5));
  ctx.translate(x,y);
- ctx.beginPath();ctx.roundRect(left,-19,width,38,17);
- ctx.moveTo(-19,17);ctx.lineTo(-8,17);ctx.lineTo(-19,25);ctx.closePath();
- ctx.shadowColor='#132F3D75';ctx.shadowBlur=8;ctx.shadowOffsetY=3;
- ctx.fillStyle='#17353E';ctx.fill();ctx.shadowColor='transparent';
- ctx.drawImage(careIcon(item.key).tile,left+8,-13,26,26);
- ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#F1FFF4';
- ctx.fillText(label,left+38,0);
- ctx.beginPath();ctx.arc(width/2-15,0,10,0,Math.PI*2);
- ctx.fillStyle=item.status==='want'?'#F5D391':'#A5E8C9';ctx.fill();
- ctx.font='bold 14px system-ui';ctx.textAlign='center';ctx.fillStyle='#18353A';
- ctx.fillText(CARE_STATUS[item.status],width/2-15,1);ctx.restore();
+ ctx.beginPath();ctx.roundRect(left,-17,width,34,12);
+ ctx.moveTo(-7,15);ctx.lineTo(7,15);ctx.lineTo(0,23);ctx.closePath();
+ ctx.fillStyle='#FFFFF5';ctx.shadowColor='#28353044';ctx.shadowBlur=6;ctx.shadowOffsetY=2;
+ ctx.fill();ctx.shadowColor='transparent';
+ ctx.drawImage(careIcon(item.key).tile,left+8,-11,22,22);
+ ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#25443A';
+ ctx.fillText(label,left+35,0);ctx.restore();
 }
 function drawEffect(){if(!fx)return;const q=assets.effects[fx.name];if(!q)return;const f=Math.floor(fx.time/FRAME_MS)%10;ctx.drawImage(q,f*120,0,120,100,Math.round(fx.x-60),Math.round(fx.y-82),120,100);}
 function updateTransition(now){
