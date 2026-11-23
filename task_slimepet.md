@@ -12,6 +12,7 @@
 - [x] T-09 — Bichinhos selecionáveis (tirar e colocar no cenário) (2026-11-19). Seletor de bichinhos com presença salva. Validação no navegador pendente.
 - [x] T-10 — Temporização independente dos bichos (2026-11-19). Calendário da fauna com intervalo de 5 s entre inícios programados de espécies diferentes. Validação no navegador pendente.
 - [x] Reduzir em 10% a velocidade de voo da libélula (2026-11-23). Redução confirmada em simulação e HTML offline atualizado.
+- [x] Igualar a duração da transição entre a Casa e o Jardim (2026-11-23). Ambos os sentidos usam 180 ms, conferidos em simulação.
 
 
 

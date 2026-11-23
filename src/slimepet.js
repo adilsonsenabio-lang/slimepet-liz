@@ -1047,7 +1047,7 @@ function applyScreen(screen){
  renderNeeds();}
 const prefersReducedMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)');
 const reducedMotion={get matches(){return Boolean(state.accessibility?.reducedMotion||prefersReducedMotion?.matches);}};
-const HOME_TO_GARDEN_TRANSITION_MS=180;
+const DOORWAY_TRANSITION_MS=180;
 let screenRequest=0;
 async function setScreen(screen,instant=false){if(!SceneMachine.allows(screen))return;
  if(!instant&&activeCareSequence?.key==='dormir'&&screen!==currentScreen)cancelCareSequence('navigation');
@@ -1068,7 +1068,8 @@ async function setScreen(screen,instant=false){if(!SceneMachine.allows(screen))r
  const msg=screen==='garden'?'🚪 Abrindo a porta do jardim...':screen==='care'?'🚪 Entrando em casa...':'🕳️ Entrando no Limbo...';
  SceneMachine.begin(screen,'transition');
  if(currentScreen==='garden')pauseGardenWildlife();
- const duration=currentScreen==='care'&&screen==='garden'?HOME_TO_GARDEN_TRANSITION_MS:10*FRAME_MS;
+ const throughDoor=(currentScreen==='care'&&screen==='garden')||(currentScreen==='garden'&&screen==='care');
+ const duration=throughDoor?DOORWAY_TRANSITION_MS:10*FRAME_MS;
  transition={from:currentScreen,to:screen,start:GAME_CLOCK.animationNow(),duration,mid:false,startX:pet.x};SOUND.play('switch');
  setFeedback(msg);}
 const THINGS=[

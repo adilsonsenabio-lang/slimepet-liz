@@ -214,3 +214,7 @@ Execute `node scripts/build.mjs` na pasta do projeto para gerar os HTMLs em `dis
 ## Velocidade da libélula
 
 - Reduzi em 10% a velocidade dos trechos de voo da libélula no Jardim.
+
+## Retorno do Jardim para a Casa
+
+- A passagem pela porta dura 180 ms nos dois sentidos.

@@ -167,3 +167,7 @@
 ## Velocidade da libélula
 
 - A simulação confirmou a redução de 10%, a preservação das pausas e dos destinos e a retomada do ciclo com e sem “Pouco movimento”. A sintaxe e o HTML offline gerado foram conferidos. A validação visual e a abertura de um salvamento antigo ficaram pendentes.
+
+## Retorno do Jardim para a Casa
+
+- Simulei a troca nos dois sentidos e confirmei 180 ms. Também verifiquei a passagem pelo Limbo, a troca imediata com “Pouco movimento” e a geração dos HTMLs. Conferência visual pendente.
