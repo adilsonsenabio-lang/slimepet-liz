@@ -21,6 +21,7 @@
 - [x] Posicionar o balão de necessidades perto do slime (2026-11-23).
 - [x] Conferir o desgaste das necessidades e mostrar as quedas inferiores a um ponto percentual (2026-11-23).
 - [x] Criar e integrar a spritesheet da reação de carinho (2026-11-23).
+- [x] Mostrar necessidades em números inteiros e acelerar o desgaste passivo em 30% (2026-11-23).
 
 
 

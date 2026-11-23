@@ -328,9 +328,9 @@ function loadSave(){
 // V41-R3 — tabela de dificuldade centralizada, em pontos por MINUTO.
 // Mude as taxas somente após playtests infantis; energia permanece sem decaimento passivo.
 const NEEDS_DIFFICULTIES=Object.freeze({
- gentil:Object.freeze({fome:0.8,sede:1.0,higiene:0.5,felicidade:0.6}),
- tranquilo:Object.freeze({fome:1.2,sede:1.5,higiene:0.8,felicidade:0.9}),
- ativo:Object.freeze({fome:2.0,sede:2.3,higiene:1.3,felicidade:1.5})
+ gentil:Object.freeze({fome:1.04,sede:1.30,higiene:0.65,felicidade:0.78}),
+ tranquilo:Object.freeze({fome:1.56,sede:1.95,higiene:1.04,felicidade:1.17}),
+ ativo:Object.freeze({fome:2.60,sede:2.99,higiene:1.69,felicidade:1.95})
 });
 const DEFAULT_NEEDS_MODE='gentil';
 const MAX_OFFLINE_NEEDS_MS=10*60*1000; // Até 10 minutos de desgaste por retorno, mesmo após dias.
@@ -512,13 +512,12 @@ function renderNeeds(){
     card.innerHTML='<span class="needHeader"><span class="needIcon">'+careIconMarkup(k)+'</span><span class="needName"></span><strong></strong></span><span class="track"><span class="fill"></span></span><span class="needAction">'+NEED_ACTION_LABEL[k]+'</span>';
     root.appendChild(card);
    }
-   const reading=v.toFixed(1).replace('.',','),percent=reading+'%',name=n;
+   const reading=v.toFixed(0),percent=reading+'%',name=n;
    const label=card.querySelector('.needName'),value=card.querySelector('strong'),bar=card.querySelector('.fill');
    const expression=needFace(k,v);
    if(label.textContent!==name)label.textContent=name;
    if(value.textContent!==percent)value.textContent=percent;
-   const fillWidth=v.toFixed(2)+'%';
-   if(bar.style.width!==fillWidth)bar.style.width=fillWidth;
+   if(bar.style.width!==percent)bar.style.width=percent;
    bar.classList.toggle('low',v<30);bar.classList.toggle('medium',v>=30&&v<55);
    const isUrgent=k!=='saude'&&v<30;
    card.classList.toggle('urgent',isUrgent);card.classList.toggle('attention',k!=='saude'&&v>=30&&v<55);
