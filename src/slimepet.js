@@ -2472,16 +2472,14 @@ const ANT_TRAIL_PATTERNS=Object.fromEntries(CASA_ROOMS.map(room=>[room,
 ]));
 function drawHomeAnts(g,room,elapsed){
  const sprite=assets.visitors.formiga;
- const turn=homeFaunaTurn(elapsed/.90);
- if(turn?.kind!=='formiga'||!sprite||!faunaPresent('formiga'))return;
+ if(!sprite||!faunaPresent('formiga'))return;
  const {y,furniture}=ANT_BASEBOARD[room];
  const {count,speed,frameMs,scale}=ANT_TRAIL;
- const time=(turn.round/2*turn.duration+turn.age)*.90*(reducedMotion.matches?.5:1);
+ const time=elapsed*(reducedMotion.matches?.5:1);
  const w=Math.round(FAUNA_FRAME_W*scale),h=Math.round(FAUNA_FRAME_H*scale);
  const distance=g.canvas.width+w;
  const spacing=distance/count,seconds=time/1000;
  g.save();
- g.globalAlpha=ease(Math.min(turn.age,turn.duration-turn.age)/450);
  g.beginPath();g.rect(0,0,g.canvas.width,g.canvas.height);
  furniture.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));
  g.closePath();g.clip('evenodd');

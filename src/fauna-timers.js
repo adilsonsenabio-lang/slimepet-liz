@@ -35,7 +35,7 @@ function homeFaunaTurn(elapsed){
  if(age<CAT_SHELF_WALK_MS)return {kind:'gatinho',age,round};
  const visitorAge=age-CAT_SHELF_WALK_MS-FAUNA_TURN_GAP_MS;
  const duration=CAT_SHELF_REST_MS-2*FAUNA_TURN_GAP_MS;
- return visitorAge>=0&&visitorAge<duration?{kind:round%2?'abelha':'formiga',age:visitorAge,duration,round}:null;
+ return round%2&&visitorAge>=0&&visitorAge<duration?{kind:'abelha',age:visitorAge,duration,round}:null;
 }
 const MEADOW_WALKS={
  coelho:{from:-51,to:658,delay:600,leg:12800,wait:2200,stride:36},

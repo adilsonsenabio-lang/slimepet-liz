@@ -201,3 +201,5 @@
 - Simulei um minuto de desgaste nas três dificuldades. Confirmei o aumento de 30% nas quatro taxas passivas e os percentuais inteiros nos cartões e nas barras. Conferência no navegador pendente.
 
 - Simulei dois rodízios completos do Jardim, quatro ciclos da Casa e um turno com espécie desativada. Conferi a exclusividade dos turnos e gerei os dois HTMLs. Conferência no navegador pendente.
+
+- Comparei o desenho e o relógio da fila com a versão anterior ao rodízio. A rotina contínua das formigas foi restaurada integralmente e os turnos do gato, da abelha e do Jardim foram conferidos.

@@ -23,6 +23,7 @@
 - [x] Criar e integrar a spritesheet da reação de carinho (2026-11-23).
 - [x] Mostrar necessidades em números inteiros e acelerar o desgaste passivo em 30% (2026-11-23).
 - [x] Dar turnos próprios aos bichos da Casa e do Jardim (2026-11-23).
+- [x] Restaurar o ciclo contínuo das formigas, independente dos turnos (2026-11-23).
 
 
 
