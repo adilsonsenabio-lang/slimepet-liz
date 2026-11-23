@@ -171,3 +171,7 @@
 ## Retorno do Jardim para a Casa
 
 - Simulei a troca nos dois sentidos e confirmei 180 ms. Também verifiquei a passagem pelo Limbo, a troca imediata com “Pouco movimento” e a geração dos HTMLs. Conferência visual pendente.
+
+## Lembrete de necessidades e passeio do gato
+
+- Simulei o trajeto, a pausa, a repetição e o modo “Pouco movimento” nos três cômodos. Conferi o desenho do ícone e do estado no balão e a geração dos HTMLs. Conferência visual no navegador pendente.

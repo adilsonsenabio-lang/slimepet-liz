@@ -1679,11 +1679,19 @@ function updateDragonfly(v,time,reduced,random=Math.random){
  v.phase=p===0?'repouso':'voar';
  v.frame=Math.floor(time/rule.wingFrameMs)%FAUNA_FRAMES;
 }
-const CAT_SHELF={sala:154,quarto:153,cozinha:151};
-function updateCat(v,time,reduced){
- v.x=v.residentX;
- v.drawY=v.laneY=CAT_SHELF[Casa.getRoom()]*H/360;
- v.facing=v.residentFacing;
+const CAT_SHELF={sala:{y:154,bookX:550},quarto:{y:153,bookX:548},cozinha:{y:151,bookX:543}};
+const CAT_SHELF_CYCLE_MS=30000,CAT_SHELF_REST_MS=15000;
+function updateCat(v,time,reduced,dt){
+ const shelf=CAT_SHELF[Casa.getRoom()];
+ const walkMs=CAT_SHELF_CYCLE_MS-CAT_SHELF_REST_MS;
+ const elapsed=v.shelfElapsed??0;
+ const walking=!reduced&&elapsed<walkMs;
+ const leg=elapsed/(walkMs/2);
+ const returning=leg>=1;
+ v.x=walking?v41Mix(v.residentX,shelf.bookX,ease(returning?2-leg:leg)):v.residentX;
+ v.drawY=v.laneY=shelf.y*H/360;
+ v.facing=walking&&returning?-v.residentFacing:v.residentFacing;
+ v.shelfElapsed=reduced?0:(elapsed+dt)%CAT_SHELF_CYCLE_MS;
  v.frame=faunaFrame(v,time,reduced);
 }
 const FROG_WATER={puddle:{x:618,y:403},pond:{x:665,y:398}};
@@ -1839,7 +1847,7 @@ function updateVisitors(dt){
   const v=visitors[i],age=sceneTime-v.started;
   if(v.screen!==currentScreen){visitors.splice(i,1);continue;}
   if(v.residentRabbit||v.residentCycle){updateMeadowWalker(v,gardenArrivalTime(),sceneTime,reduced);continue;}
-  if(v.kind==='gatinho'){updateCat(v,sceneTime,reduced);continue;}
+  if(v.kind==='gatinho'){updateCat(v,sceneTime,reduced,dt);continue;}
   if(v.kind==='libelula'){updateDragonfly(v,sceneTime,reduced);continue;}
   if(v.kind==='joao_de_barro'){
    updateBirdHouse(v,sceneTime,faunaSchedule.elapsedFor(v.kind,wildlifeElapsed),reduced);
@@ -2692,15 +2700,24 @@ function drawNeedBubble(){
  if(currentScreen==='evolve'||transition||pet.act!=='idle')return;
  const item=petVisual.request;if(!item)return;
  const sc=slimeScale(currentScreen,STAGES[0]);
- const x=Math.round(clamp(pet.x+35*sc,32,W-38));
- const bob=reducedMotion?.matches?0:Math.sin(sceneTime/360)*3;
+ const x=Math.round(clamp(pet.x+35*sc,33,W-33));
+ const bob=reducedMotion?.matches?0:Math.sin(sceneTime/480)*2;
  const y=Math.round(clamp(currentGround()-118*sc+bob,24,H-60));
- ctx.save();ctx.fillStyle='#26434B';ctx.fillRect(x-18,y-15,39,34);
- ctx.fillStyle='#EBFFE9';ctx.fillRect(x-16,y-13,35,30);
- ctx.fillStyle='#65A4A4';ctx.fillRect(x-11,y+19,6,5);
- ctx.drawImage(careIcon(item.key).tile,x-13,y-11,24,24);
- ctx.font='bold 12px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#17322B';
- ctx.fillText(CARE_STATUS[item.status],x+14,y+3);ctx.restore();
+ ctx.save();ctx.translate(x,y);
+ ctx.beginPath();ctx.moveTo(-15,-19);ctx.lineTo(15,-19);
+ ctx.quadraticCurveTo(29,-19,29,-5);ctx.lineTo(29,5);
+ ctx.quadraticCurveTo(29,19,15,19);ctx.lineTo(-8,19);
+ ctx.lineTo(-19,25);ctx.lineTo(-17,19);
+ ctx.quadraticCurveTo(-29,18,-29,5);ctx.lineTo(-29,-5);
+ ctx.quadraticCurveTo(-29,-19,-15,-19);ctx.closePath();
+ ctx.shadowColor='#173D4050';ctx.shadowBlur=7;ctx.shadowOffsetY=3;
+ ctx.fillStyle='#FAFFF4';ctx.fill();ctx.shadowColor='transparent';
+ ctx.strokeStyle='#83B6A6';ctx.lineWidth=1.5;ctx.lineJoin='round';ctx.stroke();
+ ctx.drawImage(careIcon(item.key).tile,-23,-13,26,26);
+ ctx.beginPath();ctx.arc(14,0,10,0,Math.PI*2);
+ ctx.fillStyle=item.status==='want'?'#FFE6B7':'#D8EFE3';ctx.fill();
+ ctx.font='bold 14px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#24483E';
+ ctx.fillText(CARE_STATUS[item.status],14,1);ctx.restore();
 }
 function drawEffect(){if(!fx)return;const q=assets.effects[fx.name];if(!q)return;const f=Math.floor(fx.time/FRAME_MS)%10;ctx.drawImage(q,f*120,0,120,100,Math.round(fx.x-60),Math.round(fx.y-82),120,100);}
 function updateTransition(now){

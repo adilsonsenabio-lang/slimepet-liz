@@ -218,3 +218,8 @@ Execute `node scripts/build.mjs` na pasta do projeto para gerar os HTMLs em `dis
 ## Retorno do Jardim para a Casa
 
 - A passagem pela porta dura 180 ms nos dois sentidos.
+
+## Lembrete de necessidades e passeio do gato
+
+- O balão ganhou cantos arredondados, sombra suave e um círculo para destacar o estado da necessidade.
+- O gato vai da ponta direita até os livros e volta em 15 segundos. Descansa na ponta por mais 15 segundos e continua animando os quadros da spritesheet atual.
