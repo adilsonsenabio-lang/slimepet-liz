@@ -253,3 +253,5 @@ Execute `node scripts/build.mjs` na pasta do projeto para gerar os HTMLs em `dis
 - Ao receber carinho, o slime ganha uma animação de 20 quadros com corações ascendentes e estrelas. O efeito acompanha a reação feliz na Casa e no Jardim.
 
 - Os cartões voltaram a mostrar percentuais inteiros. Saciedade, sede, higiene e felicidade caem 30% mais rápido em todas as dificuldades.
+
+- O Jardim usa turnos exclusivos para as dez espécies, com um intervalo entre eles. Na Casa, a abelha e a fila de formigas se alternam durante as pausas do gato.

@@ -199,3 +199,5 @@
 - Inspecionei a spritesheet do carinho e simulei a sequência de 20 quadros na Casa e no Jardim, incluindo o quadro fixo em “Pouco movimento”. Confirmei a inclusão do PNG nos dois HTMLs. Conferência no navegador pendente.
 
 - Simulei um minuto de desgaste nas três dificuldades. Confirmei o aumento de 30% nas quatro taxas passivas e os percentuais inteiros nos cartões e nas barras. Conferência no navegador pendente.
+
+- Simulei dois rodízios completos do Jardim, quatro ciclos da Casa e um turno com espécie desativada. Conferi a exclusividade dos turnos e gerei os dois HTMLs. Conferência no navegador pendente.

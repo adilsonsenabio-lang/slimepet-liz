@@ -980,15 +980,14 @@ const parkedScenes=new Map();
 let enteredScene=false,sceneryOrigin=0;
 const VISITOR_CLOCK_FIELDS=[
  'started','landingStart','cycleStart','nextIdleReaction','reactionAt','nextReaction','nextManualReaction',
- 'manualPoseAt','singAt','pondHopAt','pairedHopAt','flightLastTime','dartLastTime',
+ 'manualPoseAt','singAt','pondHopAt','pairedHopAt',
 ];
 const SCENE_PET_FIELDS=['x','act','frame','frameTime','moveStart','moveEnd','pending'];
 function sceneryTime(){return sceneTime-sceneryOrigin;}
 function gardenArrivalTime(){return sceneryTime()/.90;}
 function parkCurrentScene(){
- if(currentScreen==='garden')pauseGardenWildlife();
  parkedScenes.set(currentScreen,{
-  visitors,nextVisitorAt,nextDuckAt,fx,task,inspectMode,voidPulseStart,sceneryOrigin,
+  visitors,fx,task,inspectMode,voidPulseStart,sceneryOrigin,
   parkedAt:sceneTime,
   pet:Object.fromEntries(SCENE_PET_FIELDS.map(key=>[key,pet[key]])),
  });
@@ -999,10 +998,7 @@ function enterScene(screen){
   if(enteredScene)Object.assign(pet,{x:362,act:'idle',frame:0,frameTime:0,moveStart:362,moveEnd:362,pending:null});
   visitors=[];fx=null;task=null;inspectMode=false;
   sceneryOrigin=sceneTime;
-  if(screen==='garden')resetGardenWildlife();
   spawnResidentVisitors(screen);
-  nextVisitorAt=sceneTime+sampleFaunaOffset(BICHO_TIMERS.visitante);
-  if(screen==='garden')nextDuckAt=sceneTime+sampleFaunaOffset(BICHO_TIMERS.patinho);
   return;
  }
  parkedScenes.delete(screen);
@@ -1013,7 +1009,6 @@ function enterScene(screen){
    if(Number.isFinite(v[key]))v[key]+=away;
   }
  }
- nextVisitorAt=saved.nextVisitorAt+away;nextDuckAt=saved.nextDuckAt+away;
  fx=saved.fx;task=saved.task;inspectMode=saved.inspectMode;
  sceneryOrigin=saved.sceneryOrigin+away;
  voidPulseStart=saved.voidPulseStart+away;
@@ -1030,7 +1025,6 @@ function applyScreen(screen){
   currentScreen=screen;
   enterScene(screen);
   enteredScene=true;
-  if(screen==='garden'&&!transition)resumeGardenWildlife();
   if(screen==='evolve'&&voidPulseStart<0)voidPulseStart=sceneTime;
   resetPetVisual();
   lookAt=null;visitorReach=null;
@@ -1066,7 +1060,6 @@ async function setScreen(screen,instant=false){if(!SceneMachine.allows(screen))r
  if(reducedMotion?.matches){SceneMachine.finish();applyScreen(screen);return;}
  const msg=screen==='garden'?'🚪 Abrindo a porta do jardim...':screen==='care'?'🚪 Entrando em casa...':'🕳️ Entrando no Limbo...';
  SceneMachine.begin(screen,'transition');
- if(currentScreen==='garden')pauseGardenWildlife();
  const throughDoor=(currentScreen==='care'&&screen==='garden')||(currentScreen==='garden'&&screen==='care');
  const duration=throughDoor?DOORWAY_TRANSITION_MS:10*FRAME_MS;
  transition={from:currentScreen,to:screen,start:GAME_CLOCK.animationNow(),duration,mid:false,startX:pet.x};SOUND.play('switch');
@@ -1334,23 +1327,6 @@ const BIRD_HOUSE_ACTIONS={
  joao_de_barro_entrando:'../assets/joao_de_barro_entra_na_casa.png',
  joao_de_barro_saindo:'../assets/joao_de_barro_saindo.png',
 };
-let gardenWildlifeStart=0,gardenPausedAt=null,faunaSchedule;
-function resetGardenWildlife(){
- gardenWildlifeStart=GAME_CLOCK.wallNow();
- gardenPausedAt=transition?gardenWildlifeStart:null;
- faunaSchedule=createFaunaSchedule();
-}
-function pauseGardenWildlife(){
- gardenPausedAt??=GAME_CLOCK.wallNow();
-}
-function resumeGardenWildlife(){
- if(gardenPausedAt===null)return;
- gardenWildlifeStart+=Math.max(0,GAME_CLOCK.wallNow()-gardenPausedAt);
- gardenPausedAt=null;
-}
-function gardenWildlifeElapsed(now=GAME_CLOCK.wallNow()){
- return Math.max(0,(gardenPausedAt??now)-gardenWildlifeStart);
-}
 const FAUNA_FRAME_W=72,FAUNA_FRAME_H=56,FAUNA_FRAMES=20;
 const FAUNA_ANCHORS={abelha:34,borboleta:28,vagalume:28,sapo:48,gatinho:47};
 const FAUNA_FRAME_MS={abelha:95,borboleta:105,libelula:90,joaninha:100,caracol:155,
@@ -1365,18 +1341,7 @@ function faunaFrame(v,time,reduced){
  const cadence=(FAUNA_FRAME_MS[v.kind]??v.spec.ms)*(reduced?1.6:1);
  return Math.floor(Math.max(0,time-v.started)*2/cadence)%FAUNA_FRAMES;
 }
-// Rodizio justo: cada especie da tela aparece ao menos uma vez antes de outra repetir.
-const visitorSeen={care:Object.create(null),garden:Object.create(null)};
-function pickVisitor(choices){
-  if(!choices.length)return null;
-  const seen=visitorSeen[currentScreen];
-  const fewest=Math.min(...choices.map(kind=>seen[kind]||0));
-  const available=choices.filter(kind=>(seen[kind]||0)===fewest);
-  const selected=available[Math.floor(Math.random()*available.length)];
-  seen[selected]=(seen[selected]||0)+1;
-  return selected;
-}
-let visitors=[],nextVisitorAt=sceneTime+2700,nextDuckAt=sceneTime+4500,lookAt=null,visitorIndex=0,visitCount=0,inspectMode=false,visitorReach=null;
+let visitors=[],lookAt=null,visitorIndex=0,visitCount=0,inspectMode=false,visitorReach=null;
 function pickWindowStop(kind,spec){
  const center=VISITOR_WINDOW.x+VISITOR_WINDOW.w/2;
  const gap=kind==='beijaflor'?26:22;
@@ -1450,7 +1415,7 @@ function updateResidentButterfly(v,time,dt,reduced){
   // Virada de perfil: o corpo fica estreito antes de espelhar, sem corte brusco.
   v.turnScale=Math.max(.035,Math.min(1,Math.abs(v.facingBlend)));
   v.facing=v.facingBlend>=0?1:-1;
-  v.frame=faunaFrame(v,time,reduced);
+  v.frame=faunaFrame(v,sceneTime,reduced);
 }
 const RABBIT_WALK_FRAMES=6;
 function rabbitWalkFrame(distance){
@@ -1458,7 +1423,7 @@ function rabbitWalkFrame(distance){
 }
 function meadowPosition(kind,elapsed){
  const rule=MEADOW_WALKS[kind];
- const t=elapsed%GARDEN_VISIBILITY.roundMs-rule.delay;
+ const t=elapsed-rule.delay;
  const returnAt=rule.leg+rule.wait;
  const returning=t>=returnAt;
  const progress=clamp((returning?t-returnAt:t)/rule.leg,0,1);
@@ -1520,7 +1485,7 @@ function spawnResidentVisitors(screen,onlyKind){
     landingStart:sceneTime,landingDuration:1550,nextIdleReaction:sceneTime+5200+Math.random()*2600});
   }else{
    Object.assign(v,{stationary:true,residentX:loc.x,residentY:loc.y,residentFacing:loc.facing,
-    residentWalk:!!loc.wander,residentCycle:loc.cycle||null,cycleStart:sceneTime,cycleOffset:BICHO_TIMERS[kind]&&!BICHO_TIMERS[kind].actions?sampleFaunaOffset(BICHO_TIMERS[kind]):0,residentFlight:!!loc.flight,residentFlutter:!!loc.flutter,residentPond:!!loc.pond,residentRabbit:!!loc.rabbit,
+    residentWalk:!!loc.wander,residentCycle:loc.cycle||null,cycleStart:sceneTime,residentFlight:!!loc.flight,residentFlutter:!!loc.flutter,residentPond:!!loc.pond,residentRabbit:!!loc.rabbit,
     walkMin:loc.minX??loc.x,walkMax:loc.maxX??loc.x,walkSpeed:loc.speed??0,
     walkStart:(loc.x-(loc.minX??loc.x)),walkTurnPause:loc.turnPause??1300,walkDistance:0,walking:false,
     x:loc.x,x0:loc.x,x1:loc.x,stop:loc.x,y:loc.y,laneY:loc.y,drawY:loc.y,
@@ -1528,9 +1493,7 @@ function spawnResidentVisitors(screen,onlyKind){
     duration:Infinity,fromLeft:false,facing:loc.facing,
     nextIdleReaction:sceneTime+2700+Math.random()*2300});
   }
-  if(kind==='borboleta'||kind==='gatinho')v.started-=v.cycleOffset;
-  if(v.residentRabbit||v.residentCycle)updateMeadowWalker(v,gardenArrivalTime(),sceneTime,reducedMotion.matches);
-  if(kind==='joao_de_barro')updateBirdHouse(v,sceneTime,faunaSchedule.elapsedFor(kind,gardenWildlifeElapsed()),reducedMotion.matches);
+  if(screen==='garden')v.visible=false;
   visitors.push(v);
  }
 }
@@ -1576,7 +1539,7 @@ function watchVisitor(v,manual=false){
  if(!playAnim(friend?.anim||(playful?'feliz':'curioso'),false))return;
  if(manual)PersonalityMachine.onVisitor(true,v.kind);
  lastUserAction=now;
- if(friend&&v.kind==='sapo'&&v.phase==='repouso'&&!reducedMotion.matches&&faunaSchedule.reserve(v.kind,gardenWildlifeElapsed()))v.pondHopAt=sceneTime;
+ if(friend&&v.kind==='sapo'&&v.phase==='repouso'&&!reducedMotion.matches)v.pondHopAt=sceneTime;
  const happiness=friend?visitorHappiness(v,friend.happiness,now):0;
  if(happiness)applyStats({felicidade:happiness});
  setFeedback(v.perchCallPending&&friend?'🐦 O slime está acompanhando o passarinho.':friend?.text||'👀 O slime viu '+v.spec.label+'!');
@@ -1690,8 +1653,6 @@ function updateDragonfly(v,time,reduced,random=Math.random){
  v.frame=Math.floor(time/rule.wingFrameMs)%FAUNA_FRAMES;
 }
 const CAT_SHELF={sala:{y:154,bookX:550},quarto:{y:153,bookX:548},cozinha:{y:151,bookX:543}};
-const CAT_SHELF_WALK_MS=15000,CAT_SHELF_REST_MS=15000;
-const CAT_SHELF_CYCLE_MS=CAT_SHELF_WALK_MS+CAT_SHELF_REST_MS;
 const CAT_WALK_SRC='../assets/gatinho_caminhando.png',CAT_STRIDE_PX=19;
 function updateCat(v,time,reduced){
  const room=Casa.getRoom();
@@ -1832,45 +1793,49 @@ function reactToResidentIdle(v){
 function updateVisitors(dt){
  if(currentScreen==='evolve'){visitors=[];return;}
  if(transition)return; // preservar moradores durante a passagem Casa/Jardim
- const wildlifeElapsed=currentScreen==='garden'?gardenWildlifeElapsed():0;
- if(currentScreen==='garden')faunaSchedule.advance(wildlifeElapsed);
- if(currentScreen==='garden'&&faunaPresent('patinho')&&sceneTime>=nextDuckAt&&!visitors.some(v=>v.kind==='patinho')&&
-    !visitors.some(v=>!v.stationary&&!v.residentLanding)&&faunaSchedule.reserve('patinho',wildlifeElapsed)){
-  const duck=newVisitor('patinho');
-  if(duck){
-   const margin=72*duck.scale/2+12;
-   Object.assign(duck,{fromLeft:false,x0:W+margin,x1:W+margin,x:W+margin,
-      left:0,right:W,stop:616+Math.random()*26,visible:false,facing:-1,
-      y:GARDEN_DUCK_Y,laneY:GARDEN_DUCK_Y,drawY:GARDEN_DUCK_Y,duration:21000,reactionAt:-Infinity});
-   visitors.push(duck);visitCount++;
+ const garden=currentScreen==='garden';
+ const turn=garden?gardenFaunaTurn(gardenArrivalTime()):homeFaunaTurn(Casa.elapsed()/.90);
+ const turnKey=turn&&(garden?turn.round+':'+turn.index:Casa.getRoom()+':'+turn.round);
+ const guest=turn?.kind;
+ if((guest==='abelha'||guest==='patinho')&&faunaPresent(guest)&&assets.visitors[guest]&&
+    turn.age<VISITOR_SPEC[guest].duration&&!visitors.some(v=>v.kind===guest&&v.turnKey===turnKey)){
+  const v=newVisitor(guest);
+  v.turnKey=turnKey;
+  if(!garden)v.homeRoom=Casa.getRoom();
+  if(guest==='patinho'){
+   const edge=W+FAUNA_FRAME_W*v.scale/2+12;
+   Object.assign(v,{fromLeft:false,x0:edge,x1:edge,x:edge,stop:616+Math.random()*26,
+    visible:false,facing:-1,y:GARDEN_DUCK_Y,laneY:GARDEN_DUCK_Y,drawY:GARDEN_DUCK_Y});
   }
-  nextDuckAt=sceneTime+BICHO_TIMERS.patinho.ciclo;
- }
- if(sceneTime>=nextVisitorAt){
-  const choices=(currentScreen==='garden'?gardenAnimals:homeAnimals).filter(kind=>
-   kind!=='formiga'&&faunaPresent(kind)&&!FIXED_VISITORS[kind]&&assets.visitors[kind]&&!visitors.some(v=>v.kind===kind));
-  // Moradores fixos nao ocupam os dois lugares dos visitantes passageiros.
-  const transientLimit=currentScreen==='garden'?1:2;
-  if(visitors.filter(v=>!v.stationary&&!v.residentLanding).length<transientLimit&&choices.length){
-   const selected=pickVisitor(choices);
-   if(selected&&(currentScreen!=='garden'||faunaSchedule.reserve(selected,wildlifeElapsed))){visitors.push(newVisitor(selected));visitCount++;}
-  }
-  nextVisitorAt=sceneTime+(currentScreen==='garden'?BICHO_TIMERS.visitante.ciclo:5400)+Math.random()*(currentScreen==='garden'?BICHO_TIMERS.visitante.jitter:1900);
+  visitors.push(v);visitCount++;
  }
  const reduced=reducedMotion?.matches;
  const ground=currentGround();
  for(let i=visitors.length-1;i>=0;i--){
-  const v=visitors[i],age=sceneTime-v.started;
+  const v=visitors[i];
   if(v.screen!==currentScreen){visitors.splice(i,1);continue;}
-  if(v.residentRabbit||v.residentCycle){updateMeadowWalker(v,gardenArrivalTime(),sceneTime,reduced);continue;}
+  if(v.homeRoom&&v.homeRoom!==Casa.getRoom()){v.visible=false;continue;}
   if(v.kind==='gatinho'){updateCat(v,sceneTime,reduced);continue;}
-  if(v.kind==='libelula'){updateDragonfly(v,sceneTime,reduced);continue;}
+  if(v.kind!==guest||!faunaPresent(v.kind)){
+   if(!FIXED_VISITORS[v.kind]){visitors.splice(i,1);continue;}
+   v.visible=false;v.phase='fora_do_turno';v.puddleSplash=null;continue;
+  }
+  if(!FIXED_VISITORS[v.kind]&&v.turnKey!==turnKey){visitors.splice(i,1);continue;}
+  const age=turn.age;
+  v.crowdAlpha=ease(Math.min(age,turn.duration-age)/450);
+  if(v.residentRabbit||v.residentCycle){
+   const secondLeg=v.residentCycle&&turn.round%2?turn.duration:0;
+   updateMeadowWalker(v,age+secondLeg,sceneTime,reduced);continue;
+  }
+  if(v.kind==='libelula'){
+   updateDragonfly(v,(turn.round*turn.duration+age)*.90,reduced);continue;
+  }
   if(v.kind==='joao_de_barro'){
-   updateBirdHouse(v,sceneTime,faunaSchedule.elapsedFor(v.kind,wildlifeElapsed),reduced);
+   updateBirdHouse(v,sceneTime,age+turn.phase,reduced);
    if(v.phase==='repouso')reactToResidentIdle(v);
    continue;
   }
-  if(v.residentPond){updatePondFrog(v,sceneTime,reduced,faunaSchedule.elapsedFor(v.kind,wildlifeElapsed));continue;}
+  if(v.residentPond){updatePondFrog(v,sceneTime,reduced,age+turn.phase);continue;}
   if(v.kind==='formiga')v.scale=visitorScale(v.kind,v.screen);
   if(v.residentLanding&&!v.stationary){
    const lt=clamp((sceneTime-v.landingStart)/v.landingDuration,0,1);
@@ -1889,9 +1854,12 @@ function updateVisitors(dt){
    }
    continue;
   }
-  if(v.residentFlight){updateFlowerFlight(v,faunaSchedule.elapsedFor(v.kind,wildlifeElapsed),reduced);continue;}
+  if(v.residentFlight){updateFlowerFlight(v,age,reduced);continue;}
   if(v.residentFlutter){
-   updateResidentButterfly(v,sceneTime,dt,reduced);
+   v.flightClock??=0;
+   const flightTime=(turn.round*turn.duration+age)*.90;
+   v.flightLastTime??=flightTime;
+   updateResidentButterfly(v,flightTime,dt,reduced);
    continue;
   }
   if(v.stationary){
@@ -2504,14 +2472,16 @@ const ANT_TRAIL_PATTERNS=Object.fromEntries(CASA_ROOMS.map(room=>[room,
 ]));
 function drawHomeAnts(g,room,elapsed){
  const sprite=assets.visitors.formiga;
- if(!sprite||!faunaPresent('formiga'))return;
+ const turn=homeFaunaTurn(elapsed/.90);
+ if(turn?.kind!=='formiga'||!sprite||!faunaPresent('formiga'))return;
  const {y,furniture}=ANT_BASEBOARD[room];
  const {count,speed,frameMs,scale}=ANT_TRAIL;
- const time=elapsed*(reducedMotion.matches?.5:1);
+ const time=(turn.round/2*turn.duration+turn.age)*.90*(reducedMotion.matches?.5:1);
  const w=Math.round(FAUNA_FRAME_W*scale),h=Math.round(FAUNA_FRAME_H*scale);
  const distance=g.canvas.width+w;
  const spacing=distance/count,seconds=time/1000;
  g.save();
+ g.globalAlpha=ease(Math.min(turn.age,turn.duration-turn.age)/450);
  g.beginPath();g.rect(0,0,g.canvas.width,g.canvas.height);
  furniture.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));
  g.closePath();g.clip('evenodd');
@@ -2795,7 +2765,6 @@ function updateTransition(now){
  }
  if(elapsed>=transition.duration){
   transition=null;SceneMachine.finish();
-  if(currentScreen==='garden')resumeGardenWildlife();
  }
 }
 function drawTransitionOverlay(now){
@@ -2830,23 +2799,6 @@ function drawTransitionOverlay(now){
 function faunaPresent(kind){
  return state.fauna.presentes?.[kind]!==false;
 }
-function reintroduceAnimal(kind){
- const loc=FIXED_VISITORS[kind];
- if(loc){spawnResidentVisitors(currentScreen,kind);return;}
- if(currentScreen!=='garden'||!(gardenAnimals.includes(kind)||kind==='patinho'))return;
- const v=newVisitor(kind);
- if(!v)return;
- if(kind==='abelha'){visitors.push(v);return;}
- const water=kind==='patinho';
- const y=water?GARDEN_DUCK_Y:421;
- const obstacles=visitors.filter(visitorHasCollision).map(visitorCollisionBox);
- obstacles.push(collisionBox('slime',pet.x,currentGround()));
- const x=resolveCollisionX(collisionBox(kind,water?639:360,y),undefined,obstacles,water?570:95,water?686:520);
- if(x===undefined)return;
- Object.assign(v,{stationary:true,residentX:x,residentY:y,residentFacing:1,x,drawY:y,laneY:y,
-  visible:true,phase:'repouso',nextIdleReaction:sceneTime+2700});
- visitors.push(v);
-}
 function setupFaunaOptions(){
  const list=$('faunaOptions');
  const kinds=new Set([...Object.keys(FIXED_VISITORS),...gardenAnimals,...homeAnimals,'patinho']);
@@ -2868,7 +2820,7 @@ function setupFaunaOptions(){
     if(removed.some(v=>v.id===visitorReach?.id))visitorReach=null;
    }else{
     delete state.fauna.presentes[kind];
-    reintroduceAnimal(kind);
+    if(FIXED_VISITORS[kind])spawnResidentVisitors(currentScreen,kind);
    }
    sync();save();
   });
@@ -2914,52 +2866,6 @@ function limitSlimeWalk(target){
  if(currentScreen==='evolve'||transition)return target;
  const obstacles=visitors.filter(visitorHasCollision).map(visitorCollisionBox);
  return resolveCollisionX(collisionBox('slime',target,currentGround()),pet.x,obstacles,80,644)??pet.x;
-}
-const ROTATING_GARDEN_ANIMALS=new Set(GARDEN_VISIBILITY.rounds.flat());
-function limitGardenCrowd(elapsed){
- const rule=GARDEN_VISIBILITY;
- const roundIndex=Math.floor(elapsed/rule.roundMs)%rule.rounds.length;
- const current=rule.rounds[roundIndex];
- const previous=rule.rounds[(roundIndex+rule.rounds.length-1)%rule.rounds.length];
- const next=rule.rounds[(roundIndex+1)%rule.rounds.length];
- const age=elapsed%rule.roundMs;
- let visible=0;
- for(const v of visitors){
-  v.crowdAlpha=1;
-  if(!v.visible||!FIXED_VISITORS[v.kind])continue;
-  if(ROTATING_GARDEN_ANIMALS.has(v.kind)){
-   if(!current.includes(v.kind)){v.visible=false;continue;}
-   const enter=roundIndex===0&&elapsed<rule.roundMs||previous.includes(v.kind)?1:age/rule.fadeMs;
-   const leave=next.includes(v.kind)?1:(rule.roundMs-age)/rule.fadeMs;
-   v.crowdAlpha=ease(Math.min(enter,leave));
-   if(v.crowdAlpha===0){v.visible=false;continue;}
-  }
-  visible++;
- }
- for(const v of visitors){
-  if(!v.visible||FIXED_VISITORS[v.kind])continue;
-  if(v.kind==='abelha'){
-   if(!admitGardenBee(v,visible<rule.limit,elapsed))continue;
-  }else if(visible>=rule.limit){v.visible=false;continue;}
-  visible++;
- }
-}
-const BEE_OVERFLOW_FADE_MS=650;
-function admitGardenBee(v,hasSpace,elapsed){
- if(v.gardenBeeRejected){v.visible=false;return false;}
- if(!v.gardenBeeAdmitted){
-  if(!hasSpace||v.phase!=='entrar'){
-   v.gardenBeeRejected=true;v.visible=false;return false;
-  }
-  v.gardenBeeAdmitted=true;
- }
- if(!hasSpace)v.gardenBeeFadeAt??=elapsed;
- if(v.gardenBeeFadeAt!==undefined){
-  v.crowdAlpha=1-ease((elapsed-v.gardenBeeFadeAt)/BEE_OVERFLOW_FADE_MS);
-  if(v.crowdAlpha===0){v.gardenBeeRejected=true;v.visible=false;return false;}
- }
- return true;
-
 }
 function resolveActorCollisions(previousPetX,previousVisitors){
  if(currentScreen==='evolve'||transition)return;
@@ -3007,7 +2913,7 @@ function frame(timestamp){
  else if(!transition){pet.frameTime+=dt;if(pet.frameTime>=FRAME_MS){pet.frameTime-=FRAME_MS;pet.frame=(pet.frame+1)%10;}}
  if(!transition&&!activeCareSequence&&pet.act.startsWith('walk_'))updateSlimeStride();
  if(!transition&&fx){fx.time+=dt;if(fx.time>=10*FRAME_MS)fx=null;}
- updateTransition(timestamp);sunPosition();updateVisitors(dt);if(currentScreen==='garden'&&!transition)limitGardenCrowd(gardenArrivalTime());if(currentScreen===screenBeforeFrame)resolveActorCollisions(previousPetX,previousVisitors);if(currentScreen==='garden'&&!transition)updateSnailTrail(gardenArrivalTime());updatePetVisual(dt);SOUND.ambient(currentScreen,timestamp);ctx.imageSmoothingEnabled=false;
+ updateTransition(timestamp);sunPosition();updateVisitors(dt);if(currentScreen===screenBeforeFrame)resolveActorCollisions(previousPetX,previousVisitors);if(currentScreen==='garden'&&!transition)updateSnailTrail(gardenArrivalTime());updatePetVisual(dt);SOUND.ambient(currentScreen,timestamp);ctx.imageSmoothingEnabled=false;
  if(currentScreen==='garden'){drawGarden();drawWindGrass(ctx);drawGardenFlowers(ctx);drawGardenProps(ctx);drawGardenPollen();if(assets.birdHouse)ctx.drawImage(assets.birdHouse,BIRD_HOUSE.x,BIRD_HOUSE.y);}else if(currentScreen==='evolve')drawVoid();else drawHome();if(currentScreen!=='evolve'){if(currentScreen==='garden')drawGardenFauna();else drawVisitors(ctx);drawPetShadow();drawEffect();}drawPet();if(currentScreen==='garden'){drawGardenForeground();drawFrogPuddle();}drawPetReaction();drawGaze();if(currentScreen==='evolve')drawVoidPulse();if(currentScreen==='care')drawNeedBubble();drawTransitionOverlay(timestamp);
  frameRequest=requestAnimationFrame(frame);}
 function visitorAt(x,y){
@@ -3140,4 +3046,4 @@ startGameLoop();
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseGameLoop();else resumeGameLoop();});
 window.addEventListener('pagehide',pauseGameLoop);
 window.addEventListener('pageshow',resumeGameLoop);
-window.__slimeGameTest={getState:()=>({version:41,personality:PersonalityMachine.snapshot(),accessibility:{...state.accessibility},careSequence:careSnapshot(),evolution:JSON.parse(JSON.stringify(state.evolution)),cooldownRemaining:remainingTreatmentMs(),screen:currentScreen,act:pet.act,frame:pet.frame,x:pet.x,ready:assets.ready,loadedActors:Object.keys(assets.actors).filter(k=>assets.actors[k]).length,loadedAnimals:Object.keys(assets.visitors).filter(k=>assets.visitors[k]).length,visitors:visitors.map(v=>({kind:v.kind,x:v.x,y:v.drawY,stationary:!!v.stationary,cycle:v.residentCycle||null,phase:v.phase,visible:v.visible,frame:v.frame,facing:v.facing,rabbitAction:v.kind==='coelho'?v.rabbitAction:null})),visitCount:visitCount,visitorTuning:{abelha:{scale:VISITOR_SPEC.abelha.scale,ms:VISITOR_SPEC.abelha.ms},libelula:{scale:VISITOR_SPEC.libelula.scale,y:VISITOR_SPEC.libelula.y,ms:VISITOR_SPEC.libelula.ms},removed:['beijaflor','passarinho','coelho']},visitorDetails:visitors.map(v=>({kind:v.kind,x0:v.x0,x1:v.x1,stop:v.stop,progress:v.progress,visible:v.visible,fromLeft:v.fromLeft,phase:v.phase,frame:v.frame,near:v.near,stationary:!!v.stationary})),lookingAt:lookAt?.kind||null,inspecting:inspectMode,soundEnabled:SOUND.enabled,soundActive:SOUND.active,assetManager:AssetManager.status(),sceneMachine:SceneMachine.snapshot(),frameMs:FRAME_MS,stats:{...state.stats},healthSystem:JSON.parse(JSON.stringify(state.healthSystem)),sunX:sun.x,sunY:sun.y,buttons:document.querySelectorAll('button').length,fx:fx?.name||null,roomExtra:!!casaBg(),casaRoom:Casa.getRoom(),gardenExtra:!!assets.gardenExtra,voidBg:!!assets.voidBg,voidPulse:!!assets.voidPulse,metabolismRates:Object.fromEntries(Object.entries(currentNeedsRates()).map(([key,rate])=>[key,rate*60])),needsMode:state.needsMode,needsClock:{...needsClock},rightTreeReady:!!assets.rightTreeV26,cloudTravel:{right:((487+161+(sceneTime/1000)*13.5)%885+885)%885-161,left:((247+161-(sceneTime/1000)*10.5)%885+885)%885-161},gardenCareCount:document.querySelectorAll('#needs-garden .needButton').length,frameMs:FRAME_MS,transitionFrame:transition?Math.floor(clamp((GAME_CLOCK.animationNow()-transition.start)/transition.duration,0,1)*10):null,transitionActive:!!transition,loadedSceneSprites:{home:!!casaBg(),void:!!assets.voidV25,houseGarden:!!assets.transHG,gardenHouse:!!assets.transGH}}),personalityLogs:()=>PersonalityMachine.logs(),personalityTick:()=>PersonalityMachine.tick(),personalityTest:PersonalityMachine.test,action:doAction,advanceCare:advanceCareSequence,cancelCare:cancelCareSequence,switch:setScreen,casaRoom:setCasaRoom,casaSpots:()=>Casa.spots().map(x=>({id:x.id,x:x.x,y:x.y,w:x.w,h:x.h,care:x.care||null})),interact:startInteraction,spawnAnimal:(kind)=>{const k=kind||(currentScreen==="care"?"beijaflor":"passarinho");const choices=currentScreen==="care"?homeAnimals:currentScreen==="garden"?gardenAnimals:[];const resident=visitors.find(v=>v.kind===k&&v.stationary);if(resident)return resident.id;if(!faunaPresent(k)||visitors.filter(v=>!v.stationary).length>=2||!choices.includes(k)||!assets.visitors[k]||visitors.some(v=>v.kind===k))return null;const v=newVisitor(k);visitors.push(v);nextVisitorAt=sceneTime+10000;return v.id;},watch:(id)=>{const v=visitors.find(x=>x.id===id);if(v)watchVisitor(v,true);}};
+window.__slimeGameTest={getState:()=>({version:41,personality:PersonalityMachine.snapshot(),accessibility:{...state.accessibility},careSequence:careSnapshot(),evolution:JSON.parse(JSON.stringify(state.evolution)),cooldownRemaining:remainingTreatmentMs(),screen:currentScreen,act:pet.act,frame:pet.frame,x:pet.x,ready:assets.ready,loadedActors:Object.keys(assets.actors).filter(k=>assets.actors[k]).length,loadedAnimals:Object.keys(assets.visitors).filter(k=>assets.visitors[k]).length,visitors:visitors.map(v=>({kind:v.kind,x:v.x,y:v.drawY,stationary:!!v.stationary,cycle:v.residentCycle||null,phase:v.phase,visible:v.visible,frame:v.frame,facing:v.facing,rabbitAction:v.kind==='coelho'?v.rabbitAction:null})),visitCount:visitCount,visitorTuning:{abelha:{scale:VISITOR_SPEC.abelha.scale,ms:VISITOR_SPEC.abelha.ms},libelula:{scale:VISITOR_SPEC.libelula.scale,y:VISITOR_SPEC.libelula.y,ms:VISITOR_SPEC.libelula.ms},removed:['beijaflor','passarinho','coelho']},visitorDetails:visitors.map(v=>({kind:v.kind,x0:v.x0,x1:v.x1,stop:v.stop,progress:v.progress,visible:v.visible,fromLeft:v.fromLeft,phase:v.phase,frame:v.frame,near:v.near,stationary:!!v.stationary})),lookingAt:lookAt?.kind||null,inspecting:inspectMode,soundEnabled:SOUND.enabled,soundActive:SOUND.active,assetManager:AssetManager.status(),sceneMachine:SceneMachine.snapshot(),frameMs:FRAME_MS,stats:{...state.stats},healthSystem:JSON.parse(JSON.stringify(state.healthSystem)),sunX:sun.x,sunY:sun.y,buttons:document.querySelectorAll('button').length,fx:fx?.name||null,roomExtra:!!casaBg(),casaRoom:Casa.getRoom(),gardenExtra:!!assets.gardenExtra,voidBg:!!assets.voidBg,voidPulse:!!assets.voidPulse,metabolismRates:Object.fromEntries(Object.entries(currentNeedsRates()).map(([key,rate])=>[key,rate*60])),needsMode:state.needsMode,needsClock:{...needsClock},rightTreeReady:!!assets.rightTreeV26,cloudTravel:{right:((487+161+(sceneTime/1000)*13.5)%885+885)%885-161,left:((247+161-(sceneTime/1000)*10.5)%885+885)%885-161},gardenCareCount:document.querySelectorAll('#needs-garden .needButton').length,frameMs:FRAME_MS,transitionFrame:transition?Math.floor(clamp((GAME_CLOCK.animationNow()-transition.start)/transition.duration,0,1)*10):null,transitionActive:!!transition,loadedSceneSprites:{home:!!casaBg(),void:!!assets.voidV25,houseGarden:!!assets.transHG,gardenHouse:!!assets.transGH}}),personalityLogs:()=>PersonalityMachine.logs(),personalityTick:()=>PersonalityMachine.tick(),personalityTest:PersonalityMachine.test,action:doAction,advanceCare:advanceCareSequence,cancelCare:cancelCareSequence,switch:setScreen,casaRoom:setCasaRoom,casaSpots:()=>Casa.spots().map(x=>({id:x.id,x:x.x,y:x.y,w:x.w,h:x.h,care:x.care||null})),interact:startInteraction,spawnAnimal:(kind)=>{const k=kind||(currentScreen==="care"?"beijaflor":"passarinho");const choices=currentScreen==="care"?homeAnimals:currentScreen==="garden"?gardenAnimals:[];const resident=visitors.find(v=>v.kind===k&&v.stationary);if(resident)return resident.id;if(!faunaPresent(k)||visitors.filter(v=>!v.stationary).length>=2||!choices.includes(k)||!assets.visitors[k]||visitors.some(v=>v.kind===k))return null;const v=newVisitor(k);visitors.push(v);return v.id;},watch:(id)=>{const v=visitors.find(x=>x.id===id);if(v)watchVisitor(v,true);}};
