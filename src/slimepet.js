@@ -512,16 +512,18 @@ function renderNeeds(){
     card.innerHTML='<span class="needHeader"><span class="needIcon">'+careIconMarkup(k)+'</span><span class="needName"></span><strong></strong></span><span class="track"><span class="fill"></span></span><span class="needAction">'+NEED_ACTION_LABEL[k]+'</span>';
     root.appendChild(card);
    }
-   const percent=v.toFixed(0)+'%',name=n;
+   const reading=v.toFixed(1).replace('.',','),percent=reading+'%',name=n;
    const label=card.querySelector('.needName'),value=card.querySelector('strong'),bar=card.querySelector('.fill');
    const expression=needFace(k,v);
    if(label.textContent!==name)label.textContent=name;
-   if(value.textContent!==percent){value.textContent=percent;bar.style.width=percent;}
+   if(value.textContent!==percent)value.textContent=percent;
+   const fillWidth=v.toFixed(2)+'%';
+   if(bar.style.width!==fillWidth)bar.style.width=fillWidth;
    bar.classList.toggle('low',v<30);bar.classList.toggle('medium',v>=30&&v<55);
    const isUrgent=k!=='saude'&&v<30;
    card.classList.toggle('urgent',isUrgent);card.classList.toggle('attention',k!=='saude'&&v>=30&&v<55);
    card.classList.toggle('sick',alert);
-   card.setAttribute('aria-label',n+': '+v.toFixed(1)+' por cento. Expressão '+expression+'. '+(k==='saude'?(alert?(remainingTreatmentMs()?'Tratamento disponível em '+formatWait(remainingTreatmentMs()):'Toque para tratamento mágico.'):'Slime saudável; toque para avaliar saúde.'):'Toque para '+({fome:'comer',sede:'beber',energia:'dormir',higiene:'tomar banho',felicidade:'receber carinho'}[k])+'.'));
+   card.setAttribute('aria-label',n+': '+reading+' por cento. Expressão '+expression+'. '+(k==='saude'?(alert?(remainingTreatmentMs()?'Tratamento disponível em '+formatWait(remainingTreatmentMs()):'Toque para tratamento mágico.'):'Slime saudável; toque para avaliar saúde.'):'Toque para '+({fome:'comer',sede:'beber',energia:'dormir',higiene:'tomar banho',felicidade:'receber carinho'}[k])+'.'));
  }
  const m=mood();if(m!==moodText){moodText=m;$('mood').textContent=m;}
 }

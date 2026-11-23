@@ -247,3 +247,5 @@ Execute `node scripts/build.mjs` na pasta do projeto para gerar os HTMLs em `dis
 - O ciclo do gato tem 15 segundos de caminhada e 15 segundos de pausa em cada cômodo.
 
 - A ponta do balão de necessidades fica próxima ao topo do slime e aponta para ele mesmo junto às bordas.
+
+- Os cartões de necessidades mostram uma casa decimal, e as barras acompanham as pequenas quedas entre percentuais inteiros.

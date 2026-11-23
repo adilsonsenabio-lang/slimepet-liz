@@ -193,3 +193,5 @@
 - Simulei 90 segundos de fila em cada cômodo. Conferi os retornos pelas bordas, a altura no rodapé, o espaçamento entre formigas e a aplicação do recorte dos móveis. Verifiquei os limites de 15 e 30 segundos do ciclo do gato. A conferência visual no navegador ficou pendente.
 
 - Conferi em simulação o posicionamento do balão em três escalas, com a respiração e perto das duas margens. Os HTMLs offline e Pages foram gerados.
+
+- Simulei o desgaste das necessidades em seis segundos, um minuto e após suspensão. Conferi os percentuais decimais e a atualização das barras. Conferência visual no navegador pendente.

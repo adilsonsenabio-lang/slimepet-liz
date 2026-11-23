@@ -19,6 +19,7 @@
 - [x] Refazer a passada do gato, preservar o tempo dos cômodos, pôr as formigas atrás dos móveis e simplificar o balão (2026-11-23).
 - [x] Variar o ritmo das formigas no rodapé e conferir os 15 segundos de caminhada e pausa do gato em cada cômodo (2026-11-23).
 - [x] Posicionar o balão de necessidades perto do slime (2026-11-23).
+- [x] Conferir o desgaste das necessidades e mostrar as quedas inferiores a um ponto percentual (2026-11-23).
 
 
 
