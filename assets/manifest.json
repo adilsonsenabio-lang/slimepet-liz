@@ -1,0 +1,173 @@
+{
+  "sequencias": [
+    {
+      "nome": "casinha_joao_de_barro",
+      "arquivo": "casinha_joao_de_barro.png",
+      "quadros": 1,
+      "largura": 48,
+      "altura": 52,
+      "fps": 0
+    },
+    {
+      "nome": "joao_de_barro_saindo",
+      "arquivo": "joao_de_barro_saindo.png",
+      "quadros": 20,
+      "largura": 72,
+      "altura": 56,
+      "fps": 11.1111
+    },
+    {
+      "nome": "joaninha",
+      "arquivo": "joaninha.png",
+      "quadros": 20,
+      "largura": 72,
+      "altura": 56,
+      "fps": 13.333333333333334
+    },
+    {
+      "nome": "sapo_lingua",
+      "arquivo": "sapo_lingua.png",
+      "quadros": 20,
+      "largura": 72,
+      "altura": 56,
+      "fps": 12.5
+    },
+    {
+      "nome": "sapo_mergulho",
+      "arquivo": "sapo_mergulho_lago.png",
+      "quadros": 20,
+      "largura": 72,
+      "altura": 56,
+      "fps": 18.34862385321101,
+      "origem": "Sprite de Sapo Saltando no Lago.png",
+      "sha256Origem": "891af5506d251baa6d2a35cd1d0e195f2d46d32a22f1a5a446abc703f3154e8a"
+    },
+    {
+      "nome": "sapo_salto_ida",
+      "arquivo": "sapo_salto_ida.png",
+      "quadros": 20,
+      "largura": 72,
+      "altura": 56,
+      "fps": 12.5
+    },
+    {
+      "nome": "sapo_salto_volta",
+      "arquivo": "sapo_salto_volta.png",
+      "quadros": 20,
+      "largura": 72,
+      "altura": 56,
+      "fps": 12.5
+    },
+    {
+      "nome": "sol_jardim",
+      "arquivo": "sol_jardim.png",
+      "quadros": 1,
+      "largura": 64,
+      "altura": 64,
+      "fps": 0
+    },
+    {
+      "nome": "libelula_voando",
+      "arquivo": "libelula_voando.png",
+      "quadros": 20,
+      "largura": 72,
+      "altura": 56,
+      "fps": 322.5806451612903
+    },
+    {
+      "nome": "joao_de_barro_entra_na_casa",
+      "arquivo": "joao_de_barro_entra_na_casa.png",
+      "quadros": 20,
+      "largura": 72,
+      "altura": 56,
+      "fps": 11.11111111111111
+    },
+    {
+      "nome": "coelho_andar",
+      "arquivo": "coelho_andar.png",
+      "quadros": 6,
+      "largura": 72,
+      "altura": 56,
+      "fps": 7.1,
+      "avancoPorQuadroPx": 6
+    },
+    {
+      "nome": "grama_jardim_padrao",
+      "arquivo": "grama_jardim_padrao.png",
+      "quadros": 20,
+      "largura": 72,
+      "altura": 56,
+      "fps": 9.523809523809524
+    },
+    {
+      "nome": "jardim_cogumelos",
+      "arquivo": "jardim_cogumelos.png",
+      "quadros": 1,
+      "largura": 38,
+      "altura": 28,
+      "fps": 0
+    },
+    {
+      "nome": "jardim_tronco",
+      "arquivo": "jardim_tronco.png",
+      "quadros": 1,
+      "largura": 66,
+      "altura": 30,
+      "fps": 0
+    },
+    {
+      "nome": "sapo_surgindo_poca",
+      "arquivo": "sapo_surgindo_poca.png",
+      "quadros": 20,
+      "largura": 72,
+      "altura": 56,
+      "fps": 9.523809523809524,
+      "origem": "Sprite de Sapo Saltando no Lago.png"
+    },
+    {
+      "nome": "jardim_flores_pequenas",
+      "arquivo": "jardim_flores_pequenas.png",
+      "quadros": 20,
+      "largura": 72,
+      "altura": 56,
+      "linhas": [
+        "rosa",
+        "amarela",
+        "lilas"
+      ],
+      "fps": 8.695652173913043
+    },
+    {
+      "nome": "jardim_cogumelo_vermelho_duplo",
+      "arquivo": "jardim_cogumelo_vermelho_duplo.png",
+      "quadros": 1,
+      "largura": 40,
+      "altura": 32,
+      "fps": 0
+    },
+    {
+      "nome": "sapo_agua_ondas",
+      "arquivo": "sapo_agua_ondas.png",
+      "quadros": 20,
+      "largura": 96,
+      "altura": 68,
+      "fps": 18.181818181818183
+    },
+    {
+      "nome": "sapo_agua_coroa",
+      "arquivo": "sapo_agua_coroa.png",
+      "quadros": 20,
+      "largura": 96,
+      "altura": 68,
+      "fps": 40.4040404040404
+    },
+    {
+      "nome": "sapo_agua_gotas",
+      "arquivo": "sapo_agua_gotas.png",
+      "quadros": 20,
+      "largura": 96,
+      "altura": 68,
+      "fps": 18.181818181818183
+    }
+  ]
+}

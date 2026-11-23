@@ -1,0 +1,19 @@
+﻿# SlimePet Liz — tarefas
+
+- [x] T-00 — Separar o HTML único (2026-11-19). Fontes e 112 PNGs separados, com builds idênticos ao original. Validação visual pendente.
+- [x] T-01 — Ouriço cavando e sumindo (2026-11-19). Três minutos na toca, um minuto na areia, sprites reaproveitados e movimento reduzido. Validação visual pendente.
+- [x] T-02 — Esquilo subindo e descendo na árvore (2026-11-19). Três minutos entre subidas, um minuto no galho e sprites reaproveitados. Validação visual pendente.
+- [x] T-03 — João-de-barro entrando e saindo da casinha (2026-11-19). Casinha e duas sequências integradas ao ciclo de um minuto dentro. Validação visual no navegador pendente.
+- [x] T-04 — Joaninha voando na flor (2026-11-19). Voo de 20 s a partir da mesma flor e escala reduzida em 10%. Validação no navegador pendente.
+- [x] T-05 — Sapo mostrando a língua (reaproveitar o parado) (2026-11-19). Língua animada com os quadros originais do sapo. Validação no navegador pendente.
+- [x] T-06 — Sapo mergulhando na poça, sumindo e indo ao lago (2026-11-19). Mergulho, 60 s na poça e ida e volta da lagoa. Validação no navegador pendente.
+- [x] T-07 — Criar gramas vivas e remover pontilhados (2026-11-19). Faixa pontilhada removida em dois fundos e grama animada em três tamanhos. Validação no navegador pendente.
+- [x] T-08 — Colisão dos bichos e do slime (2026-11-19). Caixas de colisão para os bichos e o slime. Validação no navegador pendente.
+- [x] T-09 — Bichinhos selecionáveis (tirar e colocar no cenário) (2026-11-19). Seletor de bichinhos com presença salva. Validação no navegador pendente.
+- [x] T-10 — Temporização independente dos bichos (2026-11-19). Calendário da fauna com intervalo de 5 s entre inícios programados de espécies diferentes. Validação no navegador pendente.
+- [x] Reduzir em 10% a velocidade de voo da libélula (2026-11-23). Redução confirmada em simulação e HTML offline atualizado.
+
+
+
+
+
