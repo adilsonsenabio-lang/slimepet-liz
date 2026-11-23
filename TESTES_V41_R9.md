@@ -175,3 +175,7 @@
 ## Lembrete de necessidades e passeio do gato
 
 - Simulei o trajeto, a pausa, a repetição e o modo “Pouco movimento” nos três cômodos. Conferi o desenho do ícone e do estado no balão e a geração dos HTMLs. Conferência visual no navegador pendente.
+
+## Passadas do gato na prateleira
+
+- Inspecionei a spritesheet e validei os 20 quadros distintos com fundo transparente. Simulei o desenho da caminhada e da pausa em cada cômodo, incluindo “Pouco movimento”, e confirmei a inclusão da spritesheet nos dois HTMLs. Conferência visual no navegador pendente.

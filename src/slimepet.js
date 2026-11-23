@@ -1681,6 +1681,7 @@ function updateDragonfly(v,time,reduced,random=Math.random){
 }
 const CAT_SHELF={sala:{y:154,bookX:550},quarto:{y:153,bookX:548},cozinha:{y:151,bookX:543}};
 const CAT_SHELF_CYCLE_MS=30000,CAT_SHELF_REST_MS=15000;
+const CAT_WALK_SRC='../assets/gatinho_caminhando.png',CAT_WALK_FRAME_MS=100;
 function updateCat(v,time,reduced,dt){
  const shelf=CAT_SHELF[Casa.getRoom()];
  const walkMs=CAT_SHELF_CYCLE_MS-CAT_SHELF_REST_MS;
@@ -1691,8 +1692,9 @@ function updateCat(v,time,reduced,dt){
  v.x=walking?v41Mix(v.residentX,shelf.bookX,ease(returning?2-leg:leg)):v.residentX;
  v.drawY=v.laneY=shelf.y*H/360;
  v.facing=walking&&returning?-v.residentFacing:v.residentFacing;
+ v.walking=walking;
  v.shelfElapsed=reduced?0:(elapsed+dt)%CAT_SHELF_CYCLE_MS;
- v.frame=faunaFrame(v,time,reduced);
+ v.frame=walking?Math.floor(elapsed/CAT_WALK_FRAME_MS)%FAUNA_FRAMES:faunaFrame(v,time,reduced);
 }
 const FROG_WATER={puddle:{x:618,y:403},pond:{x:665,y:398}};
 const FROG_SPLASH={
@@ -2035,6 +2037,8 @@ function drawVisitors(ctx,accept){
   const activitySprite=v.activity&&assets[v.activity];
   if(v.kind==='coelho'&&v.residentRabbit&&assets.rabbitActions?.[v.rabbitAction]){
    img=assets.rabbitActions[v.rabbitAction];frame=v.rabbitFrame??0;
+  }else if(v.kind==='gatinho'&&v.walking&&assets.catWalk){
+   img=assets.catWalk;
   }else if(activitySprite)img=activitySprite;
   else if(v.kind==='sapo'&&Number.isInteger(v.frogJumpFrame)&&assets.frogHop){
    img=assets.frogHop;frame=v.frogJumpFrame;
@@ -2235,6 +2239,7 @@ function loadVisitorImage(kind){
 function loadScene(screen){
  if(sceneRequests.has(screen))return sceneRequests.get(screen);
  const requests=Object.entries(sceneImages[screen]).map(async ([key,src])=>assets[key]=await loadImage(src));
+ if(screen==='care')requests.push(loadImage(CAT_WALK_SRC).then(img=>assets.catWalk=img));
  const animals=screen==='care'?homeAnimals:screen==='garden'?gardenAnimals:[];
  for(const kind of new Set(screen==='garden'?[...animals,'patinho']:animals)){
   requests.push(loadVisitorImage(kind));

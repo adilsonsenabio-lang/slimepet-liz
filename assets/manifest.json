@@ -1,6 +1,14 @@
 {
   "sequencias": [
     {
+      "nome": "gatinho_caminhando",
+      "arquivo": "gatinho_caminhando.png",
+      "quadros": 20,
+      "largura": 72,
+      "altura": 56,
+      "fps": 10
+    },
+    {
       "nome": "casinha_joao_de_barro",
       "arquivo": "casinha_joao_de_barro.png",
       "quadros": 1,

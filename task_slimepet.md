@@ -14,6 +14,7 @@
 - [x] Reduzir em 10% a velocidade de voo da libélula (2026-11-23). Redução confirmada em simulação e HTML offline atualizado.
 - [x] Igualar a duração da transição entre a Casa e o Jardim (2026-11-23). Ambos os sentidos usam 180 ms, conferidos em simulação.
 - [x] Atualizar o balão de necessidades e animar o passeio do gato na prateleira (2026-11-23). Ciclo de 30 segundos verificado em simulação.
+- [x] Criar e integrar os quadros de caminhada do gato nos três cômodos (2026-11-23). A seleção das duas spritesheets foi conferida em simulação.
 
 
 
