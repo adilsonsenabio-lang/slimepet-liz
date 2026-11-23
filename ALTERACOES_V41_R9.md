@@ -227,3 +227,9 @@ Execute `node scripts/build.mjs` na pasta do projeto para gerar os HTMLs em `dis
 ## Passadas do gato na prateleira
 
 - A caminhada na sala, no quarto e na cozinha usa 20 quadros próprios de 72 × 56 px, com passadas alternadas e movimento da cauda. A pausa usa a animação original.
+
+## Gato, formigas e lembretes da Casa
+
+- O gato começa a caminhada ao trocar de cômodo. Com “Pouco movimento”, a sequência usa menos quadros por segundo. O trajeto na prateleira tem espaço próprio, separado das colisões do piso.
+- Sete formigas reutilizam a animação original em uma fila no rodapé de cada cômodo.
+- Redesenhei o balão do slime e os botões das necessidades. Retirei “Modo de cuidado” e mantive os controles em “Som e movimento”. A dificuldade já salva continua sendo usada pelo jogo.

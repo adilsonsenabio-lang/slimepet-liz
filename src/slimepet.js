@@ -509,14 +509,12 @@ function renderNeeds(){
    if(!card){
     card=document.createElement('button');card.type='button';
     card.className='need needButton';card.dataset.need=k;card.dataset.careAction=NEED_ACTION[k];
-    card.innerHTML='<span class="needHeader">'+careIconMarkup(k)+'<span class="needFace" aria-hidden="true">😊</span><span class="needName"></span><span class="needValue"><strong></strong></span></span><span class="track"><span class="fill"></span></span><span class="needAction">'+NEED_ACTION_LABEL[k]+'</span>';
+    card.innerHTML='<span class="needHeader"><span class="needIcon">'+careIconMarkup(k)+'</span><span class="needName"></span><strong></strong></span><span class="track"><span class="fill"></span></span><span class="needAction">'+NEED_ACTION_LABEL[k]+'</span>';
     root.appendChild(card);
    }
    const percent=v.toFixed(0)+'%',name=n;
-   const label=card.querySelector('.needName'),value=card.querySelector('strong'),bar=card.querySelector('.fill');let face=card.querySelector('.needFace');
+   const label=card.querySelector('.needName'),value=card.querySelector('strong'),bar=card.querySelector('.fill');
    const expression=needFace(k,v);
-   if(!face){const f=document.createElement('span');f.className='needFace';f.setAttribute('aria-hidden','true');card.querySelector('.needHeader').insertBefore(f,label);face=f;}
-   if(face.textContent!==expression)face.textContent=expression;
    if(label.textContent!==name)label.textContent=name;
    if(value.textContent!==percent){value.textContent=percent;bar.style.width=percent;}
    bar.classList.toggle('low',v<30);bar.classList.toggle('medium',v>=30&&v<55);
@@ -1683,18 +1681,22 @@ const CAT_SHELF={sala:{y:154,bookX:550},quarto:{y:153,bookX:548},cozinha:{y:151,
 const CAT_SHELF_CYCLE_MS=30000,CAT_SHELF_REST_MS=15000;
 const CAT_WALK_SRC='../assets/gatinho_caminhando.png',CAT_WALK_FRAME_MS=100;
 function updateCat(v,time,reduced,dt){
- const shelf=CAT_SHELF[Casa.getRoom()];
+ const room=Casa.getRoom();
+ const shelf=CAT_SHELF[room];
  const walkMs=CAT_SHELF_CYCLE_MS-CAT_SHELF_REST_MS;
- const elapsed=v.shelfElapsed??0;
- const walking=!reduced&&elapsed<walkMs;
+ const elapsed=v.shelfRoom===room?v.shelfElapsed:0;
+ const walking=elapsed<walkMs;
  const leg=elapsed/(walkMs/2);
  const returning=leg>=1;
  v.x=walking?v41Mix(v.residentX,shelf.bookX,ease(returning?2-leg:leg)):v.residentX;
  v.drawY=v.laneY=shelf.y*H/360;
  v.facing=walking&&returning?-v.residentFacing:v.residentFacing;
  v.walking=walking;
- v.shelfElapsed=reduced?0:(elapsed+dt)%CAT_SHELF_CYCLE_MS;
- v.frame=walking?Math.floor(elapsed/CAT_WALK_FRAME_MS)%FAUNA_FRAMES:faunaFrame(v,time,reduced);
+ v.visible=true;
+ v.shelfRoom=room;
+ v.shelfElapsed=(elapsed+dt)%CAT_SHELF_CYCLE_MS;
+ const frameMs=CAT_WALK_FRAME_MS*(reduced?2:1);
+ v.frame=walking?Math.floor(elapsed/frameMs)%FAUNA_FRAMES:faunaFrame(v,time,reduced);
 }
 const FROG_WATER={puddle:{x:618,y:403},pond:{x:665,y:398}};
 const FROG_SPLASH={
@@ -1834,7 +1836,7 @@ function updateVisitors(dt){
  }
  if(sceneTime>=nextVisitorAt){
   const choices=(currentScreen==='garden'?gardenAnimals:homeAnimals).filter(kind=>
-   faunaPresent(kind)&&!FIXED_VISITORS[kind]&&assets.visitors[kind]&&!visitors.some(v=>v.kind===kind));
+   kind!=='formiga'&&faunaPresent(kind)&&!FIXED_VISITORS[kind]&&assets.visitors[kind]&&!visitors.some(v=>v.kind===kind));
   // Moradores fixos nao ocupam os dois lugares dos visitantes passageiros.
   const transientLimit=currentScreen==='garden'?1:2;
   if(visitors.filter(v=>!v.stationary&&!v.residentLanding).length<transientLimit&&choices.length){
@@ -2472,9 +2474,30 @@ function drawGardenForeground(){
   ctx.restore();
  }
 }
+const ANT_BASEBOARD={sala:{left:214,y:360},quarto:{left:210,y:353},cozinha:{left:365,y:366}};
+const ANT_TRAIL={count:7,speed:19,frameMs:85,scale:.31,fade:26};
+function drawHomeAnts(){
+ const sprite=assets.visitors.formiga;
+ if(!sprite||!faunaPresent('formiga'))return;
+ const {left,y}=ANT_BASEBOARD[Casa.getRoom()];
+ const {count,speed,frameMs,scale,fade}=ANT_TRAIL;
+ const time=reducedMotion.matches?0:sceneryTime();
+ const distance=W-left;
+ const w=Math.round(FAUNA_FRAME_W*scale),h=Math.round(FAUNA_FRAME_H*scale);
+ ctx.save();
+ for(let i=0;i<count;i++){
+  const x=left+(time*speed/1000+i*distance/count)%distance;
+  ctx.globalAlpha=clamp(Math.min(x-left,W-x)/fade,0,1);
+  const frame=Math.floor(time/frameMs+i*3)%FAUNA_FRAMES;
+  ctx.drawImage(sprite,frame*FAUNA_FRAME_W,0,FAUNA_FRAME_W,FAUNA_FRAME_H,
+    Math.round(x-w/2),Math.round(y-VISITOR_SPEC.formiga.anchor.y*scale),w,h);
+ }
+ ctx.restore();
+}
 // CASA V41: sala, quarto e cozinha animados (ver módulo Casa).
 function drawHome(){
  paintCasa();
+ drawHomeAnts();
  // Responsive feedback in the room itself (without needing extra buttons).
  if(pet.act==='dormir'){
   const frame=pet.frame;ctx.fillStyle='rgba(250,247,221,.76)';
@@ -2705,24 +2728,25 @@ function drawNeedBubble(){
  if(currentScreen==='evolve'||transition||pet.act!=='idle')return;
  const item=petVisual.request;if(!item)return;
  const sc=slimeScale(currentScreen,STAGES[0]);
- const x=Math.round(clamp(pet.x+35*sc,33,W-33));
  const bob=reducedMotion?.matches?0:Math.sin(sceneTime/480)*2;
  const y=Math.round(clamp(currentGround()-118*sc+bob,24,H-60));
- ctx.save();ctx.translate(x,y);
- ctx.beginPath();ctx.moveTo(-15,-19);ctx.lineTo(15,-19);
- ctx.quadraticCurveTo(29,-19,29,-5);ctx.lineTo(29,5);
- ctx.quadraticCurveTo(29,19,15,19);ctx.lineTo(-8,19);
- ctx.lineTo(-19,25);ctx.lineTo(-17,19);
- ctx.quadraticCurveTo(-29,18,-29,5);ctx.lineTo(-29,-5);
- ctx.quadraticCurveTo(-29,-19,-15,-19);ctx.closePath();
- ctx.shadowColor='#173D4050';ctx.shadowBlur=7;ctx.shadowOffsetY=3;
- ctx.fillStyle='#FAFFF4';ctx.fill();ctx.shadowColor='transparent';
- ctx.strokeStyle='#83B6A6';ctx.lineWidth=1.5;ctx.lineJoin='round';ctx.stroke();
- ctx.drawImage(careIcon(item.key).tile,-23,-13,26,26);
- ctx.beginPath();ctx.arc(14,0,10,0,Math.PI*2);
- ctx.fillStyle=item.status==='want'?'#FFE6B7':'#D8EFE3';ctx.fill();
- ctx.font='bold 14px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#24483E';
- ctx.fillText(CARE_STATUS[item.status],14,1);ctx.restore();
+ ctx.save();
+ const label=NEED_ACTION_LABEL[item.key];
+ ctx.font='700 15px system-ui';
+ const width=Math.ceil(ctx.measureText(label).width)+72, left=-width/2;
+ const x=Math.round(clamp(pet.x+35*sc,4-left,W+left-4));
+ ctx.translate(x,y);
+ ctx.beginPath();ctx.roundRect(left,-19,width,38,17);
+ ctx.moveTo(-19,17);ctx.lineTo(-8,17);ctx.lineTo(-19,25);ctx.closePath();
+ ctx.shadowColor='#132F3D75';ctx.shadowBlur=8;ctx.shadowOffsetY=3;
+ ctx.fillStyle='#17353E';ctx.fill();ctx.shadowColor='transparent';
+ ctx.drawImage(careIcon(item.key).tile,left+8,-13,26,26);
+ ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#F1FFF4';
+ ctx.fillText(label,left+38,0);
+ ctx.beginPath();ctx.arc(width/2-15,0,10,0,Math.PI*2);
+ ctx.fillStyle=item.status==='want'?'#F5D391':'#A5E8C9';ctx.fill();
+ ctx.font='bold 14px system-ui';ctx.textAlign='center';ctx.fillStyle='#18353A';
+ ctx.fillText(CARE_STATUS[item.status],width/2-15,1);ctx.restore();
 }
 function drawEffect(){if(!fx)return;const q=assets.effects[fx.name];if(!q)return;const f=Math.floor(fx.time/FRAME_MS)%10;ctx.drawImage(q,f*120,0,120,100,Math.round(fx.x-60),Math.round(fx.y-82),120,100);}
 function updateTransition(now){
@@ -2842,7 +2866,7 @@ function resolveCollisionX(box,previousX,obstacles,min=box.half,max=W-box.half){
  return positions.filter(free).sort((a,b)=>Math.abs(a-target)-Math.abs(b-target))[0];
 }
 function visitorHasCollision(v){
- if(!v.visible||!COLLISION[v.kind]||v.puddleClip)return false;
+ if(!v.visible||!COLLISION[v.kind]||v.puddleClip||v.kind==='gatinho')return false;
  const half=COLLISION[v.kind][0]/2;
  return !v.sideArrival||(v.x>=half&&v.x<=W-half);
 }
@@ -3025,13 +3049,6 @@ document.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click'
 document.querySelectorAll('[data-screen]').forEach(b=>b.addEventListener('click',()=>setScreen(b.dataset.screen)));
 const explore=$('exploreActions');THINGS.forEach(t=>{const b=document.createElement('button');b.type='button';b.className='actionButton';b.textContent=t.label;b.addEventListener('click',()=>startInteraction(t.id));explore.appendChild(b)});
 
-// Adult setting remains behind <details>, not in the child's primary care cards.
-function syncCareModeButtons(){document.querySelectorAll('[data-care-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.careMode===state.needsMode)));}
-document.querySelectorAll('[data-care-mode]').forEach(b=>b.addEventListener('click',()=>{
- state.needsMode=needsDifficulty(b.dataset.careMode);syncCareModeButtons();renderNeeds();save();
- setFeedback(state.needsMode==='gentil'?'🧸 Cuidados bem gentis!':state.needsMode==='tranquilo'?'🌿 Vamos cuidar devagar!':'⚡ Um desafio para cuidar!');
-}));
-syncCareModeButtons();
 function syncPersonalityPreferences(){
  SOUND.setSoftAudio(state.accessibility.softAudio);
  document.querySelectorAll('[data-pet-setting]').forEach(b=>{

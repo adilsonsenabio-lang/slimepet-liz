@@ -179,3 +179,7 @@
 ## Passadas do gato na prateleira
 
 - Inspecionei a spritesheet e validei os 20 quadros distintos com fundo transparente. Simulei o desenho da caminhada e da pausa em cada cômodo, incluindo “Pouco movimento”, e confirmei a inclusão da spritesheet nos dois HTMLs. Conferência visual no navegador pendente.
+
+## Gato, formigas e lembretes da Casa
+
+- Simulei a caminhada e a pausa do gato nos três cômodos com as duas preferências de movimento. Conferi o avanço e a altura da fila de formigas, a remoção do controle de dificuldade e o desenho do lembrete junto à margem da tela. Os HTMLs offline e do Pages têm o mesmo conteúdo. Conferência visual no navegador e teste de salvamento antigo pendentes.

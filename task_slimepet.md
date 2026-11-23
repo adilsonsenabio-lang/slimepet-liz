@@ -15,6 +15,7 @@
 - [x] Igualar a duração da transição entre a Casa e o Jardim (2026-11-23). Ambos os sentidos usam 180 ms, conferidos em simulação.
 - [x] Atualizar o balão de necessidades e animar o passeio do gato na prateleira (2026-11-23). Ciclo de 30 segundos verificado em simulação.
 - [x] Criar e integrar os quadros de caminhada do gato nos três cômodos (2026-11-23). A seleção das duas spritesheets foi conferida em simulação.
+- [x] Corrigir o passeio do gato, renovar os lembretes, retirar Modo de cuidado e adicionar formigas no rodapé dos três cômodos (2026-11-23).
 
 
 
