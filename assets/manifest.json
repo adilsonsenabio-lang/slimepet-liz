@@ -1,6 +1,14 @@
 {
   "sequencias": [
     {
+      "nome": "carinho_coracoes",
+      "arquivo": "carinho_coracoes.png",
+      "quadros": 20,
+      "largura": 72,
+      "altura": 56,
+      "fps": 9.7561
+    },
+    {
       "nome": "gatinho_caminhando",
       "arquivo": "gatinho_caminhando.png",
       "quadros": 20,

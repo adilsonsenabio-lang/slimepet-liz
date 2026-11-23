@@ -20,6 +20,7 @@
 - [x] Variar o ritmo das formigas no rodapé e conferir os 15 segundos de caminhada e pausa do gato em cada cômodo (2026-11-23).
 - [x] Posicionar o balão de necessidades perto do slime (2026-11-23).
 - [x] Conferir o desgaste das necessidades e mostrar as quedas inferiores a um ponto percentual (2026-11-23).
+- [x] Criar e integrar a spritesheet da reação de carinho (2026-11-23).
 
 
 

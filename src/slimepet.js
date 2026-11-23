@@ -2233,9 +2233,10 @@ function actorForStage(action,id=state.evolution.stage){
 }
 const GARDEN_DEPTH_SRC='../assets/jardim_mascara_profundidade.png';
 const TREE_OCCLUSION_V40="../assets/tree_occlusion_v40.png";
+const AFFECTION_SPRITE='../assets/carinho_coracoes.png';
 const sceneImages={
- care:{casa_sala:CASA_ART.sala,casa_quarto:CASA_ART.quarto,casa_cozinha:CASA_ART.cozinha},
- garden:{bg:BG,gardenDepth:GARDEN_DEPTH_SRC,gardenSun:SUN_SPRITE,gardenOcclusion:TREE_OCCLUSION_V40,gardenExtra:GARDEN_EXTRA,transHG:TRANS_HOME_GARDEN,transGH:TRANS_GARDEN_HOME,rightTreeV26:ARVORE_DIREITA_V26},
+ care:{casa_sala:CASA_ART.sala,casa_quarto:CASA_ART.quarto,casa_cozinha:CASA_ART.cozinha,affection:AFFECTION_SPRITE},
+ garden:{bg:BG,gardenDepth:GARDEN_DEPTH_SRC,gardenSun:SUN_SPRITE,gardenOcclusion:TREE_OCCLUSION_V40,gardenExtra:GARDEN_EXTRA,transHG:TRANS_HOME_GARDEN,transGH:TRANS_GARDEN_HOME,rightTreeV26:ARVORE_DIREITA_V26,affection:AFFECTION_SPRITE},
  evolve:{voidBg:VOID_BG,voidPulse:VOID_PULSE}
 };
 const sceneReady=new Set(),sceneRequests=new Map();
@@ -2745,7 +2746,13 @@ function drawPetReaction(){
   }
  }
  const reaction=CARE_REACTIONS[petVisual.reaction];
- if(reaction&&pet.act!=='idle'&&pet.frame>=reaction.start&&pet.frame<=reaction.end){
+ if(petVisual.reaction==='carinho'&&pet.act==='feliz'&&assets.affection){
+  const frame=reduced?9:Math.min(19,pet.frame*2+Math.floor(pet.frameTime*2/FRAME_MS));
+  const petScale=slimeScale(currentScreen),zoom=Math.max(2,petScale*1.4);
+  const w=Math.round(72*zoom),h=Math.round(56*zoom);
+  const x=Math.round(pet.x-w/2),y=Math.round(ground-50*petScale-47*zoom);
+  ctx.drawImage(assets.affection,frame*72,0,72,56,x,y,w,h);
+ }else if(reaction&&pet.act!=='idle'&&pet.frame>=reaction.start&&pet.frame<=reaction.end){
   const tick=reduced?0:pet.frame-reaction.start;
   drawPetMark(reaction.mark,pet.x+reaction.x*scale+tick*2,ground+reaction.y*scale-tick*3,3,reaction.color);
  }

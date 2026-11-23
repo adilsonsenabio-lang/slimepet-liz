@@ -195,3 +195,5 @@
 - Conferi em simulação o posicionamento do balão em três escalas, com a respiração e perto das duas margens. Os HTMLs offline e Pages foram gerados.
 
 - Simulei o desgaste das necessidades em seis segundos, um minuto e após suspensão. Conferi os percentuais decimais e a atualização das barras. Conferência visual no navegador pendente.
+
+- Inspecionei a spritesheet do carinho e simulei a sequência de 20 quadros na Casa e no Jardim, incluindo o quadro fixo em “Pouco movimento”. Confirmei a inclusão do PNG nos dois HTMLs. Conferência no navegador pendente.
