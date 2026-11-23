@@ -245,3 +245,5 @@ Execute `node scripts/build.mjs` na pasta do projeto para gerar os HTMLs em `dis
 
 - Cada formiga alterna o ritmo das passadas e a distância para as vizinhas dentro da fila do rodapé. Cada cômodo tem sua própria variação.
 - O ciclo do gato tem 15 segundos de caminhada e 15 segundos de pausa em cada cômodo.
+
+- A ponta do balão de necessidades fica próxima ao topo do slime e aponta para ele mesmo junto às bordas.

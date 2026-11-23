@@ -2758,15 +2758,19 @@ function drawNeedBubble(){
  if(currentScreen==='evolve'||transition||pet.act!=='idle')return;
  const item=petVisual.request;if(!item)return;
  const sc=slimeScale(currentScreen);
- const y=Math.round(clamp(currentGround()-110*sc,24,H-60));
+ // As poses de repouso começam perto da linha 54 de cada quadro de 128 px.
+ const height=Math.round(128*sc+petVisual.breathe*7);
+ const headY=currentGround()-(103-54)*height/128;
+ const y=Math.round(clamp(headY-31,24,H-60));
  ctx.save();
  const label=NEED_ACTION_LABEL[item.key];
  ctx.font='700 15px system-ui';
  const width=Math.ceil(ctx.measureText(label).width)+48, left=-width/2;
  const x=Math.round(clamp(pet.x,5-left,W+left-5));
+ const tailX=clamp(pet.x-x,left+18,-left-18);
  ctx.translate(x,y);
  ctx.beginPath();ctx.roundRect(left,-17,width,34,12);
- ctx.moveTo(-7,15);ctx.lineTo(7,15);ctx.lineTo(0,23);ctx.closePath();
+ ctx.moveTo(tailX-7,15);ctx.lineTo(tailX+7,15);ctx.lineTo(tailX,23);ctx.closePath();
  ctx.fillStyle='#FFFFF5';ctx.shadowColor='#28353044';ctx.shadowBlur=6;ctx.shadowOffsetY=2;
  ctx.fill();ctx.shadowColor='transparent';
  ctx.drawImage(careIcon(item.key).tile,left+8,-11,22,22);
