@@ -265,3 +265,5 @@ Execute `node scripts/build.mjs` na pasta do projeto para gerar os HTMLs em `dis
 - As abelhas entram pelas laterais da janela em momentos diferentes e saem voando antes de serem removidas. O jogo sorteia o tamanho do grupo a cada três segundos e mantém o limite de cinco, contando as que ainda estão entrando ou saindo.
 - O Jardim distribui os bichos em três rodízios com horários defasados. Isso permite aparições simultâneas e reduz o tempo até cada espécie voltar, mantendo o tempo das suas ações.
 - Mesmo com uma única abelha sorteada, outra entra pela janela antes de a primeira sair. No Jardim, a abelha também atravessa o cenário em voo, sem parar no meio do percurso.
+- As abelhas da Casa passam a entrar por uma borda do cômodo e sair pela outra, com rotas em alturas diferentes. O revezamento continua mesmo quando o sorteio pede uma só abelha.
+- Tripliquei o desgaste passivo de fome, sede, higiene e felicidade nas três dificuldades.

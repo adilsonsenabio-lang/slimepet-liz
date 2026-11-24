@@ -326,11 +326,11 @@ function loadSave(){
 }
 
 // V41-R3 — tabela de dificuldade centralizada, em pontos por MINUTO.
-// Mude as taxas somente após playtests infantis; energia permanece sem decaimento passivo.
+// Energia permanece sem desgaste passivo.
 const NEEDS_DIFFICULTIES=Object.freeze({
- gentil:Object.freeze({fome:1.04,sede:1.30,higiene:0.65,felicidade:0.78}),
- tranquilo:Object.freeze({fome:1.56,sede:1.95,higiene:1.04,felicidade:1.17}),
- ativo:Object.freeze({fome:2.60,sede:2.99,higiene:1.69,felicidade:1.95})
+ gentil:Object.freeze({fome:3.12,sede:3.90,higiene:1.95,felicidade:2.34}),
+ tranquilo:Object.freeze({fome:4.68,sede:5.85,higiene:3.12,felicidade:3.51}),
+ ativo:Object.freeze({fome:7.80,sede:8.97,higiene:5.07,felicidade:5.85})
 });
 const DEFAULT_NEEDS_MODE='gentil';
 const MAX_OFFLINE_NEEDS_MS=10*60*1000; // Até 10 minutos de desgaste por retorno, mesmo após dias.
@@ -348,7 +348,6 @@ const assets={actors:{},visitors:{},layers:[],effects:{},bg:null,gardenOcclusion
 let sceneTime=0,lastAnimation=0,fx=null,task=null,moodText='😊 Contente',voidPulseStart=-1;
 let sun={x:636,y:76,p:.0},sunEpoch=Number.isFinite(state.sunEpoch)?state.sunEpoch:GAME_CLOCK.wallNow();
 // Metabolism runs on real time (also after closing the game). Energy has NO passive decay.
-// Fast real-time decay: food and water reach low values in 4-5 min; offline decay capped at five minutes. Energy remains action-only.
 // Um relógio monotônico governa sessões ativas; o relógio civil só mede ausências.
 // Nunca acumule simultaneamente delta monotônico e delta civil para a mesma janela.
 const needsClock={mono:null,wall:null,suspended:false,lastElapsedMs:0,lastSource:'initial'};
@@ -1464,7 +1463,7 @@ function newVisitor(kind,screen=currentScreen){
  const spec=VISITOR_SPEC[kind];
  if(!spec)return null;
  const fromLeft=Math.random()<.5;
- const clipped=screen==='care'&&(spec.window||kind==='abelha');
+ const clipped=screen==='care'&&Boolean(spec.window);
   const zone=VISITOR_LOCAL_ZONES[kind];
   const left=zone?.left??(clipped?VISITOR_WINDOW.x:0),right=zone?.right??(clipped?VISITOR_WINDOW.x+VISITOR_WINDOW.w:W);
  const renderScale=visitorScale(kind,screen);
@@ -1819,10 +1818,10 @@ function reactToResidentIdle(v){
  if(v.spec.sound&&Math.random()<.4)SOUND.play(v.spec.sound);
  if(GAME_CLOCK.wallNow()-lastUserAction>5000&&petAvailableForVisitor()&&Math.random()<.6)watchVisitor(v);
 }
-const HOME_BEES={max:5,rollMs:3000,arrivalGapMs:500,edgeFlightMs:1650,
+const HOME_BEES={max:5,rollMs:3000,arrivalGapMs:500,edgeFlightMs:2200,
  minStayMs:2600,stayVariationMs:2900,minFlightMs:4800,flightVariationMs:3600,
- centerX:207,firstY:111,laneGap:19,minRadius:45,radiusVariation:17,wingLift:3,
- reducedRadius:6,reducedFlightTimeScale:.5,reducedFrameMs:180};
+ centerX:W/2,firstY:82,laneGap:30,minRadius:108,radiusVariation:62,wingLift:8,
+ edgeLift:27,reducedRadius:22,reducedFlightTimeScale:.5,reducedFrameMs:180};
 let homeBeeTarget=1,nextHomeBeeRoll=0,nextHomeBeeArrival=0;
 function updateHomeBees(reduced){
  if(!faunaPresent('abelha')||!assets.visitors.abelha)return;
@@ -1872,8 +1871,9 @@ function updateHomeBees(reduced){
   const edge=entering?v.x0:v.x1;
   const edgeWeight=entering?1-ease(age/edgeFlightMs):exiting?ease((age-exitAge)/edgeFlightMs):0;
   v.x=flightX+(edge-flightX)*edgeWeight;
-  v.drawY=v.laneY=HOME_BEES.firstY+lane*HOME_BEES.laneGap+(reduced?0:Math.cos(angle)*HOME_BEES.wingLift);
-  v.facing=entering||exiting?(v.fromLeft?1:-1):Math.cos(reduced?phase:angle)<0?-1:1;
+  const lift=reduced?0:Math.cos(angle)*HOME_BEES.wingLift-edgeWeight*HOME_BEES.edgeLift;
+  v.drawY=v.laneY=HOME_BEES.firstY+lane*HOME_BEES.laneGap+lift;
+  v.facing=entering||exiting?(v.fromLeft?1:-1):Math.cos(angle)<0?-1:1;
   v.visible=v.x+v.spec.rx>=v.left&&v.x-v.spec.rx<=v.right;
   v.phase=entering?'entrar':exiting?'sair':'voar';
   const flightFrame=reduced?Math.floor(age/HOME_BEES.reducedFrameMs):faunaFrame(v,sceneTime,false);

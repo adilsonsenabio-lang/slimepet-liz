@@ -217,3 +217,5 @@
 - Simulei um minuto de voo com e sem movimento reduzido. Todas as abelhas começaram e terminaram fora da janela, com limite de cinco por grupo. Conferi a alternância das dez espécies do Jardim. Abri o HTML offline no Edge, carreguei um save V30, medi o layout em 320, 390 e 430 px e confirmei a entrada das abelhas e a presença simultânea de coelho, borboleta e abelha no Jardim. Android físico não testado.
 
 - Simulei um minuto com sorteio fixado em uma e em cinco abelhas, com e sem “Pouco movimento”. Confirmei revezamentos, entradas e saídas pelas bordas, presença contínua depois da primeira entrada e limite de cinco. Os builds offline e Pages foram gerados. Conferência visual desta revisão e teste em Android físico pendentes.
+
+- No Edge, abri o HTML offline com um save V30, acompanhei uma abelha entrar à esquerda e sair à direita do cômodo e confirmei a sobreposição na troca. Validei as taxas triplicadas nas três dificuldades. No modo Gentil, em cerca de sete segundos, a fome caiu 0,37 ponto e a sede 0,46 ponto. As larguras de 320, 390 e 430 px ficaram sem rolagem horizontal. Android físico não testado.
