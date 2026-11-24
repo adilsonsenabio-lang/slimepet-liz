@@ -268,3 +268,4 @@ Execute `node scripts/build.mjs` na pasta do projeto para gerar os HTMLs em `dis
 - As abelhas da Casa passam a entrar por uma borda do cômodo e sair pela outra, com rotas em alturas diferentes. O revezamento continua mesmo quando o sorteio pede uma só abelha.
 - Tripliquei o desgaste passivo de fome, sede, higiene e felicidade nas três dificuldades.
 - O voo frequente das abelhas volta a ficar atrás da janela dos três cômodos. A cada 2 a 4 minutos de tempo na Casa, uma abelha pode atravessar o interior, assim que houver espaço no limite de cinco. As abelhas da janela continuam o revezamento durante a visita.
+- Aumentei em 12% a escala das abelhas nas janelas, nas visitas ao interior e no Jardim.

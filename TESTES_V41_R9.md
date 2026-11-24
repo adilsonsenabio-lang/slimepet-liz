@@ -221,3 +221,5 @@
 - No Edge, abri o HTML offline com um save V30, acompanhei uma abelha entrar à esquerda e sair à direita do cômodo e confirmei a sobreposição na troca. Validei as taxas triplicadas nas três dificuldades. No modo Gentil, em cerca de sete segundos, a fome caiu 0,37 ponto e a sede 0,46 ponto. As larguras de 320, 390 e 430 px ficaram sem rolagem horizontal. Android físico não testado.
 
 - Testei sala, quarto e cozinha no Edge em 320, 390 e 430 px com um save V30. Confirmei o voo atrás das janelas e disparei uma visita rara para conferir a travessia pelo interior. Em simulação, confirmei os intervalos de 2 a 4 minutos, a continuidade da janela e o máximo de cinco abelhas, com e sem movimento reduzido. Android físico não testado.
+
+- Conferi a escala de 12% na lógica de renderização da Casa e do Jardim e nos builds offline e Pages. A conferência visual desta revisão e o teste em Android físico ficaram pendentes.

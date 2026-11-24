@@ -1283,7 +1283,7 @@ const GARDEN_DUCK_Y=448;
 const VISITOR_SPEC={
  sapo:{label:'sapinho',mode:'hop',scale:1.28,y:369,min:521,max:635,duration:14500,ms:220,rx:29,ry:24,hop:13,sound:'sapo'},
  coelho:{label:'coelhinho',scenes:['garden'],mode:'hop',scale:1.29,y:448,min:280,max:400,duration:Infinity,ms:185,rx:36,ry:32,hop:17,sound:'coelho',useSupplied:true},
- abelha:{label:'abelhinha',mode:'arc',scale:.55,y:159,min:153,max:290,duration:11400,ms:165,rx:20,ry:18,sound:'abelha'},
+ abelha:{label:'abelhinha',mode:'arc',scale:.616,y:159,min:153,max:290,duration:11400,ms:165,rx:20,ry:18,sound:'abelha'},
  formiga:{label:'formiguinha',mode:'walk',scale:.78,y:466,min:165,max:540,duration:14500,ms:195,rx:25,ry:17,sound:'formiga',useSupplied:false,anchor:{x:36,y:49}},
  borboleta:{label:'borboleta',mode:'flutter',scale:1.2,y:260,min:376,max:530,duration:12500,ms:190,rx:24,ry:21,sound:'borboleta'},
  vagalume:{label:'vaga-lume',mode:'glow',scale:1.5,y:191,min:362,max:540,duration:13700,ms:175,rx:24,ry:21},
