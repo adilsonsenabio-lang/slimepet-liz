@@ -300,3 +300,9 @@ A cadência de chegada das abelhas do Jardim foi ajustada para cerca de 10% meno
 - O céu escurece com uma camada de cor sobre o fundo existente. A sombra projetada pela Lua fica em até 3,5% da força do Sol e as sombras de contato ficam mais suaves no Jardim.
 - Enquanto o slime está acordado, o Sol reduz quatro pontos de energia por minuto. A soneca sob a Lua recupera energia 50% mais rápido em qualquer cenário.
 - Entradas e saídas programadas da fauna do Jardim passam pelas bordas. O sapo ainda usa a água e o joão-de-barro ainda usa a casinha nos seus ciclos.
+
+## Olhar, flores e ritmo de cuidado (2026-11-24)
+
+- Pontos pequenos e semitransparentes mostram a direção do olhar, com espaço antes do alvo e desaparecimento suave.
+- A borboleta e a joaninha permanecem no Jardim, fazendo pausas nas mesmas três flores em momentos diferentes.
+- A recarga de energia por segundo de soneca caiu 40%. O bônus noturno de 50% continua valendo. Saciedade, sede, higiene e felicidade caem 80% mais rápido que na versão anterior.

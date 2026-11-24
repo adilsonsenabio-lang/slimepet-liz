@@ -261,3 +261,9 @@ Na simulação de 90 segundos no Edge, as chegadas passaram de 49 para 43 (aprox
 - Edge headless abriu o HTML offline e um save V30 em 320, 390 e 430 px sem rolagem horizontal ou exceções JavaScript. A captura noturna em 430 px mostrou céu escuro e cenário legível.
 - O relógio simulado confirmou a força máxima da sombra projetada em 1 durante o dia e 0,035 à noite. A energia perdeu quatro pontos em um minuto diurno, zero em um minuto noturno e dois em um intervalo dividido igualmente entre as fases. A soneca noturna recuperou 1,5 vez a energia do mesmo intervalo de sono diurno.
 - Seis minutos simulados registraram travessias laterais de borboleta, coelho, joaninha, caracol, libélula e tartaruga, além dos trechos laterais em turnos do sapo e do joão-de-barro. As entradas e saídas marcadas como travessia ficaram próximas às bordas. Sobreposição visual de todos os ciclos e Android físico não foram testados.
+
+## Olhar, flores e ritmo de cuidado (2026-11-24)
+
+- O Edge abriu a versão offline e um save V30, com Jardim sem rolagem horizontal em 320, 390 e 430 px. Uma captura em 430 px mostrou o pontilhado discreto e os dois bichos no cenário.
+- Em 140 segundos simulados, a borboleta e a joaninha ficaram no Jardim e cada uma pousou nas três flores, sem compartilhar o mesmo pouso ao mesmo tempo.
+- Um minuto simulado no modo Gentil confirmou perdas de 18,954 pontos em saciedade, 23,6925 em sede, 11,84625 em higiene e 14,2155 em felicidade. O mesmo intervalo de soneca recarregou 11,985 pontos de dia e 17,9775 à noite. Android físico não foi testado.

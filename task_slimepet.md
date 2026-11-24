@@ -50,3 +50,6 @@
 - [x] Reduzir em cerca de 10% a frequência de chegada das abelhas no Jardim (2026-11-24).
 
 - [x] Escurecer o céu da Lua, enfraquecer as sombras noturnas, ajustar a energia e fazer a fauna entrar e sair pelas bordas (2026-11-24).
+
+- [x] Mostrar o olhar com pontilhado discreto e manter borboleta e joaninha visitando as flores do Jardim (2026-11-24).
+- [x] Reduzir em 40% a recarga durante a soneca e aumentar em 80% o desgaste passivo das outras necessidades (2026-11-24).

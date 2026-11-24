@@ -1,5 +1,4 @@
 const BIRD_HOUSE_TIMER={first:0,enter:1800,inside:60000,exit:1800,perch:20000};
-const LADYBUG_TIMER={flight:20000,hover:5000,flowerPause:1700,shrubRest:4000,rest:6500,transition:1200};
 const FROG_TIMER={first:0,tongue:1600,dive:1090,diveContactMs:780,hidden:60000,rise:2100,between:8000,hop:1600,atPond:9000,outside:60000,splash:1100,manualHop:1020};
 const FROG_PHASES=[
  ['sapo_lingua',FROG_TIMER.tongue],['sapo_mergulho',FROG_TIMER.dive],['na_poca',FROG_TIMER.hidden],
@@ -18,11 +17,11 @@ const GARDEN_FAUNA_TRACKS=[
   ['joao_de_barro',13000,BIRD_HOUSE_TIMER.enter+BIRD_HOUSE_TIMER.inside],['tartaruga',33000],
  ]},
  {offset:2400,turns:[
-  ['borboleta',16000],['sapo',5000],['caracol',33000],
+  [null,16000],['sapo',5000],['caracol',33000],
   ['sapo',25000,FROG_TIMER.tongue+FROG_TIMER.dive+FROG_TIMER.hidden],
  ]},
  {offset:4800,turns:[
-  [null,11400],['joaninha',27000],['libelula',15000],['patinho',21000],
+  [null,11400],[null,27000],['libelula',15000],['patinho',21000],
  ]},
 ].map(track=>({...track,period:track.turns.reduce((sum,[,duration])=>sum+duration+FAUNA_TURN_GAP_MS,0)}));
 function gardenFaunaTurn(elapsed,{period,turns}){

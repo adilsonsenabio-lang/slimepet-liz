@@ -331,7 +331,7 @@ const NEEDS_DIFFICULTIES=Object.freeze({
  tranquilo:Object.freeze({fome:10.53,sede:13.1625,higiene:7.02,felicidade:7.8975}),
  ativo:Object.freeze({fome:17.55,sede:20.1825,higiene:11.4075,felicidade:13.1625})
 });
-const PASSIVE_DECAY_MULTIPLIER=1.5;
+const PASSIVE_DECAY_MULTIPLIER=2.7;
 const DAY_ENERGY_LOSS_PER_MINUTE=4;
 const DEFAULT_NEEDS_MODE='gentil';
 const MAX_OFFLINE_NEEDS_MS=10*60*1000; // Até 10 minutos de desgaste por retorno, mesmo após dias.
@@ -723,7 +723,7 @@ function doAction(key){
 // V41-R4: a single care director, driven by the existing animation loop.
 // Do not store images, timeouts, wall-clock callbacks or DOM nodes in the save.
 const CARE_DURATIONS=Object.freeze({comer:2300,banho:3000,dormir:Infinity});
-const SLEEP_APPROACH_MS=1050,SLEEP_LIE_MS=650,SLEEP_ENERGY_PER_MS=.0085,NIGHT_SLEEP_RATE=1.5;
+const SLEEP_APPROACH_MS=1050,SLEEP_LIE_MS=650,SLEEP_ENERGY_PER_MS=.0051,NIGHT_SLEEP_RATE=1.5;
 let careAnimationOwner=false;
 function validSavedCare(raw){
  if(!raw||typeof raw!=='object'||!Object.hasOwn(CARE_DURATIONS,raw.key))return null;
@@ -1332,7 +1332,7 @@ const FIXED_VISITORS={
   hamster:{screen:'care',x:645,y:230,facing:-1,label:'ponta da prateleira',room:'cozinha'},
   borboleta:{screen:'garden',x:416,y:190,facing:1,label:'flores do jardim',flutter:true},
   libelula:{screen:'garden',x:553,y:107,facing:1,label:'voo pelo jardim'},
-  joaninha:{screen:'garden',x:448,y:310,facing:1,label:'canteiro de flores',flight:true},
+  joaninha:{screen:'garden',x:448,y:310,facing:1,label:'canteiro de flores',flutter:true},
   caracol:{screen:'garden',x:-34,y:371,facing:1,label:'entre a borda e a arvore esquerda',cycle:'slug'},
   sapo:{screen:'garden',x:618,y:403,facing:-1,label:'beira da poça',pond:true},
   joao_de_barro:{screen:'garden',x:612,y:267,facing:1,label:'galho da arvore direita'},
@@ -1398,7 +1398,7 @@ function visitorScale(kind,screen){
 // V41-R6: voo suave da borboleta residente no Jardim.
 // Caminho fechado e deterministico: mesma posicao e tangente em cada volta.
 // Nao consome necessidades, nao cria intervalos e reutiliza os 20 quadros originais.
-const BUTTERFLY_FLIGHT={
+const FLOWER_FLIGHT={
   points:[
     {x:57,y:332,flower:true},{x:120,y:232},{x:214,y:163},{x:377,y:147},
     {x:543,y:173},{x:676,y:192},{x:694,y:310,flower:true},{x:684,y:201},
@@ -1407,11 +1407,13 @@ const BUTTERFLY_FLIGHT={
   ],
   segmentMs:2450, perchMs:4500, turnResponseMs:180,
 };
-function butterflyFlightPosition(elapsedMs){
-  const {points,segmentMs,perchMs}=BUTTERFLY_FLIGHT;
+const FLOWER_FLIGHT_CYCLE_MS=FLOWER_FLIGHT.points.length*FLOWER_FLIGHT.segmentMs+
+ FLOWER_FLIGHT.points.filter(point=>point.flower).length*FLOWER_FLIGHT.perchMs;
+let flowerFlightClock=0;
+function flowerFlightPosition(elapsedMs){
+  const {points,segmentMs,perchMs}=FLOWER_FLIGHT;
   const count=points.length;
-  const total=count*segmentMs+points.filter(point=>point.flower).length*perchMs;
-  let clock=((elapsedMs%total)+total)%total;
+  let clock=((elapsedMs%FLOWER_FLIGHT_CYCLE_MS)+FLOWER_FLIGHT_CYCLE_MS)%FLOWER_FLIGHT_CYCLE_MS;
   for(let index=0;index<count;index++){
     const b=points[index],c=points[(index+1)%count];
     const pause=b.flower?perchMs:0;
@@ -1429,25 +1431,24 @@ function butterflyFlightPosition(elapsedMs){
   }
   return {x:points[0].x,y:points[0].y,perched:true};
 }
-function updateResidentButterfly(v,time,dt,reduced){
+function updateFlowerVisitor(v,dt,reduced){
   v.phase='voar';v.visible=true;
-  if(v.flightClock===undefined)v.flightClock=(time-v.started)*(reduced?.38:1);
-  else v.flightClock+=Math.max(0,time-v.flightLastTime)*(reduced?.38:1);
-  v.flightLastTime=time;
-  const elapsed=v.flightClock;
-  const p=butterflyFlightPosition(elapsed);
+  const offset=v.kind==='joaninha'?FLOWER_FLIGHT_CYCLE_MS/2:0;
+  const elapsed=flowerFlightClock+offset;
+  const p=flowerFlightPosition(elapsed);
   v.x=p.x;v.drawY=p.y;v.laneY=p.y;
+  v.near=Math.abs(v.x-pet.x)<145;
   if(p.perched){
     v.phase='pousada';v.turnScale=1;v.frame=0;return;
   }
   // A direcao deriva da trajetoria, nao de um seno diferente que vira de repente.
-  const ahead=butterflyFlightPosition(elapsed+70);
-  const behind=butterflyFlightPosition(elapsed-70);
+  const ahead=flowerFlightPosition(elapsed+70);
+  const behind=flowerFlightPosition(elapsed-70);
   const velocityX=(ahead.x-behind.x)/.14;
   if(Math.abs(velocityX)>6)v.wantedFacing=velocityX>0?1:-1;
   if(!v.wantedFacing)v.wantedFacing=v.residentFacing;
   if(!Number.isFinite(v.facingBlend))v.facingBlend=v.residentFacing;
-  const gain=1-Math.exp(-Math.max(0,Math.min(dt,90))/BUTTERFLY_FLIGHT.turnResponseMs);
+  const gain=1-Math.exp(-Math.max(0,Math.min(dt,90))/FLOWER_FLIGHT.turnResponseMs);
   v.facingBlend+=(v.wantedFacing-v.facingBlend)*gain;
   // Virada de perfil: o corpo fica estreito antes de espelhar, sem corte brusco.
   v.turnScale=Math.max(.035,Math.min(1,Math.abs(v.facingBlend)));
@@ -1522,7 +1523,7 @@ function spawnResidentVisitors(screen,onlyKind){
     landingStart:sceneTime,landingDuration:1550,nextIdleReaction:sceneTime+5200+Math.random()*2600});
   }else{
    Object.assign(v,{stationary:true,residentX:loc.x,residentY:loc.y,residentFacing:loc.facing,
-    residentWalk:!!loc.wander,residentCycle:loc.cycle||null,cycleStart:sceneTime,residentFlight:!!loc.flight,residentFlutter:!!loc.flutter,residentPond:!!loc.pond,residentRabbit:!!loc.rabbit,
+    residentWalk:!!loc.wander,residentCycle:loc.cycle||null,cycleStart:sceneTime,residentFlutter:!!loc.flutter,residentPond:!!loc.pond,residentRabbit:!!loc.rabbit,
     walkMin:loc.minX??loc.x,walkMax:loc.maxX??loc.x,walkSpeed:loc.speed??0,
     walkStart:(loc.x-(loc.minX??loc.x)),walkTurnPause:loc.turnPause??1300,walkDistance:0,walking:false,
     x:loc.x,x0:loc.x,x1:loc.x,stop:loc.x,y:loc.y,laneY:loc.y,drawY:loc.y,
@@ -1616,39 +1617,6 @@ function visitPose(v,time,dt,paused){
 // V41: independent scene-resident lifecycles. These animals never become lottery visitors.
 // sceneTime progresses at 0.90x real elapsed time; each cycle period below is wall-clock aligned.
 function v41Mix(a,b,p){return a+(b-a)*clamp(p,0,1);}
-const LADYBUG_SHRUB={x:548,y:319};
-function ladybugWingFrame(air,duration,transition){
- if(air<transition)return Math.floor(air/transition*10);
- if(duration-air<transition)return 10+Math.floor((air-duration+transition)/transition*10);
- return 6+Math.floor(air/65)%10;
-}
-function updateFlowerFlight(v,elapsed,reduced){
- const {flight,hover,flowerPause,shrubRest,transition}=LADYBUG_TIMER;
- const leg=(flight-hover)/2;
- const departure=hover+flowerPause,arrival=departure+leg,returnAt=arrival+shrubRest;
- v.x=v.residentX;v.drawY=v.laneY=v.residentY;v.facing=v.residentFacing;
- v.phase='repouso';v.frame=0;v.visible=true;
- if(reduced||elapsed<0||elapsed>=returnAt+leg)return;
- if(elapsed<hover){
-  v.phase='pairando';
-  v.drawY-=31*Math.sin(Math.PI*elapsed/hover)**2;
-  v.frame=ladybugWingFrame(elapsed,hover,transition);
-  return;
- }
- if(elapsed<departure)return;
- if(elapsed>=arrival&&elapsed<returnAt){
-  v.x=LADYBUG_SHRUB.x;v.drawY=v.laneY=LADYBUG_SHRUB.y;
-  v.phase='no_arbusto';return;
- }
- const outbound=elapsed<arrival;
- const air=elapsed-(outbound?departure:returnAt);
- const progress=air/leg,travel=ease(outbound?progress:1-progress);
- v.x=v41Mix(v.residentX,LADYBUG_SHRUB.x,travel);
- v.laneY=v41Mix(v.residentY,LADYBUG_SHRUB.y,travel);
- v.drawY=v.laneY-42*Math.sin(Math.PI*progress)**2;
- v.phase='voar';v.facing=outbound?1:-1;
- v.frame=ladybugWingFrame(air,leg,transition);
-}
 const DRAGONFLY_FLIGHT={
  minMs:310,maxMs:700,speedFactor:.9,pauseMin:45,pauseMax:170,wingFrameMs:3.1,minHop:72,
  zones:[
@@ -2077,7 +2045,8 @@ function updateVisitors(dt){
  if(transition)return; // preservar moradores durante a passagem Casa/Jardim
  const garden=currentScreen==='garden';
  const reduced=reducedMotion?.matches;
- if(!garden)updateHomeBees(reduced);
+ if(garden)flowerFlightClock+=dt*.90*(reduced?.38:1);
+ else updateHomeBees(reduced);
  const turns=garden?gardenFaunaTurns(gardenArrivalTime()):[];
  const turnsByKind=new Map(turns.map(turn=>[turn.kind,turn]));
  const turnKey=turn=>turn&&turn.round+':'+turn.index;
@@ -2101,6 +2070,7 @@ function updateVisitors(dt){
   if(v.homeBee)continue;
   if(v.gardenAnt||v.gardenBee)continue;
   if(FIXED_VISITORS[v.kind]?.room){updateShelfAnimal(v,sceneTime,reduced);continue;}
+  if(v.residentFlutter){updateFlowerVisitor(v,dt,reduced);continue;}
   const turn=turnsByKind.get(v.kind);
   if(!turn||!faunaPresent(v.kind)){
    if(!FIXED_VISITORS[v.kind]){visitors.splice(i,1);continue;}
@@ -2141,14 +2111,6 @@ function updateVisitors(dt){
     v.stationary=true;v.phase='repouso';v.x=v.residentX;v.drawY=v.residentY;v.laneY=v.residentY;
     v.nextIdleReaction=sceneTime+6500+Math.random()*3500;
    }
-   continue;
-  }
-  if(v.residentFlight){updateFlowerFlight(v,age,reduced);continue;}
-  if(v.residentFlutter){
-   v.flightClock??=0;
-   const flightTime=(turn.round*turn.duration+age)*.90;
-   v.flightLastTime??=flightTime;
-   updateResidentButterfly(v,flightTime,dt,reduced);
    continue;
   }
   if(v.stationary){
@@ -2227,7 +2189,7 @@ function updateVisitors(dt){
  }
  if(garden){
   for(const v of visitors){
-   if(FIXED_VISITORS[v.kind]?.screen==='garden')applyGardenTurnEdges(v,turnsByKind.get(v.kind),reduced);
+   if(FIXED_VISITORS[v.kind]?.screen==='garden'&&!v.residentFlutter)applyGardenTurnEdges(v,turnsByKind.get(v.kind),reduced);
   }
   updateGardenBees(reduced);updateGardenAnts(reduced);
  }
@@ -2436,16 +2398,29 @@ function drawGardenFauna(){
  drawVisitors(ctx,drawsInGardenForeground);
 }
 function drawGaze(){
- if(!lookAt||GAME_CLOCK.wallNow()>lookAt.until||currentScreen==='evolve'||transition)return;
- // A soft series of small moving pixel-glints points from the pet's face to the visitor.
- const v=visitors.find(v=>v.id===lookAt.id);if(!v&&lookAt.id!==null)return;
- const sx=pet.x+((v?v.x:lookAt.x)>pet.x?29:-29),sy=currentGround()-102;
- const ex=v?v.x:lookAt.x,ey=(v?v.drawY:lookAt.y)-17;
- ctx.save();ctx.globalAlpha=.52;ctx.fillStyle='#eaffd5';
- for(let j=0;j<3;j++){
-  const q=(.25+j*.19+((sceneTime/1800)%0.11));
-  const x=sx+(ex-sx)*q,y=sy+(ey-sy)*q;
-  ctx.fillRect(Math.round(x),Math.round(y),3,3);
+ if(!lookAt||currentScreen==='evolve'||transition)return;
+ const remaining=lookAt.until-GAME_CLOCK.wallNow();
+ if(remaining<=0)return;
+ const target=lookAt.id===null?lookAt:visitors.find(v=>v.id===lookAt.id&&v.visible);
+ if(!target)return;
+ const ex=target.x;
+ const ey=lookAt.id===null?target.y:target.drawY+(FAUNA_FRAME_H/2-target.spec.anchor.y)*target.scale;
+ const scale=slimeScale(currentScreen);
+ const sx=pet.x+Math.sign(ex-pet.x)*20*scale,sy=currentGround()-45*scale;
+ const dx=ex-sx,dy=ey-sy,length=Math.hypot(dx,dy);
+ const inset=14;
+ const usable=length-2*inset;
+ if(usable<12)return;
+ const count=clamp(Math.floor(usable/13),2,8);
+ const fade=clamp(remaining/350,0,1);
+ ctx.save();ctx.fillStyle='#F3F9D7';
+ for(let i=0;i<count;i++){
+  const p=(i+.5)/count;
+  const t=(inset+p*usable)/length;
+  ctx.globalAlpha=fade*(.32+.13*Math.sin(p*Math.PI));
+  ctx.beginPath();
+  ctx.arc(Math.round(sx+dx*t),Math.round(sy+dy*t),1.45,0,2*Math.PI);
+  ctx.fill();
  }
  ctx.restore();
 }
@@ -3165,7 +3140,7 @@ function resolveCollisionX(box,previousX,obstacles,min=box.half,max=W-box.half){
  return positions.filter(free).sort((a,b)=>Math.abs(a-target)-Math.abs(b-target))[0];
 }
 function visitorHasCollision(v){
- if(!v.visible||!COLLISION[v.kind]||v.puddleClip||v.kind==='gatinho'||v.homeBee||v.gardenAnt||v.gardenBee||v.edgeTransit)return false;
+ if(!v.visible||!COLLISION[v.kind]||v.puddleClip||v.kind==='gatinho'||v.homeBee||v.gardenAnt||v.gardenBee||v.edgeTransit||v.residentFlutter)return false;
  const half=COLLISION[v.kind][0]/2;
  return !v.sideArrival||(v.x>=half&&v.x<=W-half);
 }
@@ -3187,21 +3162,7 @@ function resolveActorCollisions(previousPetX,previousVisitors){
  for(const v of visible){
   const previous=previousVisitors.get(v.id);
   const box=visitorCollisionBox(v);
-  const maximumStep=8;
-  if(v.residentFlutter&&previous&&!reducedMotion.matches){
-   box.x=clamp(box.x,previous.x-maximumStep,previous.x+maximumStep);
-   box.y=clamp(box.y,previous.y-maximumStep,previous.y+maximumStep);
-   v.drawY=v.laneY=box.y;
-  }
-  let x=resolveCollisionX(box,previous?.x,occupied);
-  if(v.residentFlutter&&previous&&!reducedMotion.matches&&(x===undefined||Math.abs(x-previous.x)>maximumStep)){
-   // Keep a clear waypoint while another resident crosses the flight path.
-   const held=resolveCollisionX(previous,previous.x,occupied);
-   if(held===previous.x){
-    v.drawY=v.laneY=previous.y;
-    x=held;
-   }
-  }
+  const x=resolveCollisionX(box,previous?.x,occupied);
   if(x===undefined){
    if(previous){v.x=previous.x;v.drawY=v.laneY=previous.y;occupied.push(previous);}
    continue;
