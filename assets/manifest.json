@@ -1,6 +1,14 @@
 {
   "sequencias": [
     {
+      "nome": "formiga_caminhando",
+      "arquivo": "formiga.png",
+      "quadros": 20,
+      "largura": 72,
+      "altura": 56,
+      "fps": 8.3333
+    },
+    {
       "nome": "abelha_pose",
       "arquivo": "abelha_pose.png",
       "quadros": 1,

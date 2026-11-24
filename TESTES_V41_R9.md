@@ -231,3 +231,4 @@
 - Conferi por cálculo o novo aumento de 50% nas três dificuldades. Simulei o surgimento e a renovação de até cinco formigas no Jardim e conferi as exceções do sorteio de escala. Validei a sintaxe e gerei os HTMLs offline e Pages. Conferência visual no navegador e Android físico pendentes.
 
 - Simulei o sorteio máximo de dez formigas no Jardim, conferi a renovação e as dez faixas de caminhada dentro da área visível. HTML offline e Pages gerados. Teste em Android físico pendente.
+- Conferi que `formiga.png` tem 20 quadros distintos de 72 × 56 px. Simulei dez formigas, mais de sete quadros de caminhada e o desvio de um coelho visível. Validei a sintaxe, a escala base de 0,26 e gerei os HTMLs offline e Pages. Conferência visual no navegador e Android físico pendentes.
