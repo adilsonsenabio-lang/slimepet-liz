@@ -328,9 +328,9 @@ function loadSave(){
 // V41-R3 — tabela de dificuldade centralizada, em pontos por MINUTO.
 // Energia permanece sem desgaste passivo.
 const NEEDS_DIFFICULTIES=Object.freeze({
- gentil:Object.freeze({fome:3.12,sede:3.90,higiene:1.95,felicidade:2.34}),
- tranquilo:Object.freeze({fome:4.68,sede:5.85,higiene:3.12,felicidade:3.51}),
- ativo:Object.freeze({fome:7.80,sede:8.97,higiene:5.07,felicidade:5.85})
+ gentil:Object.freeze({fome:4.68,sede:5.85,higiene:2.925,felicidade:3.51}),
+ tranquilo:Object.freeze({fome:7.02,sede:8.775,higiene:4.68,felicidade:5.265}),
+ ativo:Object.freeze({fome:11.70,sede:13.455,higiene:7.605,felicidade:8.775})
 });
 const DEFAULT_NEEDS_MODE='gentil';
 const MAX_OFFLINE_NEEDS_MS=10*60*1000; // Até 10 minutos de desgaste por retorno, mesmo após dias.
@@ -505,9 +505,7 @@ function renderNeeds(){
     card.innerHTML='<span class="needHeader"><span class="needIcon">'+careIconMarkup(k)+'</span><span class="needName"></span><strong></strong></span><span class="track"><span class="fill"></span></span><span class="needAction">'+NEED_ACTION_LABEL[k]+'</span>';
     root.appendChild(card);
    }
-   const reading=Object.hasOwn(passiveRates,k)
-    ?v.toFixed(1).replace('.',',')
-    :String(Math.round(v));
+   const reading=String(Object.hasOwn(passiveRates,k)?Math.floor(v):Math.round(v));
    const percent=reading+'%',fillWidth=Number(v.toFixed(2))+'%',name=n;
    const label=card.querySelector('.needName'),value=card.querySelector('strong'),bar=card.querySelector('.fill');
    const expression=needFace(k,v);
@@ -3102,21 +3100,7 @@ document.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click'
 document.querySelectorAll('[data-screen]').forEach(b=>b.addEventListener('click',()=>setScreen(b.dataset.screen)));
 const explore=$('exploreActions');THINGS.forEach(t=>{const b=document.createElement('button');b.type='button';b.className='actionButton';b.textContent=t.label;b.addEventListener('click',()=>startInteraction(t.id));explore.appendChild(b)});
 
-function syncPersonalityPreferences(){
- SOUND.setSoftAudio(state.accessibility.softAudio);
- document.querySelectorAll('[data-pet-setting]').forEach(b=>{
-  const active=Boolean(state.accessibility[b.dataset.petSetting]);
-  b.setAttribute('aria-pressed',String(active));
- });
-}
-document.querySelectorAll('[data-pet-setting]').forEach(b=>b.addEventListener('click',()=>{
- const key=b.dataset.petSetting;
- state.accessibility[key]=!state.accessibility[key];
- if(key==='reducedMotion'&&state.accessibility[key])PersonalityMachine.interrupt('reduced-motion');
- syncPersonalityPreferences();save();
- setFeedback(key==='reducedMotion'?'💚 Movimento adaptado!':'🎵 Volume ajustado!');
-}));
-syncPersonalityPreferences();
+SOUND.setSoftAudio(state.accessibility.softAudio);
 let frameRequest=null,needsTimer=null,gameSuspended=false,nextAutoSave=GAME_CLOCK.wallNow()+15000;
 function tickNeeds(){
  if(document.hidden||gameSuspended)return;

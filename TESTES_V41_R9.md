@@ -225,3 +225,5 @@
 - Conferi a escala de 12% na lógica de renderização da Casa e do Jardim e nos builds offline e Pages. A conferência visual desta revisão e o teste em Android físico ficaram pendentes.
 
 - Simulei as sete faixas de escala das abelhas e confirmei as categorias de raridade nos dois ambientes. Validei o fator de frequência de 1,30 do Jardim e regenerei os HTMLs offline e Pages. Android físico não testado.
+
+- Conferi por cálculo as taxas 50% maiores nas três dificuldades, validei a sintaxe e confirmei percentuais inteiros e ausência dos controles nos HTMLs offline e Pages. Conferência visual no navegador e Android físico pendentes.
