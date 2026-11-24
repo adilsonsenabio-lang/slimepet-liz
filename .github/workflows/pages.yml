@@ -16,6 +16,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: read
       pages: write
       id-token: write
@@ -30,7 +31,22 @@ jobs:
       - uses: actions/configure-pages@v5
       - run: node scripts/build.mjs --pages
       - uses: actions/upload-pages-artifact@v3
+        id: upload
         with:
           path: dist/pages
+      - name: Aguardar o artefato ficar disponível
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact_id }}
+        run: |
+          for attempt in {1..12}; do
+            if gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts?name=github-pages" \
+              --jq '.artifacts[].id' | grep -Fxq "$ARTIFACT_ID"; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::O artefato do GitHub Pages não ficou disponível."
+          exit 1
       - uses: actions/deploy-pages@v4
         id: deployment
