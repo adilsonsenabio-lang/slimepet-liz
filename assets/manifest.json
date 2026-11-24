@@ -1,6 +1,22 @@
 {
   "sequencias": [
     {
+      "nome": "abelha_pose",
+      "arquivo": "abelha_pose.png",
+      "quadros": 1,
+      "largura": 72,
+      "altura": 56,
+      "fps": 0
+    },
+    {
+      "nome": "abelha_voando",
+      "arquivo": "abelha.png",
+      "quadros": 20,
+      "largura": 72,
+      "altura": 56,
+      "fps": 21.0526
+    },
+    {
       "nome": "camaleao_repouso",
       "arquivo": "camaleao_repouso.png",
       "quadros": 20,

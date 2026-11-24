@@ -209,3 +209,5 @@
 - Conferi a revisão das paletas em prévias lado a lado dos quadros de caminhada e repouso dos três cômodos. Validei a sintaxe e gerei o HTML offline e o de publicação. A conferência visual dentro do jogo continua pendente.
 
 - Conferi visualmente as folhas do camaleão e do hamster e confirmei a transparência, as células de 72 × 56 px e entre 9 e 13 quadros distintos por ação. Simulei o trajeto e o ciclo de cada cômodo, os cinco tamanhos do grupo de abelhas, a permanência da primeira abelha, a opção de presença e o voo reduzido. Validei os PNGs embutidos no build. Ficaram pendentes a conferência visual no navegador em 320, 390 e 430 px, a abertura de saves antigos no navegador e o teste em Android físico.
+
+- No Edge, abri o HTML com um save V30 e confirmei a queda de fome, sede, higiene e felicidade em poucos segundos, a leitura inteira atualizada e a ausência de rolagem horizontal a 320, 390 e 430 px. Confirmei a retirada do balão, a alternância de quadros de três abelhas e a pose fixa em “Pouco movimento”. Simulei também o retorno de suspensão do relógio. Android físico não testado.

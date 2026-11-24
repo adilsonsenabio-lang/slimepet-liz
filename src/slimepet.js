@@ -446,13 +446,6 @@ function careIconMarkup(key){
 }
 const CARE_STATUS={want:'!',well:'✓',wait:'⌛',accepted:'+'};
 const NEED_REQUESTS=[['sede','Quero beber!'],['fome','Quero uma maçã!'],['energia','Quero dormir!'],['higiene','Quero um banho!'],['felicidade','Quero carinho!']];
-function careStatus(key,value=state.stats[key]){
- if(key==='saude'){
-  if(state.healthSystem.status==='recovering'||(healthTreatmentNeeded()&&remainingTreatmentMs()>0))return 'wait';
-  return healthTreatmentNeeded()?'want':'well';
- }
- return value<40?'want':'well';
-}
 let activeCareCue=null;
 function showCareCue(key,status){
  const need=CARE_NEED[key];
@@ -503,8 +496,9 @@ function needFace(key,value){
 const NEED_ACTION_LABEL={fome:'Comer',sede:'Beber',energia:'Dormir',higiene:'Tomar banho',felicidade:'Dar carinho',saude:'Cuidar'};
 function renderNeeds(){
  const root=currentScreen==='evolve'?null:$(currentScreen==='garden'?'needs-garden':'needs-care');
+ const passiveRates=currentNeedsRates();
  if(root)for(const [k,,n] of keys){
-   const v=clamp(Number(state.stats[k])||0),alert=k==='saude'&&healthTreatmentNeeded(),status=careStatus(k,v);
+   const v=clamp(Number(state.stats[k])||0),alert=k==='saude'&&healthTreatmentNeeded();
    let card=root.querySelector('[data-need="'+k+'"]');
    if(!card){
     card=document.createElement('button');card.type='button';
@@ -512,12 +506,13 @@ function renderNeeds(){
     card.innerHTML='<span class="needHeader"><span class="needIcon">'+careIconMarkup(k)+'</span><span class="needName"></span><strong></strong></span><span class="track"><span class="fill"></span></span><span class="needAction">'+NEED_ACTION_LABEL[k]+'</span>';
     root.appendChild(card);
    }
-   const reading=v.toFixed(0),percent=reading+'%',name=n;
+   const reading=String(Object.hasOwn(passiveRates,k)?Math.floor(v):Math.round(v));
+   const percent=reading+'%',fillWidth=Number(v.toFixed(2))+'%',name=n;
    const label=card.querySelector('.needName'),value=card.querySelector('strong'),bar=card.querySelector('.fill');
    const expression=needFace(k,v);
    if(label.textContent!==name)label.textContent=name;
    if(value.textContent!==percent)value.textContent=percent;
-   if(bar.style.width!==percent)bar.style.width=percent;
+   if(bar.style.width!==fillWidth)bar.style.width=fillWidth;
    bar.classList.toggle('low',v<30);bar.classList.toggle('medium',v>=30&&v<55);
    const isUrgent=k!=='saude'&&v<30;
    card.classList.toggle('urgent',isUrgent);card.classList.toggle('attention',k!=='saude'&&v>=30&&v<55);
@@ -1824,6 +1819,7 @@ function reactToResidentIdle(v){
 }
 const HOME_BEES={max:5,rollMs:6000,minFlightMs:4800,flightVariationMs:3600,
  centerX:207,firstY:111,laneGap:19,minRadius:45,radiusVariation:17,wingLift:3};
+const BEE_STILL_SRC='../assets/abelha_pose.png';
 let homeBeeTarget=1,nextHomeBeeRoll=0;
 function updateHomeBees(reduced){
  if(!faunaPresent('abelha')||!assets.visitors.abelha)return;
@@ -1841,19 +1837,20 @@ function updateHomeBees(reduced){
   const v=newVisitor('abelha','care');
   v.homeBee={
    phase:Math.random()*Math.PI*2,
+   frameOffset:Math.floor(Math.random()*FAUNA_FRAMES),
    period:HOME_BEES.minFlightMs+Math.random()*HOME_BEES.flightVariationMs,
    radius:HOME_BEES.minRadius+Math.random()*HOME_BEES.radiusVariation,
   };
   bees.push(v);visitors.push(v);visitCount++;
  }
  for(const [lane,v] of bees.entries()){
-  const {phase,period,radius}=v.homeBee;
+  const {phase,period,radius,frameOffset}=v.homeBee;
   const angle=phase+(reduced?0:(sceneTime-v.started)*Math.PI*2/period);
   v.x=HOME_BEES.centerX+Math.sin(angle)*radius;
   v.drawY=v.laneY=HOME_BEES.firstY+lane*HOME_BEES.laneGap+Math.cos(angle)*HOME_BEES.wingLift;
   v.facing=Math.cos(angle)<0?-1:1;
   v.visible=true;v.phase='voar';
-  v.frame=reduced?0:faunaFrame(v,sceneTime,false);
+  v.frame=reduced?0:(faunaFrame(v,sceneTime,false)+frameOffset)%FAUNA_FRAMES;
  }
 }
 function updateVisitors(dt){
@@ -2083,7 +2080,9 @@ function drawVisitors(ctx,accept){
   let img=base,frame=v.frame;
   const anchor=v.spec.anchor.y;
   const activitySprite=v.activity&&assets[v.activity];
-  if(v.kind==='coelho'&&v.residentRabbit&&assets.rabbitActions?.[v.rabbitAction]){
+  if(v.homeBee&&reducedMotion.matches&&assets.beeStill){
+   img=assets.beeStill;frame=0;
+  }else if(v.kind==='coelho'&&v.residentRabbit&&assets.rabbitActions?.[v.rabbitAction]){
    img=assets.rabbitActions[v.rabbitAction];frame=v.rabbitFrame??0;
   }else if(v.walking&&assets.shelfWalk?.[v.kind]){
    img=assets.shelfWalk[v.kind];
@@ -2290,6 +2289,7 @@ function loadScene(screen){
  if(sceneRequests.has(screen))return sceneRequests.get(screen);
  const requests=Object.entries(sceneImages[screen]).map(async ([key,src])=>assets[key]=await loadImage(src));
  if(screen==='care'){
+  requests.push(loadImage(BEE_STILL_SRC).then(img=>assets.beeStill=img));
   assets.shelfWalk={};
   const walkSources={gatinho:CAT_WALK_SRC,camaleao:SHELF_SPRITES.camaleao.walk,hamster:SHELF_SPRITES.hamster.walk};
   for(const [kind,src] of Object.entries(walkSources)){
@@ -2803,29 +2803,6 @@ function drawPetReaction(){
  }
 }
 
-function drawNeedBubble(){
- if(currentScreen==='evolve'||transition||pet.act!=='idle')return;
- const item=petVisual.request;if(!item)return;
- const sc=slimeScale(currentScreen);
- // As poses de repouso começam perto da linha 54 de cada quadro de 128 px.
- const height=Math.round(128*sc+petVisual.breathe*7);
- const headY=currentGround()-(103-54)*height/128;
- const y=Math.round(clamp(headY-31,24,H-60));
- ctx.save();
- const label=NEED_ACTION_LABEL[item.key];
- ctx.font='700 15px system-ui';
- const width=Math.ceil(ctx.measureText(label).width)+48, left=-width/2;
- const x=Math.round(clamp(pet.x,5-left,W+left-5));
- const tailX=clamp(pet.x-x,left+18,-left-18);
- ctx.translate(x,y);
- ctx.beginPath();ctx.roundRect(left,-17,width,34,12);
- ctx.moveTo(tailX-7,15);ctx.lineTo(tailX+7,15);ctx.lineTo(tailX,23);ctx.closePath();
- ctx.fillStyle='#FFFFF5';ctx.shadowColor='#28353044';ctx.shadowBlur=6;ctx.shadowOffsetY=2;
- ctx.fill();ctx.shadowColor='transparent';
- ctx.drawImage(careIcon(item.key).tile,left+8,-11,22,22);
- ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#25443A';
- ctx.fillText(label,left+35,0);ctx.restore();
-}
 function drawEffect(){if(!fx)return;const q=assets.effects[fx.name];if(!q)return;const f=Math.floor(fx.time/FRAME_MS)%10;ctx.drawImage(q,f*120,0,120,100,Math.round(fx.x-60),Math.round(fx.y-82),120,100);}
 function updateTransition(now){
  if(!transition)return;
@@ -2985,7 +2962,7 @@ function frame(timestamp){
  if(!transition&&!activeCareSequence&&pet.act.startsWith('walk_'))updateSlimeStride();
  if(!transition&&fx){fx.time+=dt;if(fx.time>=10*FRAME_MS)fx=null;}
  updateTransition(timestamp);sunPosition();updateVisitors(dt);if(currentScreen===screenBeforeFrame)resolveActorCollisions(previousPetX,previousVisitors);if(currentScreen==='garden'&&!transition)updateSnailTrail(gardenArrivalTime());updatePetVisual(dt);SOUND.ambient(currentScreen,timestamp);ctx.imageSmoothingEnabled=false;
- if(currentScreen==='garden'){drawGarden();drawWindGrass(ctx);drawGardenFlowers(ctx);drawGardenProps(ctx);drawGardenPollen();if(assets.birdHouse)ctx.drawImage(assets.birdHouse,BIRD_HOUSE.x,BIRD_HOUSE.y);}else if(currentScreen==='evolve')drawVoid();else drawHome();if(currentScreen!=='evolve'){if(currentScreen==='garden')drawGardenFauna();else drawVisitors(ctx);drawPetShadow();drawEffect();}drawPet();if(currentScreen==='garden'){drawGardenForeground();drawFrogPuddle();}drawPetReaction();drawGaze();if(currentScreen==='evolve')drawVoidPulse();if(currentScreen==='care')drawNeedBubble();drawTransitionOverlay(timestamp);
+ if(currentScreen==='garden'){drawGarden();drawWindGrass(ctx);drawGardenFlowers(ctx);drawGardenProps(ctx);drawGardenPollen();if(assets.birdHouse)ctx.drawImage(assets.birdHouse,BIRD_HOUSE.x,BIRD_HOUSE.y);}else if(currentScreen==='evolve')drawVoid();else drawHome();if(currentScreen!=='evolve'){if(currentScreen==='garden')drawGardenFauna();else drawVisitors(ctx);drawPetShadow();drawEffect();}drawPet();if(currentScreen==='garden'){drawGardenForeground();drawFrogPuddle();}drawPetReaction();drawGaze();if(currentScreen==='evolve')drawVoidPulse();drawTransitionOverlay(timestamp);
  frameRequest=requestAnimationFrame(frame);}
 function visitorAt(x,y){
  for(let i=visitors.length-1;i>=0;i--){

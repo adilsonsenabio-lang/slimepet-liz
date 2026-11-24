@@ -259,3 +259,5 @@ Execute `node scripts/build.mjs` na pasta do projeto para gerar os HTMLs em `dis
 - As paletas da sala e da cozinha ganharam tons médios próprios. O cinza quente da sala tem sombras suaves e luzes claras. O caramelo da cozinha combina sombras castanhas e luzes douradas.
 - O camaleão verde-musgo ocupa a prateleira da sala e o hamster dourado ocupa a da cozinha. O gato bege permanece no quarto. Os três compartilham o percurso e o ciclo de 15 segundos de caminhada e 15 de repouso.
 - Com as abelhas ativadas, a Casa mantém ao menos uma à janela e sorteia até cinco a cada seis segundos. Cada uma tem uma trajetória própria. Em “Pouco movimento”, as abelhas ficam em poses fixas.
+- As abelhas da Casa usam a folha de voo de 20 quadros, com ponto de partida sorteado para cada uma. A pose fixa de “Pouco movimento” tem PNG próprio, extraído da folha original.
+- Removi o balão de necessidades acima do slime. Os cartões de fome, sede, higiene e felicidade exibem o percentual inteiro arredondado para baixo, e as barras acompanham o valor fracionário. O desgaste real mantém as taxas de dificuldade existentes.
