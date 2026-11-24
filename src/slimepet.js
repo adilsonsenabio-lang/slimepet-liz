@@ -1459,11 +1459,11 @@ function updateMeadowWalker(v,elapsed,time,reduced){
  }
  v.near=Math.abs(v.x-pet.x)<145;
 }
-function newVisitor(kind,screen=currentScreen){
+function newVisitor(kind,screen=currentScreen,{indoorBee=false}={}){
  const spec=VISITOR_SPEC[kind];
  if(!spec)return null;
  const fromLeft=Math.random()<.5;
- const clipped=screen==='care'&&Boolean(spec.window);
+ const clipped=screen==='care'&&(Boolean(spec.window)||(kind==='abelha'&&!indoorBee));
   const zone=VISITOR_LOCAL_ZONES[kind];
   const left=zone?.left??(clipped?VISITOR_WINDOW.x:0),right=zone?.right??(clipped?VISITOR_WINDOW.x+VISITOR_WINDOW.w:W);
  const renderScale=visitorScale(kind,screen);
@@ -1818,11 +1818,35 @@ function reactToResidentIdle(v){
  if(v.spec.sound&&Math.random()<.4)SOUND.play(v.spec.sound);
  if(GAME_CLOCK.wallNow()-lastUserAction>5000&&petAvailableForVisitor()&&Math.random()<.6)watchVisitor(v);
 }
-const HOME_BEES={max:5,rollMs:3000,arrivalGapMs:500,edgeFlightMs:2200,
+const HOME_BEES={max:5,rollMs:3000,arrivalGapMs:500,edgeFlightMs:1650,
  minStayMs:2600,stayVariationMs:2900,minFlightMs:4800,flightVariationMs:3600,
- centerX:W/2,firstY:82,laneGap:30,minRadius:108,radiusVariation:62,wingLift:8,
- edgeLift:27,reducedRadius:22,reducedFlightTimeScale:.5,reducedFrameMs:180};
-let homeBeeTarget=1,nextHomeBeeRoll=0,nextHomeBeeArrival=0;
+ centerX:207,firstY:111,laneGap:19,minRadius:45,radiusVariation:17,wingLift:3,
+ reducedRadius:6,reducedFlightTimeScale:.5,reducedFrameMs:180};
+const INDOOR_BEE={minIntervalMs:120000,intervalVariationMs:120000,
+ durationMs:6400,firstY:155,yVariation:70,lift:18};
+let homeBeeTarget=1,nextHomeBeeRoll=0,nextHomeBeeArrival=0,nextIndoorBeeAt=null;
+function indoorBeeInterval(){
+ return INDOOR_BEE.minIntervalMs+Math.random()*INDOOR_BEE.intervalVariationMs;
+}
+function updateIndoorBee(bee,windowCount,reduced){
+ const homeTime=sceneryTime()/.90;
+ nextIndoorBeeAt??=homeTime+indoorBeeInterval();
+ if(!bee&&windowCount>0&&windowCount<HOME_BEES.max&&homeTime>=nextIndoorBeeAt){
+  bee=newVisitor('abelha','care',{indoorBee:true});
+  bee.homeBee={indoor:true,y:INDOOR_BEE.firstY+Math.random()*INDOOR_BEE.yVariation};
+  visitors.push(bee);visitCount++;
+  nextIndoorBeeAt=homeTime+indoorBeeInterval();
+ }
+ if(!bee)return;
+ const age=sceneTime-bee.started;
+ const t=clamp(age/INDOOR_BEE.durationMs,0,1);
+ bee.x=bee.x0+(bee.x1-bee.x0)*t;
+ bee.drawY=bee.laneY=bee.homeBee.y-(reduced?0:Math.sin(t*Math.PI*2)*INDOOR_BEE.lift);
+ bee.visible=bee.x+bee.spec.rx>=bee.left&&bee.x-bee.spec.rx<=bee.right;
+ bee.phase=t<.2?'entrar':t>.8?'sair':'voar';
+ bee.frame=(reduced?Math.floor(age/HOME_BEES.reducedFrameMs):faunaFrame(bee,sceneTime,false))%FAUNA_FRAMES;
+ return bee;
+}
 function updateHomeBees(reduced){
  if(!faunaPresent('abelha')||!assets.visitors.abelha)return;
  const {max,rollMs,arrivalGapMs,edgeFlightMs}=HOME_BEES;
@@ -1831,9 +1855,13 @@ function updateHomeBees(reduced){
   nextHomeBeeRoll=sceneTime+rollMs;
  }
  // Os tempos de rota são relativos ao nascimento para que a Casa possa ser pausada.
- const finished=v=>v.homeBee?.exitAge!=null&&sceneTime-v.started>=v.homeBee.exitAge+edgeFlightMs;
+ const finished=v=>v.homeBee?.indoor
+  ?sceneTime-v.started>=INDOOR_BEE.durationMs
+  :v.homeBee?.exitAge!=null&&sceneTime-v.started>=v.homeBee.exitAge+edgeFlightMs;
  visitors=visitors.filter(v=>!finished(v));
- const bees=visitors.filter(v=>v.homeBee);
+ const currentIndoorBee=visitors.find(v=>v.homeBee?.indoor);
+ const bees=visitors.filter(v=>v.homeBee&&!v.homeBee.indoor);
+ const indoorBee=updateIndoorBee(currentIndoorBee,bees.length,reduced);
  const cruising=bees.filter(v=>v.homeBee.exitAge==null&&sceneTime-v.started>=edgeFlightMs);
  let staying=bees.filter(v=>v.homeBee.exitAge==null).length;
  for(const v of cruising.slice(0,-1)){
@@ -1847,7 +1875,7 @@ function updateHomeBees(reduced){
  // Inicie a troca antes do vencimento, inclusive quando o sorteio pede só uma.
  const handoff=bees.length===1&&lastCruising&&
   sceneTime-lastCruising.started+edgeFlightMs>=lastCruising.homeBee.stayUntil;
- if(bees.length<max&&(staying<homeBeeTarget||handoff)&&(!bees.length||sceneTime>=nextHomeBeeArrival)){
+ if(bees.length+Number(Boolean(indoorBee))<max&&(staying<homeBeeTarget||handoff)&&(!bees.length||sceneTime>=nextHomeBeeArrival)){
   const v=newVisitor('abelha','care');
   const lane=Array.from({length:max},(_,i)=>i).find(i=>!bees.some(other=>other.homeBee.lane===i));
   v.homeBee={
@@ -1871,7 +1899,7 @@ function updateHomeBees(reduced){
   const edge=entering?v.x0:v.x1;
   const edgeWeight=entering?1-ease(age/edgeFlightMs):exiting?ease((age-exitAge)/edgeFlightMs):0;
   v.x=flightX+(edge-flightX)*edgeWeight;
-  const lift=reduced?0:Math.cos(angle)*HOME_BEES.wingLift-edgeWeight*HOME_BEES.edgeLift;
+  const lift=reduced?0:Math.cos(angle)*HOME_BEES.wingLift;
   v.drawY=v.laneY=HOME_BEES.firstY+lane*HOME_BEES.laneGap+lift;
   v.facing=entering||exiting?(v.fromLeft?1:-1):Math.cos(angle)<0?-1:1;
   v.visible=v.x+v.spec.rx>=v.left&&v.x-v.spec.rx<=v.right;

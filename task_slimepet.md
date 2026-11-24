@@ -32,6 +32,7 @@
 - [x] Dar entradas e saídas em voo às abelhas e aumentar a frequência dos bichos no Jardim (2026-11-24).
 - [x] Revezar todas as abelhas da Casa e manter o voo de travessia no Jardim (2026-11-24).
 - [x] Fazer as abelhas atravessarem o cômodo e triplicar o desgaste passivo (2026-11-24).
+- [x] Voltar com o voo frequente às janelas e sortear visitas raras dentro dos cômodos (2026-11-24).
 
 
 
