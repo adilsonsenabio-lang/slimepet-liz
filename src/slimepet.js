@@ -1819,41 +1819,59 @@ function reactToResidentIdle(v){
  if(v.spec.sound&&Math.random()<.4)SOUND.play(v.spec.sound);
  if(GAME_CLOCK.wallNow()-lastUserAction>5000&&petAvailableForVisitor()&&Math.random()<.6)watchVisitor(v);
 }
-const HOME_BEES={max:5,rollMs:6000,minFlightMs:4800,flightVariationMs:3600,
+const HOME_BEES={max:5,rollMs:3000,arrivalGapMs:500,edgeFlightMs:1650,
+ minStayMs:2600,stayVariationMs:2900,minFlightMs:4800,flightVariationMs:3600,
  centerX:207,firstY:111,laneGap:19,minRadius:45,radiusVariation:17,wingLift:3,
  reducedRadius:6,reducedFlightTimeScale:.5,reducedFrameMs:180};
-let homeBeeTarget=1,nextHomeBeeRoll=0;
+let homeBeeTarget=1,nextHomeBeeRoll=0,nextHomeBeeArrival=0;
 function updateHomeBees(reduced){
  if(!faunaPresent('abelha')||!assets.visitors.abelha)return;
+ const {max,rollMs,arrivalGapMs,edgeFlightMs}=HOME_BEES;
  if(sceneTime>=nextHomeBeeRoll){
-  homeBeeTarget=1+Math.floor(Math.random()*HOME_BEES.max);
-  nextHomeBeeRoll=sceneTime+HOME_BEES.rollMs;
+  homeBeeTarget=1+Math.floor(Math.random()*max);
+  nextHomeBeeRoll=sceneTime+rollMs;
  }
- let bees=visitors.filter(v=>v.homeBee);
- if(bees.length>homeBeeTarget){
-  const departing=new Set(bees.slice(homeBeeTarget));
-  visitors=visitors.filter(v=>!departing.has(v));
-  bees=bees.slice(0,homeBeeTarget);
+ // Os tempos de rota são relativos ao nascimento para que a Casa possa ser pausada.
+ const finished=v=>v.homeBee?.exitAge!=null&&sceneTime-v.started>=v.homeBee.exitAge+edgeFlightMs;
+ visitors=visitors.filter(v=>!finished(v));
+ const bees=visitors.filter(v=>v.homeBee);
+ const cruising=bees.filter(v=>v.homeBee.exitAge==null&&sceneTime-v.started>=edgeFlightMs);
+ let staying=bees.filter(v=>v.homeBee.exitAge==null).length;
+ for(const v of cruising.slice(0,-1)){
+  const age=sceneTime-v.started;
+  if(age>=v.homeBee.stayUntil||staying>homeBeeTarget){
+   v.homeBee.exitAge=age;
+   staying--;
+  }
  }
- while(bees.length<homeBeeTarget){
+ if(bees.length<max&&staying<homeBeeTarget&&(!bees.length||sceneTime>=nextHomeBeeArrival)){
   const v=newVisitor('abelha','care');
+  const lane=Array.from({length:max},(_,i)=>i).find(i=>!bees.some(other=>other.homeBee.lane===i));
   v.homeBee={
+   lane,exitAge:null,stayUntil:edgeFlightMs+HOME_BEES.minStayMs+Math.random()*HOME_BEES.stayVariationMs,
    phase:Math.random()*Math.PI*2,
    frameOffset:Math.floor(Math.random()*FAUNA_FRAMES),
    period:HOME_BEES.minFlightMs+Math.random()*HOME_BEES.flightVariationMs,
    radius:HOME_BEES.minRadius+Math.random()*HOME_BEES.radiusVariation,
   };
   bees.push(v);visitors.push(v);visitCount++;
+  nextHomeBeeArrival=sceneTime+arrivalGapMs;
  }
- for(const [lane,v] of bees.entries()){
-  const {phase,period,radius,frameOffset}=v.homeBee;
+ for(const v of bees){
+  const {lane,phase,period,radius,frameOffset,exitAge}=v.homeBee;
   const age=sceneTime-v.started;
   const angle=phase+age*Math.PI*2/period*(reduced?HOME_BEES.reducedFlightTimeScale:1);
   const centerX=HOME_BEES.centerX+(reduced?Math.sin(phase)*(radius-HOME_BEES.reducedRadius):0);
-  v.x=centerX+Math.sin(angle)*(reduced?HOME_BEES.reducedRadius:radius);
+  const flightX=centerX+Math.sin(angle)*(reduced?HOME_BEES.reducedRadius:radius);
+  const entering=age<edgeFlightMs;
+  const exiting=exitAge!=null;
+  const edge=entering?v.x0:v.x1;
+  const edgeWeight=entering?1-ease(age/edgeFlightMs):exiting?ease((age-exitAge)/edgeFlightMs):0;
+  v.x=flightX+(edge-flightX)*edgeWeight;
   v.drawY=v.laneY=HOME_BEES.firstY+lane*HOME_BEES.laneGap+(reduced?0:Math.cos(angle)*HOME_BEES.wingLift);
-  v.facing=Math.cos(reduced?phase:angle)<0?-1:1;
-  v.visible=true;v.phase='voar';
+  v.facing=entering||exiting?(v.fromLeft?1:-1):Math.cos(reduced?phase:angle)<0?-1:1;
+  v.visible=v.x+v.spec.rx>=v.left&&v.x-v.spec.rx<=v.right;
+  v.phase=entering?'entrar':exiting?'sair':'voar';
   const flightFrame=reduced?Math.floor(age/HOME_BEES.reducedFrameMs):faunaFrame(v,sceneTime,false);
   v.frame=(flightFrame+frameOffset)%FAUNA_FRAMES;
  }
@@ -1864,14 +1882,16 @@ function updateVisitors(dt){
  const garden=currentScreen==='garden';
  const reduced=reducedMotion?.matches;
  if(!garden)updateHomeBees(reduced);
- const turn=garden?gardenFaunaTurn(gardenArrivalTime()):null;
- const turnKey=turn&&turn.round+':'+turn.index;
- const guest=turn?.kind;
- if((guest==='abelha'||guest==='patinho')&&faunaPresent(guest)&&assets.visitors[guest]&&
-    turn.age<VISITOR_SPEC[guest].duration&&!visitors.some(v=>v.kind===guest&&v.turnKey===turnKey)){
-  const v=newVisitor(guest);
-  v.turnKey=turnKey;
-  if(guest==='patinho'){
+ const turns=garden?gardenFaunaTurns(gardenArrivalTime()):[];
+ const turnsByKind=new Map(turns.map(turn=>[turn.kind,turn]));
+ const turnKey=turn=>turn&&turn.round+':'+turn.index;
+ for(const turn of turns){
+  const {kind}=turn;
+  if((kind!=='abelha'&&kind!=='patinho')||!faunaPresent(kind)||!assets.visitors[kind]||
+     turn.age>=VISITOR_SPEC[kind].duration||visitors.some(v=>v.kind===kind&&v.turnKey===turnKey(turn)))continue;
+  const v=newVisitor(kind);
+  v.turnKey=turnKey(turn);
+  if(kind==='patinho'){
    const edge=W+FAUNA_FRAME_W*v.scale/2+12;
    Object.assign(v,{fromLeft:false,x0:edge,x1:edge,x:edge,stop:616+Math.random()*26,
     visible:false,facing:-1,y:GARDEN_DUCK_Y,laneY:GARDEN_DUCK_Y,drawY:GARDEN_DUCK_Y});
@@ -1884,11 +1904,12 @@ function updateVisitors(dt){
   if(v.screen!==currentScreen){visitors.splice(i,1);continue;}
   if(v.homeBee)continue;
   if(FIXED_VISITORS[v.kind]?.room){updateShelfAnimal(v,sceneTime,reduced);continue;}
-  if(v.kind!==guest||!faunaPresent(v.kind)){
+  const turn=turnsByKind.get(v.kind);
+  if(!turn||!faunaPresent(v.kind)){
    if(!FIXED_VISITORS[v.kind]){visitors.splice(i,1);continue;}
    v.visible=false;v.phase='fora_do_turno';v.puddleSplash=null;continue;
   }
-  if(!FIXED_VISITORS[v.kind]&&v.turnKey!==turnKey){visitors.splice(i,1);continue;}
+  if(!FIXED_VISITORS[v.kind]&&v.turnKey!==turnKey(turn)){visitors.splice(i,1);continue;}
   const age=turn.age;
   v.crowdAlpha=ease(Math.min(age,turn.duration-age)/450);
   if(v.residentRabbit||v.residentCycle){

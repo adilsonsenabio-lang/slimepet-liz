@@ -213,3 +213,5 @@
 - No Edge, abri o HTML com um save V30 e confirmei a queda de fome, sede, higiene e felicidade em poucos segundos, a leitura inteira atualizada e a ausência de rolagem horizontal a 320, 390 e 430 px. Confirmei a retirada do balão, a alternância de quadros de três abelhas e a pose fixa em “Pouco movimento”. Simulei também o retorno de suspensão do relógio. Android físico não testado.
 
 - Abri diretamente o arquivo offline no Edge com um save V30 e a preferência de movimento reduzido emulada. Em cerca de seis segundos, três abelhas mudaram de posição e de quadro. Os quatro cartões com desgaste também mudaram, por exemplo, fome de 66,0% para 65,9%. Confirmei que 320, 390 e 430 px continuam sem rolagem horizontal. Android físico não testado.
+
+- Simulei um minuto de voo com e sem movimento reduzido. Todas as abelhas começaram e terminaram fora da janela, com limite de cinco por grupo. Conferi a alternância das dez espécies do Jardim. Abri o HTML offline no Edge, carreguei um save V30, medi o layout em 320, 390 e 430 px e confirmei a entrada das abelhas e a presença simultânea de coelho, borboleta e abelha no Jardim. Android físico não testado.

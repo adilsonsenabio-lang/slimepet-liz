@@ -10,24 +10,33 @@ const FROG_PERIOD=FROG_TIMER.hidden+FROG_TIMER.outside;
 FROG_PHASES.push(['repouso',FROG_PERIOD-FROG_PHASES.reduce((sum,[,duration])=>sum+duration,0)]);
 const CAT_SHELF_WALK_MS=15000,CAT_SHELF_REST_MS=15000;
 const CAT_SHELF_CYCLE_MS=CAT_SHELF_WALK_MS+CAT_SHELF_REST_MS;
-const FAUNA_TURN_GAP_MS=900;
-const GARDEN_FAUNA_TURNS=[
- ['joao_de_barro',5500,-3000],['borboleta',16000],['sapo',5000],
- ['coelho',29000],['joaninha',27000],
- ['joao_de_barro',13000,BIRD_HOUSE_TIMER.enter+BIRD_HOUSE_TIMER.inside],
- ['sapo',25000,FROG_TIMER.tongue+FROG_TIMER.dive+FROG_TIMER.hidden],
- ['abelha',12000],['libelula',15000],['patinho',22000],['caracol',33000],['tartaruga',33000],
-];
-const GARDEN_FAUNA_PERIOD_MS=GARDEN_FAUNA_TURNS.reduce((sum,[,duration])=>sum+duration+FAUNA_TURN_GAP_MS,0);
-function gardenFaunaTurn(elapsed){
- const round=Math.floor(elapsed/GARDEN_FAUNA_PERIOD_MS);
- let age=elapsed%GARDEN_FAUNA_PERIOD_MS;
- for(const [index,[kind,duration,phase=0]] of GARDEN_FAUNA_TURNS.entries()){
+const FAUNA_TURN_GAP_MS=450;
+const GARDEN_FAUNA_TRACKS=[
+ {offset:0,turns:[
+  ['joao_de_barro',5500,-3000],['coelho',29000],
+  ['joao_de_barro',13000,BIRD_HOUSE_TIMER.enter+BIRD_HOUSE_TIMER.inside],['tartaruga',33000],
+ ]},
+ {offset:2400,turns:[
+  ['borboleta',16000],['sapo',5000],['caracol',33000],
+  ['sapo',25000,FROG_TIMER.tongue+FROG_TIMER.dive+FROG_TIMER.hidden],
+ ]},
+ {offset:4800,turns:[
+  ['abelha',11400],['joaninha',27000],['libelula',15000],['patinho',21000],
+ ]},
+].map(track=>({...track,period:track.turns.reduce((sum,[,duration])=>sum+duration+FAUNA_TURN_GAP_MS,0)}));
+function gardenFaunaTurn(elapsed,{period,turns}){
+ if(elapsed<0)return null;
+ const round=Math.floor(elapsed/period);
+ let age=elapsed%period;
+ for(const [index,[kind,duration,phase=0]] of turns.entries()){
   if(age<duration)return {kind,age,duration,phase,round,index};
   if(age<duration+FAUNA_TURN_GAP_MS)return null;
   age-=duration+FAUNA_TURN_GAP_MS;
  }
  return null;
+}
+function gardenFaunaTurns(elapsed){
+ return GARDEN_FAUNA_TRACKS.map(track=>gardenFaunaTurn(elapsed-track.offset,track)).filter(Boolean);
 }
 const MEADOW_WALKS={
  coelho:{from:-51,to:658,delay:600,leg:12800,wait:2200,stride:36},
