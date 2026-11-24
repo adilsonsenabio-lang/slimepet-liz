@@ -229,3 +229,5 @@
 - Conferi por cálculo as taxas 50% maiores nas três dificuldades, validei a sintaxe e confirmei percentuais inteiros e ausência dos controles nos HTMLs offline e Pages. Conferência visual no navegador e Android físico pendentes.
 
 - Conferi por cálculo o novo aumento de 50% nas três dificuldades. Simulei o surgimento e a renovação de até cinco formigas no Jardim e conferi as exceções do sorteio de escala. Validei a sintaxe e gerei os HTMLs offline e Pages. Conferência visual no navegador e Android físico pendentes.
+
+- Simulei o sorteio máximo de dez formigas no Jardim, conferi a renovação e as dez faixas de caminhada dentro da área visível. HTML offline e Pages gerados. Teste em Android físico pendente.

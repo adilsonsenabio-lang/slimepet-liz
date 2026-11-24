@@ -273,3 +273,4 @@ Execute `node scripts/build.mjs` na pasta do projeto para gerar os HTMLs em `dis
 - O relógio dos rodízios do Jardim foi acelerado em 30%, aumentando a frequência das aparições sem alterar o limite de espécies simultâneas.
 - O desgaste passivo de fome, sede, higiene e felicidade ficou 50% mais rápido nas três dificuldades. Os cartões voltaram a mostrar percentuais inteiros. Retirei os botões de som suave e pouco movimento da interface.
 - Acelerei mais 50% o desgaste passivo atual. Os bichos do Jardim elegíveis recebem ao aparecer as mesmas faixas raras de tamanho das abelhas. João-de-barro, sapo e joaninha ficam fora do sorteio. Grupos aleatórios de uma a cinco formigas atravessam o Jardim em trajetórias próprias.
+- Os grupos de formigas do Jardim passaram a ter até dez integrantes. Redistribuí as faixas de caminhada para manter todas dentro da área visível.

@@ -1912,8 +1912,8 @@ function updateHomeBees(reduced){
   v.frame=(flightFrame+frameOffset)%FAUNA_FRAMES;
  }
 }
-const GARDEN_ANTS={max:5,rollMs:3000,arrivalGapMs:650,
- minCrossMs:8500,crossVariationMs:3500,firstY:424,laneGap:16};
+const GARDEN_ANTS={max:10,rollMs:3000,arrivalGapMs:650,
+ minCrossMs:8500,crossVariationMs:3500,firstY:374,laneGap:14};
 let gardenAntTarget=1,nextGardenAntRoll=0,nextGardenAntArrival=0;
 function updateGardenAnts(reduced){
  if(!faunaPresent('formiga')||!assets.visitors.formiga)return;
