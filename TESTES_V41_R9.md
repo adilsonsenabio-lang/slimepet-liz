@@ -215,3 +215,5 @@
 - Abri diretamente o arquivo offline no Edge com um save V30 e a preferência de movimento reduzido emulada. Em cerca de seis segundos, três abelhas mudaram de posição e de quadro. Os quatro cartões com desgaste também mudaram, por exemplo, fome de 66,0% para 65,9%. Confirmei que 320, 390 e 430 px continuam sem rolagem horizontal. Android físico não testado.
 
 - Simulei um minuto de voo com e sem movimento reduzido. Todas as abelhas começaram e terminaram fora da janela, com limite de cinco por grupo. Conferi a alternância das dez espécies do Jardim. Abri o HTML offline no Edge, carreguei um save V30, medi o layout em 320, 390 e 430 px e confirmei a entrada das abelhas e a presença simultânea de coelho, borboleta e abelha no Jardim. Android físico não testado.
+
+- Simulei um minuto com sorteio fixado em uma e em cinco abelhas, com e sem “Pouco movimento”. Confirmei revezamentos, entradas e saídas pelas bordas, presença contínua depois da primeira entrada e limite de cinco. Os builds offline e Pages foram gerados. Conferência visual desta revisão e teste em Android físico pendentes.

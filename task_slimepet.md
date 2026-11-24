@@ -30,6 +30,7 @@
 - [x] Animar as abelhas da Casa, retirar o balão e mostrar o desgaste das necessidades mais cedo (2026-11-24).
 - [x] Manter as abelhas animadas com “Pouco movimento” e mostrar décimos nas necessidades que baixam com o tempo (2026-11-24).
 - [x] Dar entradas e saídas em voo às abelhas e aumentar a frequência dos bichos no Jardim (2026-11-24).
+- [x] Revezar todas as abelhas da Casa e manter o voo de travessia no Jardim (2026-11-24).
 
 
 

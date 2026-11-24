@@ -1844,7 +1844,11 @@ function updateHomeBees(reduced){
    staying--;
   }
  }
- if(bees.length<max&&staying<homeBeeTarget&&(!bees.length||sceneTime>=nextHomeBeeArrival)){
+ const lastCruising=cruising.at(-1);
+ // Inicie a troca antes do vencimento, inclusive quando o sorteio pede só uma.
+ const handoff=bees.length===1&&lastCruising&&
+  sceneTime-lastCruising.started+edgeFlightMs>=lastCruising.homeBee.stayUntil;
+ if(bees.length<max&&(staying<homeBeeTarget||handoff)&&(!bees.length||sceneTime>=nextHomeBeeArrival)){
   const v=newVisitor('abelha','care');
   const lane=Array.from({length:max},(_,i)=>i).find(i=>!bees.some(other=>other.homeBee.lane===i));
   v.homeBee={
@@ -1989,14 +1993,16 @@ function updateVisitors(dt){
   const t=clamp(age/v.duration,0,1);
   v.progress=t;
   v.sideArrival=currentScreen==='garden';
+  const flyingBee=v.kind==='abelha';
   const enter=t<.32,rest=t>=.32&&t<.64;
-  v.phase=enter?'entrar':rest?'repouso':'sair';
+  v.phase=enter?'entrar':rest?(flyingBee?'voar':'repouso'):'sair';
   if(rest&&v.perchCallPending){
    v.perchCallPending=false;v.reactionAt=v.singAt=sceneTime;
    v.nextReaction=Math.max(v.nextReaction,sceneTime+5200);
    SOUND.play(v.spec.sound);
   }
-  const base=enter?v.x0+(v.stop-v.x0)*ease(t/.32):
+  const base=flyingBee?v.x0+(v.x1-v.x0)*t:
+   enter?v.x0+(v.stop-v.x0)*ease(t/.32):
    rest?v.stop:v.stop+(v.x1-v.stop)*ease((t-.64)/.36);
   const previousX=v.x;
   const groundAnimal=v.spec.mode==='hop'||v.spec.mode==='walk'||v.spec.mode==='creep';
@@ -2007,12 +2013,12 @@ function updateVisitors(dt){
   const another=visitors.find(other=>other!==v&&other.id<v.id&&other.visible&&Math.abs(other.drawY-v.laneY)<32);
   let separation=0;
   if(rest&&groundAnimal&&Math.abs(base-pet.x)<95)separation=(base<pet.x?-1:1)*(95-Math.abs(base-pet.x));
-  if(rest&&another&&Math.abs(base-another.x)<58)separation+=(base<another.x?-1:1)*(58-Math.abs(base-another.x));
+  if(rest&&!flyingBee&&another&&Math.abs(base-another.x)<58)separation+=(base<another.x?-1:1)*(58-Math.abs(base-another.x));
   v.separation+=(separation-v.separation)*clamp(dt/250,0,1);
   const side=visitPose(v,sceneTime,dt,reduced);
   const edgeFade=v.spec.scenes?clamp(Math.min(t,1-t)/(v.kind==='patinho'?.22:.12),0,1):1;
   const position=base+(v.separation+side)*edgeFade;
-  v.x=rest?clamp(position,v.left+v.spec.rx,v.right-v.spec.rx):position;
+  v.x=rest&&!flyingBee?clamp(position,v.left+v.spec.rx,v.right-v.spec.rx):position;
   if(v.kind==='patinho')v.facing=enter?-1:1;
   else if(!(v.kind==='coelho'&&rest)&&Math.abs(v.x-previousX)>1)v.facing=v.x>previousX?1:-1;
   v.visible=v.x+v.spec.rx>=v.left&&v.x-v.spec.rx<=v.right;

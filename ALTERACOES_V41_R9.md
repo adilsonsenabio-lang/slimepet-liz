@@ -264,3 +264,4 @@ Execute `node scripts/build.mjs` na pasta do projeto para gerar os HTMLs em `dis
 - As abelhas continuam batendo asas e voam numa faixa curta e lenta com “Pouco movimento”, inclusive quando a preferência vem do Windows. Fome, sede, higiene e felicidade agora mostram uma casa decimal para que o desgaste apareça mesmo quando ainda falta tempo para cair um ponto inteiro.
 - As abelhas entram pelas laterais da janela em momentos diferentes e saem voando antes de serem removidas. O jogo sorteia o tamanho do grupo a cada três segundos e mantém o limite de cinco, contando as que ainda estão entrando ou saindo.
 - O Jardim distribui os bichos em três rodízios com horários defasados. Isso permite aparições simultâneas e reduz o tempo até cada espécie voltar, mantendo o tempo das suas ações.
+- Mesmo com uma única abelha sorteada, outra entra pela janela antes de a primeira sair. No Jardim, a abelha também atravessa o cenário em voo, sem parar no meio do percurso.
