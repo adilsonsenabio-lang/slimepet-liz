@@ -28,6 +28,7 @@
 - [x] Refinar as paletas dos gatos da sala e da cozinha (2026-11-24). Cinza quente na sala e caramelo na cozinha, com tons médios próprios.
 - [x] Colocar camaleão na sala, hamster na cozinha e de uma a cinco abelhas na Casa (2026-11-24). Arte aprovada e ciclo de prateleira preservado.
 - [x] Animar as abelhas da Casa, retirar o balão e mostrar o desgaste das necessidades mais cedo (2026-11-24).
+- [x] Manter as abelhas animadas com “Pouco movimento” e mostrar décimos nas necessidades que baixam com o tempo (2026-11-24).
 
 
 

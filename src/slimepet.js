@@ -506,7 +506,9 @@ function renderNeeds(){
     card.innerHTML='<span class="needHeader"><span class="needIcon">'+careIconMarkup(k)+'</span><span class="needName"></span><strong></strong></span><span class="track"><span class="fill"></span></span><span class="needAction">'+NEED_ACTION_LABEL[k]+'</span>';
     root.appendChild(card);
    }
-   const reading=String(Object.hasOwn(passiveRates,k)?Math.floor(v):Math.round(v));
+   const reading=Object.hasOwn(passiveRates,k)
+    ?v.toFixed(1).replace('.',',')
+    :String(Math.round(v));
    const percent=reading+'%',fillWidth=Number(v.toFixed(2))+'%',name=n;
    const label=card.querySelector('.needName'),value=card.querySelector('strong'),bar=card.querySelector('.fill');
    const expression=needFace(k,v);
@@ -1818,8 +1820,8 @@ function reactToResidentIdle(v){
  if(GAME_CLOCK.wallNow()-lastUserAction>5000&&petAvailableForVisitor()&&Math.random()<.6)watchVisitor(v);
 }
 const HOME_BEES={max:5,rollMs:6000,minFlightMs:4800,flightVariationMs:3600,
- centerX:207,firstY:111,laneGap:19,minRadius:45,radiusVariation:17,wingLift:3};
-const BEE_STILL_SRC='../assets/abelha_pose.png';
+ centerX:207,firstY:111,laneGap:19,minRadius:45,radiusVariation:17,wingLift:3,
+ reducedRadius:6,reducedFlightTimeScale:.5,reducedFrameMs:180};
 let homeBeeTarget=1,nextHomeBeeRoll=0;
 function updateHomeBees(reduced){
  if(!faunaPresent('abelha')||!assets.visitors.abelha)return;
@@ -1845,12 +1847,15 @@ function updateHomeBees(reduced){
  }
  for(const [lane,v] of bees.entries()){
   const {phase,period,radius,frameOffset}=v.homeBee;
-  const angle=phase+(reduced?0:(sceneTime-v.started)*Math.PI*2/period);
-  v.x=HOME_BEES.centerX+Math.sin(angle)*radius;
-  v.drawY=v.laneY=HOME_BEES.firstY+lane*HOME_BEES.laneGap+Math.cos(angle)*HOME_BEES.wingLift;
-  v.facing=Math.cos(angle)<0?-1:1;
+  const age=sceneTime-v.started;
+  const angle=phase+age*Math.PI*2/period*(reduced?HOME_BEES.reducedFlightTimeScale:1);
+  const centerX=HOME_BEES.centerX+(reduced?Math.sin(phase)*(radius-HOME_BEES.reducedRadius):0);
+  v.x=centerX+Math.sin(angle)*(reduced?HOME_BEES.reducedRadius:radius);
+  v.drawY=v.laneY=HOME_BEES.firstY+lane*HOME_BEES.laneGap+(reduced?0:Math.cos(angle)*HOME_BEES.wingLift);
+  v.facing=Math.cos(reduced?phase:angle)<0?-1:1;
   v.visible=true;v.phase='voar';
-  v.frame=reduced?0:(faunaFrame(v,sceneTime,false)+frameOffset)%FAUNA_FRAMES;
+  const flightFrame=reduced?Math.floor(age/HOME_BEES.reducedFrameMs):faunaFrame(v,sceneTime,false);
+  v.frame=(flightFrame+frameOffset)%FAUNA_FRAMES;
  }
 }
 function updateVisitors(dt){
@@ -2080,9 +2085,7 @@ function drawVisitors(ctx,accept){
   let img=base,frame=v.frame;
   const anchor=v.spec.anchor.y;
   const activitySprite=v.activity&&assets[v.activity];
-  if(v.homeBee&&reducedMotion.matches&&assets.beeStill){
-   img=assets.beeStill;frame=0;
-  }else if(v.kind==='coelho'&&v.residentRabbit&&assets.rabbitActions?.[v.rabbitAction]){
+  if(v.kind==='coelho'&&v.residentRabbit&&assets.rabbitActions?.[v.rabbitAction]){
    img=assets.rabbitActions[v.rabbitAction];frame=v.rabbitFrame??0;
   }else if(v.walking&&assets.shelfWalk?.[v.kind]){
    img=assets.shelfWalk[v.kind];
@@ -2289,7 +2292,6 @@ function loadScene(screen){
  if(sceneRequests.has(screen))return sceneRequests.get(screen);
  const requests=Object.entries(sceneImages[screen]).map(async ([key,src])=>assets[key]=await loadImage(src));
  if(screen==='care'){
-  requests.push(loadImage(BEE_STILL_SRC).then(img=>assets.beeStill=img));
   assets.shelfWalk={};
   const walkSources={gatinho:CAT_WALK_SRC,camaleao:SHELF_SPRITES.camaleao.walk,hamster:SHELF_SPRITES.hamster.walk};
   for(const [kind,src] of Object.entries(walkSources)){
