@@ -251,3 +251,7 @@ Com relógio simulado, conferi as posições no início, no meio e na virada de 
 - O HTML offline abriu no Edge headless em 320, 390 e 430 px, sem rolagem horizontal ou exceções JavaScript. Um save legado V30 carregou com 47% de energia.
 - Em 90 segundos simulados, houve 49 chegadas, com os cinco tamanhos de grupo sorteados, sete escalas individuais e pousos nas sete posições de flores. O máximo observado foi cinco abelhas visíveis e nenhuma compartilhou a flor reservada por outra. A animação passou por entrada, aproximação, pouso, decolagem e saída.
 - A captura em 430 px mostrou cinco abelhas pousadas. O teste também confirmou asas em quadro fixo com Pouco movimento. Android físico e a sincronização visual de todos os outros bichos não foram testados.
+
+## Frequência das abelhas (2026-11-24)
+
+Na simulação de 90 segundos no Edge, as chegadas passaram de 49 para 43 (aproximadamente 12% menos). O teste confirmou cinco abelhas visíveis no máximo, pousos nas sete posições de flores, tamanhos variados, fases de voo e um save V30. O HTML abriu sem rolagem horizontal em 320, 390 e 430 px. Android físico não foi testado.

@@ -290,3 +290,7 @@ O Sol atravessa o Jardim em dois minutos e a Lua faz o caminho inverso nos dois 
 ## Abelhas nas flores do Jardim (2026-11-24)
 
 As abelhas passaram a chegar em sequência, com a mesma lógica de sorteio dos grupos de formigas. O grupo sorteia de uma a cinco abelhas, com tamanhos individuais. Cada abelha escolhe uma flor livre, pousa por um tempo sorteado e volta a voar antes de sair do Jardim. As animações usam a spritesheet existente.
+
+## Chegadas das abelhas (2026-11-24)
+
+A cadência de chegada das abelhas do Jardim foi ajustada para cerca de 10% menos. Cada vaga fica livre para uma nova chegada após uma pequena espera. As abelhas continuam pousando e decolando no mesmo ritmo.

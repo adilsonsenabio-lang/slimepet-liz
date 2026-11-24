@@ -1928,7 +1928,8 @@ function updateHomeBees(reduced){
 const GARDEN_ANTS={max:5,rollMs:3000,arrivalGapMs:650,
  minCrossMs:8500,crossVariationMs:3500,firstY:491,laneGap:9,
  stridePx:1.5,clearancePx:4};
-const GARDEN_BEES={max:5,rollMs:3000,arrivalGapMs:650,
+const GARDEN_BEE_ARRIVAL_RATE=.90;
+const GARDEN_BEES={max:5,rollMs:3000,arrivalGapMs:650/GARDEN_BEE_ARRIVAL_RATE,
  flightMs:2200,flightVariationMs:800,restMs:1000,restVariationMs:1700,
  flowerHeadX:7,flowerHeadY:22,perchFrame:0,perchFootOffset:12};
 const gardenAntGroup={target:1,nextRoll:0,nextArrival:0};
@@ -1951,13 +1952,14 @@ function spawnGardenBee(){
  const departure=GARDEN_BEES.flightMs+Math.random()*GARDEN_BEES.flightVariationMs;
  const perchX=x+GARDEN_BEES.flowerHeadX;
  const perchY=y-GARDEN_BEES.flowerHeadY-GARDEN_BEES.perchFootOffset*v.scale;
- v.gardenBee={flower,perchX,perchY,approach,rest,departure,total:approach+rest+departure};
+ const total=approach+rest+departure;
+ v.gardenBee={flower,perchX,perchY,approach,rest,departure,total,slotMs:total/GARDEN_BEE_ARRIVAL_RATE};
  visitors.push(v);visitCount++;
  return v.id;
 }
 function updateGardenBees(reduced){
  rollGardenGroup(gardenBeeGroup,GARDEN_BEES);
- visitors=visitors.filter(v=>!v.gardenBee||sceneTime-v.started<v.gardenBee.total);
+ visitors=visitors.filter(v=>!v.gardenBee||sceneTime-v.started<v.gardenBee.slotMs);
  const bees=visitors.filter(v=>v.gardenBee);
  if(bees.length<gardenBeeGroup.target&&sceneTime>=gardenBeeGroup.nextArrival&&spawnGardenBee()!==null){
   gardenBeeGroup.nextArrival=sceneTime+GARDEN_BEES.arrivalGapMs;
@@ -1966,6 +1968,7 @@ function updateGardenBees(reduced){
  for(const v of bees){
   const {perchX,perchY,approach,rest,departure,total}=v.gardenBee;
   const age=sceneTime-v.started;
+  if(age>=total){v.visible=false;continue;}
   const entering=age<approach;
   const perched=!entering&&age<approach+rest;
   const progress=entering?age/approach:clamp((age-approach-rest)/departure,0,1);

@@ -46,3 +46,5 @@
 - [x] Reduzir para dois minutos a travessia de cada astro no Jardim (2026-11-24).
 
 - [x] Aumentar a frequência das abelhas do Jardim e sortear quantidade, tamanhos e pousos nas flores (2026-11-24).
+
+- [x] Reduzir em cerca de 10% a frequência de chegada das abelhas no Jardim (2026-11-24).
