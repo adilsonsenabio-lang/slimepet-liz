@@ -275,3 +275,4 @@ Execute `node scripts/build.mjs` na pasta do projeto para gerar os HTMLs em `dis
 - Acelerei mais 50% o desgaste passivo atual. Os bichos do Jardim elegíveis recebem ao aparecer as mesmas faixas raras de tamanho das abelhas. João-de-barro, sapo e joaninha ficam fora do sorteio. Grupos aleatórios de uma a cinco formigas atravessam o Jardim em trajetórias próprias.
 - Os grupos de formigas do Jardim passaram a ter até dez integrantes. Redistribuí as faixas de caminhada para manter todas dentro da área visível.
 - A escala base das formigas caiu de 0,78 para 0,26. A spritesheet existente tem 20 quadros distintos e agora avança conforme a distância percorrida. O sorteio de tamanho ocorre uma vez por formiga. Durante a travessia, cada uma escolhe uma faixa livre dos outros bichos visíveis.
+- O grupo de formigas do Jardim voltou ao máximo de cinco. Suas trilhas ficam na faixa inferior, abaixo da poça.

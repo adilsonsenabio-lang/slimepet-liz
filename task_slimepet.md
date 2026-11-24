@@ -39,6 +39,7 @@
 - [x] Acelerar novamente em 50% as necessidades, variar tamanhos no Jardim e criar grupos aleatórios de formigas (2026-11-24).
 - [x] Ampliar os grupos de formigas do Jardim para até dez (2026-11-24).
 - [x] Reduzir as formigas do Jardim, integrar os quadros de caminhada e desviar dos outros bichos (2026-11-24).
+- [x] Limitar as formigas do Jardim a cinco e manter as trilhas abaixo da poça (2026-11-24).
 
 
 

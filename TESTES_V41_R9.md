@@ -232,3 +232,4 @@
 
 - Simulei o sorteio máximo de dez formigas no Jardim, conferi a renovação e as dez faixas de caminhada dentro da área visível. HTML offline e Pages gerados. Teste em Android físico pendente.
 - Conferi que `formiga.png` tem 20 quadros distintos de 72 × 56 px. Simulei dez formigas, mais de sete quadros de caminhada e o desvio de um coelho visível. Validei a sintaxe, a escala base de 0,26 e gerei os HTMLs offline e Pages. Conferência visual no navegador e Android físico pendentes.
+- Simulei o limite de cinco formigas e conferi que os quadros de caminhada ficam abaixo da área da poça, com espaço dentro do palco. Validação visual no navegador e Android físico pendentes.
