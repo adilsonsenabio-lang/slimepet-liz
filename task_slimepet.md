@@ -36,6 +36,7 @@
 - [x] Aumentar o tamanho das abelhas em 12% (2026-11-24).
 - [x] Adicionar variações raras de tamanho às abelhas e aumentar em 30% a frequência do Jardim (2026-11-24).
 - [x] Acelerar em 50% o desgaste das necessidades, mostrar inteiros e retirar controles de som e movimento (2026-11-24).
+- [x] Acelerar novamente em 50% as necessidades, variar tamanhos no Jardim e criar grupos aleatórios de formigas (2026-11-24).
 
 
 

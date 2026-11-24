@@ -272,3 +272,4 @@ Execute `node scripts/build.mjs` na pasta do projeto para gerar os HTMLs em `dis
 - As abelhas agora podem nascer com variação de -20%, -15%, -10%, base, +10%, +15% ou +20%. As faixas de ±20% são super raras, ±15% raras e ±10% pouco raras.
 - O relógio dos rodízios do Jardim foi acelerado em 30%, aumentando a frequência das aparições sem alterar o limite de espécies simultâneas.
 - O desgaste passivo de fome, sede, higiene e felicidade ficou 50% mais rápido nas três dificuldades. Os cartões voltaram a mostrar percentuais inteiros. Retirei os botões de som suave e pouco movimento da interface.
+- Acelerei mais 50% o desgaste passivo atual. Os bichos do Jardim elegíveis recebem ao aparecer as mesmas faixas raras de tamanho das abelhas. João-de-barro, sapo e joaninha ficam fora do sorteio. Grupos aleatórios de uma a cinco formigas atravessam o Jardim em trajetórias próprias.

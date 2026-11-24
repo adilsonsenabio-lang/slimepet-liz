@@ -328,9 +328,9 @@ function loadSave(){
 // V41-R3 — tabela de dificuldade centralizada, em pontos por MINUTO.
 // Energia permanece sem desgaste passivo.
 const NEEDS_DIFFICULTIES=Object.freeze({
- gentil:Object.freeze({fome:4.68,sede:5.85,higiene:2.925,felicidade:3.51}),
- tranquilo:Object.freeze({fome:7.02,sede:8.775,higiene:4.68,felicidade:5.265}),
- ativo:Object.freeze({fome:11.70,sede:13.455,higiene:7.605,felicidade:8.775})
+ gentil:Object.freeze({fome:7.02,sede:8.775,higiene:4.3875,felicidade:5.265}),
+ tranquilo:Object.freeze({fome:10.53,sede:13.1625,higiene:7.02,felicidade:7.8975}),
+ ativo:Object.freeze({fome:17.55,sede:20.1825,higiene:11.4075,felicidade:13.1625})
 });
 const DEFAULT_NEEDS_MODE='gentil';
 const MAX_OFFLINE_NEEDS_MS=10*60*1000; // Até 10 minutos de desgaste por retorno, mesmo após dias.
@@ -1312,7 +1312,7 @@ const FIXED_VISITORS={
 };
 // O sapo e o patinho so cruzam a faixa proxima da agua, nunca a area inteira do jardim.
 const VISITOR_LOCAL_ZONES={sapo:{left:493,right:724},patinho:{left:520,right:724}};
-const gardenAnimals=['sapo','abelha','borboleta'];
+const gardenAnimals=['sapo','abelha','borboleta','formiga'];
 const homeAnimals=['abelha','formiga'];
 // Grade de vinte células de 72 × 56, com fundo transparente.
 const FAUNA_SHEETS={"abelha":"../assets/abelha.png","borboleta":"../assets/borboleta_3.png","caracol":"../assets/caracol.png","coelho":"../assets/coelho.png","formiga":"../assets/formiga.png","gatinho":"../assets/gatinho.png","gatinho_reacao":"../assets/gatinho_reacao.png","joaninha":"../assets/joaninha.png","joao_de_barro":"../assets/joao_de_barro.png","libelula":"../assets/libelula_voando.png","patinho":"../assets/patinho.png","sapo":"../assets/sapo.png","sapo_salto":"../assets/sapo_salto.png","tartaruga":"../assets/tartaruga.png","vagalume":"../assets/vagalume.png"};
@@ -1354,16 +1354,17 @@ function pickWindowStop(kind,spec){
  return Math.round(a+Math.random()*Math.max(0,b-a));
 }
 const HOME_ANT_SCALE=.90;
+const VARIABLE_SIZE_ANIMALS=new Set(['abelha','borboleta','coelho','caracol','tartaruga','libelula','patinho','formiga']);
+function faunaSizeVariation(){
+ const roll=Math.random();
+ return roll<.02?.20:roll<.08?.15:roll<.20?.10:
+  roll>.98?-.20:roll>.92?-.15:roll>.80?-.10:0;
+}
 function visitorScale(kind,screen){
  const base=VISITOR_SPEC[kind].scale;
- if(kind==='abelha'){
-  const roll=Math.random();
-  const variation=roll<.02?.20:roll<.08?.15:roll<.20?.10:
-   roll>.98?-.20:roll>.92?-.15:roll>.80?-.10:0;
-  return base*(screen==='garden'?1.20:1)*(1+variation);
- }
  if(kind==='formiga'&&screen==='care')return base*HOME_ANT_SCALE*(Casa.getRoom()==='sala'?.85:1);
- return base;
+ return base*(kind==='abelha'&&screen==='garden'?1.20:1)*
+  (VARIABLE_SIZE_ANIMALS.has(kind)?1+faunaSizeVariation():1);
 }
 // V41-R6: voo suave da borboleta residente no Jardim.
 // Caminho fechado e deterministico: mesma posicao e tangente em cada volta.
@@ -1911,12 +1912,43 @@ function updateHomeBees(reduced){
   v.frame=(flightFrame+frameOffset)%FAUNA_FRAMES;
  }
 }
+const GARDEN_ANTS={max:5,rollMs:3000,arrivalGapMs:650,
+ minCrossMs:8500,crossVariationMs:3500,firstY:424,laneGap:16};
+let gardenAntTarget=1,nextGardenAntRoll=0,nextGardenAntArrival=0;
+function updateGardenAnts(reduced){
+ if(!faunaPresent('formiga')||!assets.visitors.formiga)return;
+ if(sceneTime>=nextGardenAntRoll){
+  gardenAntTarget=1+Math.floor(Math.random()*GARDEN_ANTS.max);
+  nextGardenAntRoll=sceneTime+GARDEN_ANTS.rollMs;
+ }
+ visitors=visitors.filter(v=>!v.gardenAnt||sceneTime-v.started<v.gardenAnt.crossMs);
+ const ants=visitors.filter(v=>v.gardenAnt);
+ if(ants.length<gardenAntTarget&&sceneTime>=nextGardenAntArrival){
+  const v=newVisitor('formiga','garden');
+  const lane=Array.from({length:GARDEN_ANTS.max},(_,i)=>i)
+   .find(i=>!ants.some(other=>other.gardenAnt.lane===i));
+  v.gardenAnt={lane,crossMs:GARDEN_ANTS.minCrossMs+Math.random()*GARDEN_ANTS.crossVariationMs};
+  ants.push(v);visitors.push(v);visitCount++;
+  nextGardenAntArrival=sceneTime+GARDEN_ANTS.arrivalGapMs;
+ }
+ for(const v of ants){
+  const age=sceneTime-v.started;
+  const progress=clamp(age/v.gardenAnt.crossMs,0,1);
+  v.x=v.x0+(v.x1-v.x0)*progress;
+  v.laneY=v.drawY=GARDEN_ANTS.firstY+v.gardenAnt.lane*GARDEN_ANTS.laneGap;
+  v.facing=v.fromLeft?1:-1;
+  v.visible=v.x+v.spec.rx>=0&&v.x-v.spec.rx<=W;
+  v.phase=progress<.2?'entrar':progress>.8?'sair':'andar';
+  v.frame=reduced?0:faunaFrame(v,sceneTime,false);
+ }
+}
 function updateVisitors(dt){
  if(currentScreen==='evolve'){visitors=[];return;}
  if(transition)return; // preservar moradores durante a passagem Casa/Jardim
  const garden=currentScreen==='garden';
  const reduced=reducedMotion?.matches;
  if(!garden)updateHomeBees(reduced);
+ else updateGardenAnts(reduced);
  const turns=garden?gardenFaunaTurns(gardenArrivalTime()):[];
  const turnsByKind=new Map(turns.map(turn=>[turn.kind,turn]));
  const turnKey=turn=>turn&&turn.round+':'+turn.index;
@@ -1938,6 +1970,7 @@ function updateVisitors(dt){
   const v=visitors[i];
   if(v.screen!==currentScreen){visitors.splice(i,1);continue;}
   if(v.homeBee)continue;
+  if(v.gardenAnt)continue;
   if(FIXED_VISITORS[v.kind]?.room){updateShelfAnimal(v,sceneTime,reduced);continue;}
   const turn=turnsByKind.get(v.kind);
   if(!turn||!faunaPresent(v.kind)){
@@ -1960,7 +1993,6 @@ function updateVisitors(dt){
    continue;
   }
   if(v.residentPond){updatePondFrog(v,sceneTime,reduced,age+turn.phase);continue;}
-  if(v.kind==='formiga')v.scale=visitorScale(v.kind,v.screen);
   if(v.residentLanding&&!v.stationary){
    const lt=clamp((sceneTime-v.landingStart)/v.landingDuration,0,1);
    v.phase=lt<1?'entrar':'repouso';

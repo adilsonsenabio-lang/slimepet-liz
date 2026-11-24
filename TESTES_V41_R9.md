@@ -227,3 +227,5 @@
 - Simulei as sete faixas de escala das abelhas e confirmei as categorias de raridade nos dois ambientes. Validei o fator de frequência de 1,30 do Jardim e regenerei os HTMLs offline e Pages. Android físico não testado.
 
 - Conferi por cálculo as taxas 50% maiores nas três dificuldades, validei a sintaxe e confirmei percentuais inteiros e ausência dos controles nos HTMLs offline e Pages. Conferência visual no navegador e Android físico pendentes.
+
+- Conferi por cálculo o novo aumento de 50% nas três dificuldades. Simulei o surgimento e a renovação de até cinco formigas no Jardim e conferi as exceções do sorteio de escala. Validei a sintaxe e gerei os HTMLs offline e Pages. Conferência visual no navegador e Android físico pendentes.
