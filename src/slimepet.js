@@ -1716,9 +1716,28 @@ const FROG_ACTIONS={
  sapo_salto_ida:'../assets/sapo_salto_ida.png',
  sapo_salto_volta:'../assets/sapo_salto_volta.png',
 };
-function updatePondFrog(v,time,reduced,elapsed=time-v.started){
+const NIGHT_SHELTER_RATE=1.5;
+function advanceShelterCycle(v,dt,hideAt,basePeriod,dayShelterMs){
+ const previous=v.shelterAge??0;
+ let age=previous+dt;
+ let shelterMs=v.shelterMs??dayShelterMs;
+ if(previous<hideAt&&age>=hideAt){
+  shelterMs=dayShelterMs*(isGardenNight(GAME_CLOCK.wallNow())?NIGHT_SHELTER_RATE:1);
+ }
+ const duration=basePeriod+shelterMs-dayShelterMs;
+ if(age>=duration){
+  age-=duration;shelterMs=dayShelterMs;v.turnExitSide=null;
+ }
+ v.shelterAge=age;v.shelterMs=shelterMs;
+}
+function updatePondFrog(v,time,reduced,dt){
  const r=FROG_TIMER;
- let t=elapsed;
+ const hideAt=r.tongue+r.dive;
+ advanceShelterCycle(v,dt,hideAt,FROG_PERIOD,r.hidden);
+ const elapsed=v.shelterAge;
+ // No período extra de sono, mantenha o sapo submerso sem repetir o splash.
+ const extra=v.shelterMs-r.hidden;
+ let t=elapsed<hideAt?elapsed:Math.max(Math.min(elapsed,hideAt+r.hidden-1),elapsed-extra);
  v.x=v.residentX;v.drawY=v.laneY=v.residentY;v.facing=v.residentFacing;
  v.visible=true;v.phase='repouso';v.activity=null;v.frogJumpFrame=null;v.splash=0;v.puddleClip=false;v.puddleSplash=null;v.opacity=1;
  v.frame=reduced?0:faunaFrame(v,time,false);
@@ -1782,9 +1801,21 @@ function updatePondFrog(v,time,reduced,elapsed=time-v.started){
  }
 }
 function wildlifeFrame(progress){return Math.min(FAUNA_FRAMES-1,Math.floor(progress*FAUNA_FRAMES));}
-function updateBirdHouse(v,time,elapsed,reduced){
+function updateResidentBird(v,time,dt,reduced){
  const rule=BIRD_HOUSE_TIMER;
- const exitAt=rule.enter+rule.inside,perchAt=exitAt+rule.exit;
+ const hideAt=rule.perch+rule.enter;
+ const basePeriod=2*rule.perch+rule.enter+rule.inside+rule.exit;
+ advanceShelterCycle(v,dt,hideAt,basePeriod+FAUNA_TURN_GAP_MS,rule.inside);
+ const duration=basePeriod+v.shelterMs-rule.inside;
+ if(v.shelterAge>=duration){v.visible=false;return;}
+ updateBirdHouse(v,time,v.shelterAge-rule.perch,reduced,v.shelterMs);
+ v.turnEntrySide=1;
+ applyGardenTurnEdges(v,{age:v.shelterAge,duration},reduced);
+ if(v.visible&&v.phase==='repouso')reactToResidentIdle(v);
+}
+function updateBirdHouse(v,time,elapsed,reduced,insideMs){
+ const rule=BIRD_HOUSE_TIMER;
+ const exitAt=rule.enter+insideMs,perchAt=exitAt+rule.exit;
  const t=elapsed;
  v.x=v.residentX;v.drawY=v.laneY=v.residentY;v.scale=v.spec.scale;
  v.facing=v.residentFacing;
@@ -2020,9 +2051,6 @@ function applyGardenTurnEdges(v,turn,reduced){
  const entering=turn.age<windowMs;
  const remaining=turn.duration-turn.age;
  if(!entering&&remaining>=windowMs){v.turnExitSide=null;return;}
- // A toca e a água já oferecem uma transição visível nesses turnos.
- if(v.kind==='joao_de_barro'&&entering===(turn.phase>=0))return;
- if(v.residentPond&&entering===(turn.phase>0))return;
  const half=FAUNA_FRAME_W*v.scale/2;
  // Keep the side fixed for the whole leg, even if the animal's normal path crosses the midpoint.
  const side=entering?v.turnEntrySide:(v.turnExitSide??=(v.x<W/2?-1:1));
@@ -2071,6 +2099,8 @@ function updateVisitors(dt){
   if(v.gardenAnt||v.gardenBee)continue;
   if(FIXED_VISITORS[v.kind]?.room){updateShelfAnimal(v,sceneTime,reduced);continue;}
   if(v.residentFlutter){updateFlowerVisitor(v,dt,reduced);continue;}
+  if(v.residentPond){updatePondFrog(v,sceneTime,reduced,dt);continue;}
+  if(v.kind==='joao_de_barro'){updateResidentBird(v,sceneTime,dt,reduced);continue;}
   const turn=turnsByKind.get(v.kind);
   if(!turn||!faunaPresent(v.kind)){
    if(!FIXED_VISITORS[v.kind]){visitors.splice(i,1);continue;}
@@ -2090,12 +2120,6 @@ function updateVisitors(dt){
   if(v.kind==='libelula'){
    updateDragonfly(v,(turn.round*turn.duration+age)*.90,reduced);continue;
   }
-  if(v.kind==='joao_de_barro'){
-   updateBirdHouse(v,sceneTime,age+turn.phase,reduced);
-   if(v.phase==='repouso')reactToResidentIdle(v);
-   continue;
-  }
-  if(v.residentPond){updatePondFrog(v,sceneTime,reduced,age+turn.phase);continue;}
   if(v.residentLanding&&!v.stationary){
    const lt=clamp((sceneTime-v.landingStart)/v.landingDuration,0,1);
    v.phase=lt<1?'entrar':'repouso';
@@ -2189,7 +2213,7 @@ function updateVisitors(dt){
  }
  if(garden){
   for(const v of visitors){
-   if(FIXED_VISITORS[v.kind]?.screen==='garden'&&!v.residentFlutter)applyGardenTurnEdges(v,turnsByKind.get(v.kind),reduced);
+   if(FIXED_VISITORS[v.kind]?.screen==='garden'&&!v.residentFlutter&&!v.residentPond&&v.kind!=='joao_de_barro')applyGardenTurnEdges(v,turnsByKind.get(v.kind),reduced);
   }
   updateGardenBees(reduced);updateGardenAnts(reduced);
  }

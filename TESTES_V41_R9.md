@@ -267,3 +267,7 @@ Na simulação de 90 segundos no Edge, as chegadas passaram de 49 para 43 (aprox
 - O Edge abriu a versão offline e um save V30, com Jardim sem rolagem horizontal em 320, 390 e 430 px. Uma captura em 430 px mostrou o pontilhado discreto e os dois bichos no cenário.
 - Em 140 segundos simulados, a borboleta e a joaninha ficaram no Jardim e cada uma pousou nas três flores, sem compartilhar o mesmo pouso ao mesmo tempo.
 - Um minuto simulado no modo Gentil confirmou perdas de 18,954 pontos em saciedade, 23,6925 em sede, 11,84625 em higiene e 14,2155 em felicidade. O mesmo intervalo de soneca recarregou 11,985 pontos de dia e 17,9775 à noite. Android físico não foi testado.
+
+## Abrigos do sapo e do joão-de-barro (2026-11-24)
+
+O Edge confirmou o reinício do ciclo do sapo e as fases de mergulho, saída da poça, ida à lagoa e volta. O relógio simulado mediu 60 segundos de abrigo diurno e 90 segundos de abrigo noturno para os dois bichos, inclusive com a troca de fase do céu durante a espera. A entrada lateral e as ações na casinha também foram verificadas. Android físico não foi testado.

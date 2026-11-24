@@ -306,3 +306,7 @@ A cadência de chegada das abelhas do Jardim foi ajustada para cerca de 10% meno
 - Pontos pequenos e semitransparentes mostram a direção do olhar, com espaço antes do alvo e desaparecimento suave.
 - A borboleta e a joaninha permanecem no Jardim, fazendo pausas nas mesmas três flores em momentos diferentes.
 - A recarga de energia por segundo de soneca caiu 40%. O bônus noturno de 50% continua valendo. Saciedade, sede, higiene e felicidade caem 80% mais rápido que na versão anterior.
+
+## Abrigos do sapo e do joão-de-barro (2026-11-24)
+
+O sapo permanece no Jardim e repete suas ações na poça e na lagoa. O joão-de-barro continua chegando e saindo pela lateral e entra na casinha entre os dois períodos no galho. Os dois descansam 60 segundos no abrigo de dia e 90 segundos quando entram sob a Lua. O tempo é definido na entrada e se mantém durante o descanso, inclusive se o céu mudar de fase.

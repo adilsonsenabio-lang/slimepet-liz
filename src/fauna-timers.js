@@ -13,12 +13,12 @@ const FAUNA_TURN_GAP_MS=450;
 const GARDEN_FREQUENCY=1.30;
 const GARDEN_FAUNA_TRACKS=[
  {offset:0,turns:[
-  ['joao_de_barro',5500,-3000],['coelho',29000],
-  ['joao_de_barro',13000,BIRD_HOUSE_TIMER.enter+BIRD_HOUSE_TIMER.inside],['tartaruga',33000],
+  [null,5500],['coelho',29000],
+  [null,13000],['tartaruga',33000],
  ]},
  {offset:2400,turns:[
-  [null,16000],['sapo',5000],['caracol',33000],
-  ['sapo',25000,FROG_TIMER.tongue+FROG_TIMER.dive+FROG_TIMER.hidden],
+  [null,16000],[null,5000],['caracol',33000],
+  [null,25000],
  ]},
  {offset:4800,turns:[
   [null,11400],[null,27000],['libelula',15000],['patinho',21000],
