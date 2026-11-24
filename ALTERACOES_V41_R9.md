@@ -256,3 +256,4 @@ Execute `node scripts/build.mjs` na pasta do projeto para gerar os HTMLs em `dis
 
 - O Jardim usa turnos exclusivos para as dez espécies, com um intervalo entre eles. Na Casa, a abelha aparece durante as pausas do gato. A fila de formigas segue seu ciclo contínuo no rodapé.
 - Em 2026-11-24, o gato passou a ter pelagem cinza na sala, bege no quarto e marrom na cozinha. As duas spritesheets existentes recebem a mesma paleta por cômodo, preservando os quadros, a transparência e os detalhes rosados. O build gera a R9 mesmo em cópias de trabalho em que o backup da R8 está ausente.
+- As paletas da sala e da cozinha ganharam tons médios próprios. O cinza quente da sala tem sombras suaves e luzes claras. O caramelo da cozinha combina sombras castanhas e luzes douradas.

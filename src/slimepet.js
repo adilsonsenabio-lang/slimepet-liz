@@ -1655,9 +1655,9 @@ function updateDragonfly(v,time,reduced,random=Math.random){
 const CAT_SHELF={sala:{y:154,bookX:550},quarto:{y:153,bookX:548},cozinha:{y:151,bookX:543}};
 const CAT_WALK_SRC='../assets/gatinho_caminhando.png',CAT_STRIDE_PX=19;
 const CAT_COAT={
- sala:[[38,43,54],[211,220,232]],
- quarto:[[83,60,45],[255,240,208]],
- cozinha:[[47,29,25],[202,153,115]],
+ sala:{shadow:[70,59,69],mid:[140,130,139],highlight:[223,213,214]},
+ quarto:{shadow:[83,60,45],highlight:[255,240,208]},
+ cozinha:{shadow:[88,50,40],mid:[170,104,68],highlight:[242,195,141]},
 };
 const catCoatSheets=new WeakMap();
 function catCoatSheet(image,room){
@@ -1670,13 +1670,16 @@ function catCoatSheet(image,room){
  ctx.drawImage(image,0,0);
  const pixels=ctx.getImageData(0,0,sheet.width,sheet.height);
  const {data}=pixels;
- const [shadow,highlight]=CAT_COAT[room];
+ const {shadow,mid,highlight}=CAT_COAT[room];
  for(let i=0;i<data.length;i+=4){
   const r=data[i],g=data[i+1],b=data[i+2];
   if(!data[i+3]||g<b)continue; // Preserve os detalhes rosados do focinho e das orelhas.
   const light=clamp((.2126*r+.7152*g+.0722*b-48)/185,0,1);
   for(let channel=0;channel<3;channel++){
-   data[i+channel]=shadow[channel]+(highlight[channel]-shadow[channel])*light;
+   const middle=mid?.[channel]??(shadow[channel]+highlight[channel])/2;
+   data[i+channel]=light<.5
+    ?shadow[channel]+(middle-shadow[channel])*light*2
+    :middle+(highlight[channel]-middle)*(light*2-1);
   }
  }
  ctx.putImageData(pixels,0,0);
