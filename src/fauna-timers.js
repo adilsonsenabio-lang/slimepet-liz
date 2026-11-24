@@ -29,14 +29,6 @@ function gardenFaunaTurn(elapsed){
  }
  return null;
 }
-function homeFaunaTurn(elapsed){
- const round=Math.floor(elapsed/CAT_SHELF_CYCLE_MS);
- const age=elapsed%CAT_SHELF_CYCLE_MS;
- if(age<CAT_SHELF_WALK_MS)return {kind:'gatinho',age,round};
- const visitorAge=age-CAT_SHELF_WALK_MS-FAUNA_TURN_GAP_MS;
- const duration=CAT_SHELF_REST_MS-2*FAUNA_TURN_GAP_MS;
- return round%2&&visitorAge>=0&&visitorAge<duration?{kind:'abelha',age:visitorAge,duration,round}:null;
-}
 const MEADOW_WALKS={
  coelho:{from:-51,to:658,delay:600,leg:12800,wait:2200,stride:36},
  caracol:{from:-34,to:144,delay:900,leg:30500,wait:2300,stride:19},

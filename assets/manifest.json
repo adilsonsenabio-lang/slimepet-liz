@@ -1,6 +1,40 @@
 {
   "sequencias": [
     {
+      "nome": "camaleao_repouso",
+      "arquivo": "camaleao_repouso.png",
+      "quadros": 20,
+      "largura": 72,
+      "altura": 56,
+      "fps": 10.5263
+    },
+    {
+      "nome": "camaleao_caminhando",
+      "arquivo": "camaleao_caminhando.png",
+      "quadros": 20,
+      "largura": 72,
+      "altura": 56,
+      "fps": 14,
+      "passada_px": 19
+    },
+    {
+      "nome": "hamster_repouso",
+      "arquivo": "hamster_repouso.png",
+      "quadros": 20,
+      "largura": 72,
+      "altura": 56,
+      "fps": 10.5263
+    },
+    {
+      "nome": "hamster_caminhando",
+      "arquivo": "hamster_caminhando.png",
+      "quadros": 20,
+      "largura": 72,
+      "altura": 56,
+      "fps": 14,
+      "passada_px": 19
+    },
+    {
       "nome": "carinho_coracoes",
       "arquivo": "carinho_coracoes.png",
       "quadros": 20,

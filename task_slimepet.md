@@ -26,6 +26,7 @@
 - [x] Restaurar o ciclo contínuo das formigas, independente dos turnos (2026-11-23).
 - [x] Dar uma cor ao gato de cada cômodo (2026-11-24). Cinza na sala, bege no quarto e marrom na cozinha, na caminhada e no repouso.
 - [x] Refinar as paletas dos gatos da sala e da cozinha (2026-11-24). Cinza quente na sala e caramelo na cozinha, com tons médios próprios.
+- [x] Colocar camaleão na sala, hamster na cozinha e de uma a cinco abelhas na Casa (2026-11-24). Arte aprovada e ciclo de prateleira preservado.
 
 
 
