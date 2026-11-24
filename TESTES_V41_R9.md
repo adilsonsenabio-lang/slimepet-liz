@@ -203,3 +203,5 @@
 - Simulei dois rodízios completos do Jardim, quatro ciclos da Casa e um turno com espécie desativada. Conferi a exclusividade dos turnos e gerei os dois HTMLs. Conferência no navegador pendente.
 
 - Comparei o desenho e o relógio da fila com a versão anterior ao rodízio. A rotina contínua das formigas foi restaurada integralmente e os turnos do gato, da abelha e do Jardim foram conferidos.
+
+- Em 2026-11-24, conferi em simulação as três paletas, a preservação dos detalhes rosados e da transparência, o reaproveitamento das folhas coloridas e o ciclo de caminhada e repouso nos três cômodos. Validei a sintaxe do JavaScript e a inclusão dos PNGs no HTML offline. O Edge headless falhou ao inicializar o processo gráfico. Ficaram pendentes a conferência visual em 320, 390 e 430 px, o carregamento de saves antigos no navegador, a observação conjunta da fauna e o teste em Android físico.

@@ -1654,6 +1654,35 @@ function updateDragonfly(v,time,reduced,random=Math.random){
 }
 const CAT_SHELF={sala:{y:154,bookX:550},quarto:{y:153,bookX:548},cozinha:{y:151,bookX:543}};
 const CAT_WALK_SRC='../assets/gatinho_caminhando.png',CAT_STRIDE_PX=19;
+const CAT_COAT={
+ sala:[[38,43,54],[211,220,232]],
+ quarto:[[83,60,45],[255,240,208]],
+ cozinha:[[47,29,25],[202,153,115]],
+};
+const catCoatSheets=new WeakMap();
+function catCoatSheet(image,room){
+ let sheets=catCoatSheets.get(image);
+ if(!sheets){sheets=new Map();catCoatSheets.set(image,sheets);}
+ if(sheets.has(room))return sheets.get(room);
+ const sheet=document.createElement('canvas');
+ sheet.width=image.width;sheet.height=image.height;
+ const ctx=sheet.getContext('2d');
+ ctx.drawImage(image,0,0);
+ const pixels=ctx.getImageData(0,0,sheet.width,sheet.height);
+ const {data}=pixels;
+ const [shadow,highlight]=CAT_COAT[room];
+ for(let i=0;i<data.length;i+=4){
+  const r=data[i],g=data[i+1],b=data[i+2];
+  if(!data[i+3]||g<b)continue; // Preserve os detalhes rosados do focinho e das orelhas.
+  const light=clamp((.2126*r+.7152*g+.0722*b-48)/185,0,1);
+  for(let channel=0;channel<3;channel++){
+   data[i+channel]=shadow[channel]+(highlight[channel]-shadow[channel])*light;
+  }
+ }
+ ctx.putImageData(pixels,0,0);
+ sheets.set(room,sheet);
+ return sheet;
+}
 function updateCat(v,time,reduced){
  const room=Casa.getRoom();
  const shelf=CAT_SHELF[room];
@@ -2067,6 +2096,7 @@ function drawVisitors(ctx,accept){
   }
   ctx.translate(Math.round(v.x),0);
   ctx.scale(v.facing*(v.residentFlutter?(v.turnScale??1):1),1);
+  if(v.kind==='gatinho')img=catCoatSheet(img,Casa.getRoom());
   ctx.drawImage(img,frame*fw,0,fw,fh,-Math.round(w/2),
    Math.round(v.drawY-anchor*v.scale),Math.round(w),Math.round(h));
   ctx.restore();

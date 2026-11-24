@@ -30,8 +30,10 @@ if (process.argv.includes('--pages')) {
 }
 
 await mkdir(new URL('dist/', root), { recursive: true });
-await Promise.all([
-  writeFile(new URL('dist/JOGAR_SLIMEPET_LIZ_V41_R9_OFFLINE.html', root), offline),
-  writeFile(new URL('dist/JOGAR_SLIMEPET_LIZ_V41_R8_OFFLINE.html', root),
-    await readFile(new URL('backup/V41_R8_original.html', root))),
-]);
+await writeFile(new URL('dist/JOGAR_SLIMEPET_LIZ_V41_R9_OFFLINE.html', root), offline);
+const original = await readFile(new URL('backup/V41_R8_original.html', root)).catch(error => {
+  if (error.code !== 'ENOENT') throw error;
+});
+if (original) {
+  await writeFile(new URL('dist/JOGAR_SLIMEPET_LIZ_V41_R8_OFFLINE.html', root), original);
+}
