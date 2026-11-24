@@ -294,3 +294,9 @@ As abelhas passaram a chegar em sequência, com a mesma lógica de sorteio dos g
 ## Chegadas das abelhas (2026-11-24)
 
 A cadência de chegada das abelhas do Jardim foi ajustada para cerca de 10% menos. Cada vaga fica livre para uma nova chegada após uma pequena espera. As abelhas continuam pousando e decolando no mesmo ritmo.
+
+## Noite, energia e travessias da fauna (2026-11-24)
+
+- O céu escurece com uma camada de cor sobre o fundo existente. A sombra projetada pela Lua fica em até 3,5% da força do Sol e as sombras de contato ficam mais suaves no Jardim.
+- Enquanto o slime está acordado, o Sol reduz quatro pontos de energia por minuto. A soneca sob a Lua recupera energia 50% mais rápido em qualquer cenário.
+- Entradas e saídas programadas da fauna do Jardim passam pelas bordas. O sapo ainda usa a água e o joão-de-barro ainda usa a casinha nos seus ciclos.

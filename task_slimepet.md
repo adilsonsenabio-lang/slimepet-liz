@@ -48,3 +48,5 @@
 - [x] Aumentar a frequência das abelhas do Jardim e sortear quantidade, tamanhos e pousos nas flores (2026-11-24).
 
 - [x] Reduzir em cerca de 10% a frequência de chegada das abelhas no Jardim (2026-11-24).
+
+- [x] Escurecer o céu da Lua, enfraquecer as sombras noturnas, ajustar a energia e fazer a fauna entrar e sair pelas bordas (2026-11-24).

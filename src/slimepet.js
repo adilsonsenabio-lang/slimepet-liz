@@ -326,13 +326,13 @@ function loadSave(){
 }
 
 // V41-R3 — tabela de dificuldade centralizada, em pontos por MINUTO.
-// Energia permanece sem desgaste passivo.
 const NEEDS_DIFFICULTIES=Object.freeze({
  gentil:Object.freeze({fome:7.02,sede:8.775,higiene:4.3875,felicidade:5.265}),
  tranquilo:Object.freeze({fome:10.53,sede:13.1625,higiene:7.02,felicidade:7.8975}),
  ativo:Object.freeze({fome:17.55,sede:20.1825,higiene:11.4075,felicidade:13.1625})
 });
 const PASSIVE_DECAY_MULTIPLIER=1.5;
+const DAY_ENERGY_LOSS_PER_MINUTE=4;
 const DEFAULT_NEEDS_MODE='gentil';
 const MAX_OFFLINE_NEEDS_MS=10*60*1000; // Até 10 minutos de desgaste por retorno, mesmo após dias.
 const MAX_ACTIVE_NEEDS_STEP_MS=60*1000; // Protege contra abas congeladas sem evento de suspensão.
@@ -347,9 +347,18 @@ function currentStage(){return stageForXp(state.evolution.xp);}
 let pet={x:clamp(Number.isFinite(Number(state.x??NaN))?Number(state.x):355,80,644),ground:440,act:'idle',frame:0,frameTime:0,moveStart:355,moveEnd:355,pending:null};
 const assets={actors:{},visitors:{},layers:[],effects:{},bg:null,gardenOcclusion:null,tub:null,casa_sala:null,casa_quarto:null,casa_cozinha:null,gardenExtra:null,voidBg:null,voidPulse:null,transHG:null,transGH:null,voidV25:null,rightTreeV26:null,ready:false};
 let sceneTime=0,lastAnimation=0,fx=null,task=null,moodText='😊 Contente',voidPulseStart=-1;
-const gardenLight={x:636,y:76,night:false,darkness:.30,shadowStrength:0};
+const gardenLight={x:636,y:76,night:false,darkness:.30,shadowStrength:0,skyDarkness:0};
 const sunEpoch=Number.isFinite(state.sunEpoch)?state.sunEpoch:GAME_CLOCK.wallNow();
-// Metabolism runs on real time (also after closing the game). Energy has NO passive decay.
+function skyCycleElapsed(now){
+ const cycle=2*GARDEN_SKY_PHASE_MS;
+ return ((now-sunEpoch)%cycle+cycle)%cycle;
+}
+function isGardenNight(now){return skyCycleElapsed(now)>=GARDEN_SKY_PHASE_MS;}
+function daylightThrough(now){
+ const cycle=2*GARDEN_SKY_PHASE_MS;
+ return Math.floor((now-sunEpoch)/cycle)*GARDEN_SKY_PHASE_MS+
+  Math.min(skyCycleElapsed(now),GARDEN_SKY_PHASE_MS);
+}
 // Um relógio monotônico governa sessões ativas; o relógio civil só mede ausências.
 // Nunca acumule simultaneamente delta monotônico e delta civil para a mesma janela.
 const needsClock={mono:null,wall:null,suspended:false,lastElapsedMs:0,lastSource:'initial'};
@@ -375,7 +384,10 @@ function advanceNeeds(now=GAME_CLOCK.wallNow(),mono=GAME_CLOCK.monotonicNow()){
  const mins=elapsed/60000;
  for(const [key,rate] of Object.entries(currentNeedsRates()))
   state.stats[key]=clamp(Number(state.stats[key])-mins*rate*PASSIVE_DECAY_MULTIPLIER);
- // No passive energy loss: only actions debit energy; resting restores it.
+ if(state.pendingCare?.key!=='dormir'){
+  const daylightMs=daylightThrough(now)-daylightThrough(now-elapsed);
+  state.stats.energia=clamp(state.stats.energia-daylightMs/60000*DAY_ENERGY_LOSS_PER_MINUTE);
+ }
  if(h.status==='sick'){
   const loss=source==='return'?Math.min(MAX_OFFLINE_SICK_HEALTH_LOSS,mins*6):mins*6;
   state.stats.saude=clamp(state.stats.saude-loss);
@@ -711,7 +723,7 @@ function doAction(key){
 // V41-R4: a single care director, driven by the existing animation loop.
 // Do not store images, timeouts, wall-clock callbacks or DOM nodes in the save.
 const CARE_DURATIONS=Object.freeze({comer:2300,banho:3000,dormir:Infinity});
-const SLEEP_APPROACH_MS=1050,SLEEP_LIE_MS=650,SLEEP_ENERGY_PER_MS=.0085;
+const SLEEP_APPROACH_MS=1050,SLEEP_LIE_MS=650,SLEEP_ENERGY_PER_MS=.0085,NIGHT_SLEEP_RATE=1.5;
 let careAnimationOwner=false;
 function validSavedCare(raw){
  if(!raw||typeof raw!=='object'||!Object.hasOwn(CARE_DURATIONS,raw.key))return null;
@@ -743,6 +755,7 @@ function cancelCareSequence(reason='interrupted'){
  const a=activeCareSequence;if(!a)return false;
  // Sleep has earned energy over time; do not rollback legitimate progress.
  if(a.key!=='dormir')return false;
+ advanceNeeds();
  activeCareSequence=null;state.pendingCare=null;
  pet.act='idle';pet.frame=0;pet.frameTime=0;petVisual.reaction=null;
  PersonalityMachine.onCareEnd('care-cancelled:'+reason);
@@ -754,7 +767,10 @@ function finishCareSequence(){
   a.committed=true;state.pendingCare={...a};applyStats(actionInfo.banho.delta);
   setFeedback('✨ Limpinho e cheiroso!');
  }
- if(a.key==='dormir')setFeedback('Energia cheia! O slime acordou.');
+ if(a.key==='dormir'){
+  advanceNeeds();
+  setFeedback('Energia cheia! O slime acordou.');
+ }
  activeCareSequence=null;state.pendingCare=null;
  pet.act='idle';pet.frame=0;pet.frameTime=0;petVisual.reaction=null;
  PersonalityMachine.onCareEnd();
@@ -779,7 +795,7 @@ function advanceCareSequence(deltaMs=0){
    setCarePose('dormir',reducedMotion.matches?5:beat);
   }
   const restingMs=Math.max(0,a.elapsed-Math.max(previousElapsed,lieEnd));
-  state.stats.energia=clamp(state.stats.energia+restingMs*SLEEP_ENERGY_PER_MS);
+  state.stats.energia=clamp(state.stats.energia+restingMs*SLEEP_ENERGY_PER_MS*(isGardenNight(GAME_CLOCK.wallNow())?NIGHT_SLEEP_RATE:1));
  }else if(a.key==='banho'){
   setCarePose('banho',p*9.8);petVisual.reaction='banho';
   if(a.elapsed>=2550&&!a.committed){
@@ -2018,15 +2034,42 @@ function updateGardenAnts(reduced){
     return Math.abs(nextX-other.x)>=horizontal||Math.abs(y-other.drawY)>=vertical;
    });
   });
-  if(safeLane===undefined){v.visible=false;continue;}
-  v.gardenAnt.lane=safeLane;
+  v.gardenAnt.lane=safeLane??v.gardenAnt.lane;
   v.gardenAnt.walkDistance+=Math.abs(nextX-v.x);
   v.x=nextX;
-  v.laneY=v.drawY=GARDEN_ANTS.firstY+safeLane*GARDEN_ANTS.laneGap;
+  v.laneY=v.drawY=GARDEN_ANTS.firstY+v.gardenAnt.lane*GARDEN_ANTS.laneGap;
   v.facing=v.fromLeft?1:-1;
   v.visible=v.x+v.spec.rx>=0&&v.x-v.spec.rx<=W;
   v.phase=progress<.2?'entrar':progress>.8?'sair':'andar';
   v.frame=reduced?0:Math.floor(v.gardenAnt.walkDistance/GARDEN_ANTS.stridePx)%FAUNA_FRAMES;
+ }
+}
+const GARDEN_EDGE_TRANSIT_MS=3200;
+function applyGardenTurnEdges(v,turn,reduced){
+ v.edgeTransit=false;
+ if(!turn||!v.visible)return;
+ const windowMs=Math.min(GARDEN_EDGE_TRANSIT_MS,turn.duration*.27);
+ const entering=turn.age<windowMs;
+ const remaining=turn.duration-turn.age;
+ if(!entering&&remaining>=windowMs){v.turnExitSide=null;return;}
+ // A toca e a água já oferecem uma transição visível nesses turnos.
+ if(v.kind==='joao_de_barro'&&entering===(turn.phase>=0))return;
+ if(v.residentPond&&entering===(turn.phase>0))return;
+ const half=FAUNA_FRAME_W*v.scale/2;
+ // Keep the side fixed for the whole leg, even if the animal's normal path crosses the midpoint.
+ const side=entering?v.turnEntrySide:(v.turnExitSide??=(v.x<W/2?-1:1));
+ const offscreen=side<0?-half-4:W+half+4;
+ const blend=ease((entering?turn.age:remaining)/windowMs);
+ v.x=v41Mix(offscreen,v.x,blend);
+ v.facing=entering?-side:side;
+ v.edgeTransit=true;
+ v.visible=v.x+half>0&&v.x-half<W;
+ v.near=v.visible&&Math.abs(v.x-pet.x)<145;
+ if(!v.visible)return;
+ v.phase=entering?'entrar':'sair';
+ if(!v.puddleClip&&!v.birdHouseClip){
+  v.frame=reduced?0:faunaFrame(v,sceneTime,false);
+  if(v.residentRabbit){v.rabbitAction='andar';v.rabbitFrame=reduced?0:rabbitWalkFrame(turn.age*.17);}
  }
 }
 function updateVisitors(dt){
@@ -2065,7 +2108,11 @@ function updateVisitors(dt){
   }
   if(!FIXED_VISITORS[v.kind]&&v.turnKey!==turnKey(turn)){visitors.splice(i,1);continue;}
   const age=turn.age;
-  v.crowdAlpha=ease(Math.min(age,turn.duration-age)/450);
+  if(v.gardenTurnKey!==turnKey(turn)){
+   v.gardenTurnKey=turnKey(turn);
+   v.turnEntrySide=v.residentX<W/2?-1:1;
+   v.turnExitSide=null;
+  }
   if(v.residentRabbit||v.residentCycle){
    const secondLeg=v.residentCycle&&turn.round%2?turn.duration:0;
    updateMeadowWalker(v,age+secondLeg,sceneTime,reduced);continue;
@@ -2178,7 +2225,12 @@ function updateVisitors(dt){
   }
   v.near=near;
  }
- if(garden){updateGardenBees(reduced);updateGardenAnts(reduced);}
+ if(garden){
+  for(const v of visitors){
+   if(FIXED_VISITORS[v.kind]?.screen==='garden')applyGardenTurnEdges(v,turnsByKind.get(v.kind),reduced);
+  }
+  updateGardenBees(reduced);updateGardenAnts(reduced);
+ }
  if(lookAt&&(GAME_CLOCK.wallNow()>lookAt.until||(lookAt.id!==null&&!visitors.some(v=>v.id===lookAt.id&&v.visible))))lookAt=null;
 }
 const GARDEN_PROPS={
@@ -2279,7 +2331,7 @@ function drawVisitors(ctx,accept){
   }
   const fw=FAUNA_FRAME_W,fh=FAUNA_FRAME_H,w=fw*v.scale,h=fh*v.scale;
   ctx.save();
-  const opacity=(v.opacity??1)*(v.crowdAlpha??1);
+  const opacity=v.opacity??1;
   ctx.globalAlpha=opacity;
   if(v.puddleClip){
    ctx.beginPath();
@@ -2305,7 +2357,7 @@ function drawVisitors(ctx,accept){
   if((v.spec.mode==='hop'||v.spec.mode==='walk'||v.spec.mode==='creep'||v.kind==='patinho')&&(!v.stationary||v.residentWalk||v.residentCycle||v.residentRabbit)){
    const contact=v.laneY+(v.kind==='sapo'?10*v.scale:2);
    const lift=Math.max(0,v.laneY-v.drawY);
-   ctx.globalAlpha=opacity*Math.max(.075,.18-lift*.007);
+   ctx.globalAlpha=opacity*Math.max(.075,.18-lift*.007)*(v.screen==='garden'&&gardenLight.night?.25:1);
    ctx.fillStyle='#244a31';ctx.fillRect(Math.round(v.x-15*v.scale),Math.round(contact),Math.round(30*v.scale),4);
    ctx.globalAlpha=opacity;
   }
@@ -2540,8 +2592,7 @@ async function initAssets(){
  }
 }
 function updateGardenLight(){
- const period=GARDEN_SKY_PHASE_MS*2;
- const elapsed=((GAME_CLOCK.wallNow()-sunEpoch)%period+period)%period;
+ const elapsed=skyCycleElapsed(GAME_CLOCK.wallNow());
  const progress=(elapsed%GARDEN_SKY_PHASE_MS)/GARDEN_SKY_PHASE_MS;
  const altitude=Math.sin(Math.PI*progress);
  const twilight=clamp(altitude*5,0,1);
@@ -2549,7 +2600,8 @@ function updateGardenLight(){
  gardenLight.x=gardenLight.night?105+531*progress:636-531*progress;
  gardenLight.y=76-35*altitude;
  gardenLight.darkness=gardenLight.night?.30+.28*altitude:.30*(1-twilight);
- gardenLight.shadowStrength=twilight*(gardenLight.night?.34:1);
+ gardenLight.skyDarkness=gardenLight.night?altitude*.84:0;
+ gardenLight.shadowStrength=twilight*(gardenLight.night?.035:1);
 }
 function pixel(x,y,w,h,color){ctx.fillStyle=color;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h));}
 function drawWholeOrAtlas(img,frame,w=W,h=H){if(!img)return;const cols=Math.max(1,Math.floor(img.width/w));const rows=Math.max(1,Math.floor(img.height/h));const total=Math.max(1,cols*rows);const f=((frame%total)+total)%total;if(total===1){ctx.drawImage(img,0,0,w,h);return;}ctx.drawImage(img,(f%cols)*w,Math.floor(f/cols)*h,w,h,0,0,w,h);}
@@ -2624,6 +2676,13 @@ function drawGardenPollen(){
 }
 function drawGarden(){if(assets.bg)ctx.drawImage(assets.bg,0,0,W,H);else{pixel(0,0,W,320,'#89cfe9');pixel(0,320,W,223,'#7fc65e')}
  const grad=ctx.createLinearGradient(gardenLight.x,60,724-gardenLight.x,440);grad.addColorStop(0,gardenLight.night?'rgba(179,213,255,0.10)':'rgba(255,244,176,0.095)');grad.addColorStop(1,'rgba(24,54,49,0.045)');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+ if(gardenLight.skyDarkness>0){
+  const sky=ctx.createLinearGradient(0,0,0,330);
+  sky.addColorStop(0,'rgba(3,8,30,'+gardenLight.skyDarkness+')');
+  sky.addColorStop(.55,'rgba(9,19,60,'+gardenLight.skyDarkness*.83+')');
+  sky.addColorStop(1,'rgba(12,24,65,0)');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,W,330);
+ }
  drawGardenSkyBody();
  drawGardenObjectShadows();
   for(const o of assets.layers){
@@ -2808,7 +2867,7 @@ function slimeScale(screen,stage=currentStage()){
 }
 function drawPetShadow(){const y=currentGround(),lift=(pet.act==='pulo'||pet.act.startsWith('walk_'))?[0,0,.28,.70,1,.76,.31,0,0,0][pet.frame]||0:0;
  const sc=slimeScale(currentScreen);
- ctx.save();ctx.fillStyle='#153d2d';ctx.globalAlpha=.20-.08*lift;ctx.beginPath();ctx.ellipse(pet.x,y-4,32*sc/1.6+lift*5,5+lift*2,0,0,Math.PI*2);ctx.fill();ctx.restore();
+ ctx.save();ctx.fillStyle='#153d2d';ctx.globalAlpha=(.20-.08*lift)*(currentScreen==='garden'&&gardenLight.night?.25:1);ctx.beginPath();ctx.ellipse(pet.x,y-4,32*sc/1.6+lift*5,5+lift*2,0,0,Math.PI*2);ctx.fill();ctx.restore();
  if(currentScreen==='garden')drawGardenCastShadow(ctx,pet.x,y-3,17*sc,45*sc,.19);
 }
 function fallbackPet(){const x=pet.x,y=currentGround();ctx.save();if(currentScreen==='garden'){ctx.translate(x,y);ctx.scale(SLIME_GARDEN_SCALE,SLIME_GARDEN_SCALE);ctx.translate(-x,-y);}ctx.fillStyle='#173f19';ctx.fillRect(x-54,y-62,108,57);ctx.fillStyle='#8be735';ctx.fillRect(x-49,y-69,98,61);pixel(x-30,y-50,13,20,'#172617');pixel(x+17,y-50,13,20,'#172617');pixel(x-30,y-52,5,5,'#fff');pixel(x+17,y-52,5,5,'#fff');pixel(x-36,y-30,11,8,'#ff9aca');pixel(x+23,y-30,11,8,'#ff9aca');pixel(x-11,y-31,22,13,'#261326');pixel(x-5,y-25,12,7,'#ff8fc3');ctx.restore();}
@@ -3106,7 +3165,7 @@ function resolveCollisionX(box,previousX,obstacles,min=box.half,max=W-box.half){
  return positions.filter(free).sort((a,b)=>Math.abs(a-target)-Math.abs(b-target))[0];
 }
 function visitorHasCollision(v){
- if(!v.visible||!COLLISION[v.kind]||v.puddleClip||v.kind==='gatinho'||v.homeBee||v.gardenAnt||v.gardenBee)return false;
+ if(!v.visible||!COLLISION[v.kind]||v.puddleClip||v.kind==='gatinho'||v.homeBee||v.gardenAnt||v.gardenBee||v.edgeTransit)return false;
  const half=COLLISION[v.kind][0]/2;
  return !v.sideArrival||(v.x>=half&&v.x<=W-half);
 }
@@ -3143,7 +3202,10 @@ function resolveActorCollisions(previousPetX,previousVisitors){
     x=held;
    }
   }
-  if(x===undefined){v.visible=false;continue;}
+  if(x===undefined){
+   if(previous){v.x=previous.x;v.drawY=v.laneY=previous.y;occupied.push(previous);}
+   continue;
+  }
   v.x=x;
   if(v.residentRabbit&&v.rabbitAction==='andar'){
    v.strideDistance=(v.strideDistance??0)+Math.abs(x-(previous?.x??x));

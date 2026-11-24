@@ -255,3 +255,9 @@ Com relógio simulado, conferi as posições no início, no meio e na virada de 
 ## Frequência das abelhas (2026-11-24)
 
 Na simulação de 90 segundos no Edge, as chegadas passaram de 49 para 43 (aproximadamente 12% menos). O teste confirmou cinco abelhas visíveis no máximo, pousos nas sete posições de flores, tamanhos variados, fases de voo e um save V30. O HTML abriu sem rolagem horizontal em 320, 390 e 430 px. Android físico não foi testado.
+
+## Noite, energia e travessias da fauna (2026-11-24)
+
+- Edge headless abriu o HTML offline e um save V30 em 320, 390 e 430 px sem rolagem horizontal ou exceções JavaScript. A captura noturna em 430 px mostrou céu escuro e cenário legível.
+- O relógio simulado confirmou a força máxima da sombra projetada em 1 durante o dia e 0,035 à noite. A energia perdeu quatro pontos em um minuto diurno, zero em um minuto noturno e dois em um intervalo dividido igualmente entre as fases. A soneca noturna recuperou 1,5 vez a energia do mesmo intervalo de sono diurno.
+- Seis minutos simulados registraram travessias laterais de borboleta, coelho, joaninha, caracol, libélula e tartaruga, além dos trechos laterais em turnos do sapo e do joão-de-barro. As entradas e saídas marcadas como travessia ficaram próximas às bordas. Sobreposição visual de todos os ciclos e Android físico não foram testados.
