@@ -12,7 +12,7 @@ const TRANS_GARDEN_HOME="../assets/trans_garden_home.png";
 const LIMBO_VIVO_V25="../assets/limbo_vivo_v25.png";
 const ARVORE_DIREITA_V26="../assets/arvore_direita_v26.png";
 const FRAME_MS=205; // v34: animacoes ligeiramente mais lentas, dez quadros por sequencia.
-const W=724,H=543,SUN_HALF_SWEEP=600000;
+const W=724,H=543,GARDEN_SKY_PHASE_MS=2*60*1000;
 const STORE='slime_pet_liz_v36';
 const V33_STORE='slime_pet_liz_v33';
 const V32_STORE='slime_pet_virtual_v32';
@@ -269,8 +269,8 @@ const MISUSE_COOLDOWN_MS={gentil:3400,tranquilo:2000,ativo:1600};
 const MISUSE_THRESHOLDS={gentil:{food:4,care:7},tranquilo:{food:3,care:5},ativo:{food:3,care:5}};
 function misusePolicy(){const mode=needsDifficulty(state.needsMode);return {gap:MISUSE_COOLDOWN_MS[mode],...MISUSE_THRESHOLDS[mode]};}
 
-const CARE_COOLDOWN_MS={comer:2400,beber:2200,banho:3000,dormir:4200,carinho:1700,brincar:2400};
-const CARE_THRESHOLD={comer:100,beber:92,banho:92,dormir:96,carinho:96,brincar:96};
+const CARE_COOLDOWN_MS={comer:2400,beber:2200,banho:3000,carinho:1700,brincar:2400};
+const CARE_THRESHOLD={comer:100,beber:92,banho:92,carinho:96,brincar:96};
 const HEALTH_DEFAULT={status:'healthy',nausea:0,excessFeedTimestamps:[],careMisuseTimestamps:[],sickSince:null,
  lastTreatmentAt:null,recoveryStartAt:null,recoveryUntil:null,recoveryStartHealth:null,recoveryTargetHealth:null,
  lastCareActionAt:{},lastCareAttemptAt:{},lastCareGlobalAt:0,lastFullFeedAt:null};
@@ -332,6 +332,7 @@ const NEEDS_DIFFICULTIES=Object.freeze({
  tranquilo:Object.freeze({fome:10.53,sede:13.1625,higiene:7.02,felicidade:7.8975}),
  ativo:Object.freeze({fome:17.55,sede:20.1825,higiene:11.4075,felicidade:13.1625})
 });
+const PASSIVE_DECAY_MULTIPLIER=1.5;
 const DEFAULT_NEEDS_MODE='gentil';
 const MAX_OFFLINE_NEEDS_MS=10*60*1000; // Até 10 minutos de desgaste por retorno, mesmo após dias.
 const MAX_ACTIVE_NEEDS_STEP_MS=60*1000; // Protege contra abas congeladas sem evento de suspensão.
@@ -346,7 +347,8 @@ function currentStage(){return stageForXp(state.evolution.xp);}
 let pet={x:clamp(Number.isFinite(Number(state.x??NaN))?Number(state.x):355,80,644),ground:440,act:'idle',frame:0,frameTime:0,moveStart:355,moveEnd:355,pending:null};
 const assets={actors:{},visitors:{},layers:[],effects:{},bg:null,gardenOcclusion:null,tub:null,casa_sala:null,casa_quarto:null,casa_cozinha:null,gardenExtra:null,voidBg:null,voidPulse:null,transHG:null,transGH:null,voidV25:null,rightTreeV26:null,ready:false};
 let sceneTime=0,lastAnimation=0,fx=null,task=null,moodText='😊 Contente',voidPulseStart=-1;
-let sun={x:636,y:76,p:.0},sunEpoch=Number.isFinite(state.sunEpoch)?state.sunEpoch:GAME_CLOCK.wallNow();
+const gardenLight={x:636,y:76,night:false,darkness:.30,shadowStrength:0};
+const sunEpoch=Number.isFinite(state.sunEpoch)?state.sunEpoch:GAME_CLOCK.wallNow();
 // Metabolism runs on real time (also after closing the game). Energy has NO passive decay.
 // Um relógio monotônico governa sessões ativas; o relógio civil só mede ausências.
 // Nunca acumule simultaneamente delta monotônico e delta civil para a mesma janela.
@@ -372,7 +374,7 @@ function advanceNeeds(now=GAME_CLOCK.wallNow(),mono=GAME_CLOCK.monotonicNow()){
  state.time=now;
  const mins=elapsed/60000;
  for(const [key,rate] of Object.entries(currentNeedsRates()))
-  state.stats[key]=clamp(Number(state.stats[key])-mins*rate);
+  state.stats[key]=clamp(Number(state.stats[key])-mins*rate*PASSIVE_DECAY_MULTIPLIER);
  // No passive energy loss: only actions debit energy; resting restores it.
  if(h.status==='sick'){
   const loss=source==='return'?Math.min(MAX_OFFLINE_SICK_HEALTH_LOSS,mins*6):mins*6;
@@ -505,7 +507,14 @@ function renderNeeds(){
     card.innerHTML='<span class="needHeader"><span class="needIcon">'+careIconMarkup(k)+'</span><span class="needName"></span><strong></strong></span><span class="track"><span class="fill"></span></span><span class="needAction">'+NEED_ACTION_LABEL[k]+'</span>';
     root.appendChild(card);
    }
-   const reading=String(Object.hasOwn(passiveRates,k)?Math.floor(v):Math.round(v));
+   const sleeping=k==='energia'&&activeCareSequence?.key==='dormir';
+   const reading=String(Object.hasOwn(passiveRates,k)||k==='energia'?Math.floor(v):Math.round(v));
+   if(k==='energia'){
+    const action=card.querySelector('.needAction');
+    const text=sleeping?'Acordar':'Dormir';
+    if(action.textContent!==text)action.textContent=text;
+    card.setAttribute('aria-pressed',String(sleeping));
+   }
    const percent=reading+'%',fillWidth=Number(v.toFixed(2))+'%',name=n;
    const label=card.querySelector('.needName'),value=card.querySelector('strong'),bar=card.querySelector('.fill');
    const expression=needFace(k,v);
@@ -516,7 +525,7 @@ function renderNeeds(){
    const isUrgent=k!=='saude'&&v<30;
    card.classList.toggle('urgent',isUrgent);card.classList.toggle('attention',k!=='saude'&&v>=30&&v<55);
    card.classList.toggle('sick',alert);
-   card.setAttribute('aria-label',n+': '+reading+' por cento. Expressão '+expression+'. '+(k==='saude'?(alert?(remainingTreatmentMs()?'Tratamento disponível em '+formatWait(remainingTreatmentMs()):'Toque para tratamento mágico.'):'Slime saudável; toque para avaliar saúde.'):'Toque para '+({fome:'comer',sede:'beber',energia:'dormir',higiene:'tomar banho',felicidade:'receber carinho'}[k])+'.'));
+   card.setAttribute('aria-label',n+': '+reading+' por cento. Expressão '+expression+'. '+(k==='saude'?(alert?(remainingTreatmentMs()?'Tratamento disponível em '+formatWait(remainingTreatmentMs()):'Toque para tratamento mágico.'):'Slime saudável; toque para avaliar saúde.'):'Toque para '+({fome:'comer',sede:'beber',energia:sleeping?'acordar':'dormir',higiene:'tomar banho',felicidade:'receber carinho'}[k])+'.'));
  }
  const m=mood();if(m!==moodText){moodText=m;$('mood').textContent=m;}
 }
@@ -526,7 +535,6 @@ const actionInfo={
  comer:{anim:'comer',delta:{fome:26,felicidade:3,energia:-4},text:'🍎 Buscou a maçã, comeu e gastou um pouco de energia.'},
  beber:{anim:'beber',delta:{sede:30,energia:-3},text:'🥤 Que refrescante!'},
  banho:{anim:'banho',delta:{higiene:100,felicidade:3,energia:-6},text:'🫧 Que banho gostoso!'},
- dormir:{anim:'dormir',delta:{energia:35,fome:-2},text:'💤 Soneca gostosa!'},
  carinho:{anim:'feliz',delta:{felicidade:19,energia:-1},text:'💗 Adorei o carinho!'},
  brincar:{anim:'pulo',delta:{felicidade:18,energia:-10,sede:-3,higiene:-2},text:'🎾 Que brincadeira boa!'},
  pulo:{anim:'pulo',delta:{energia:-4,felicidade:2},text:'⬆️ Pulou e gastou um pouco de energia.'},
@@ -624,16 +632,22 @@ function feedSlime(){
  showCareCue('comer','accepted');
 }
 function normalCare(key,now){
+ if(key==='dormir'){
+  if(state.stats.energia>=100){setFeedback('Energia cheia!');return;}
+  if(beginCareSequence(key)){
+   SOUND.play(key);setFeedback('Hora da soneca!');renderNeeds();
+  }
+  return;
+ }
  const info=actionInfo[key];if(!info)return;
- const meter={beber:'sede',banho:'higiene',dormir:'energia',carinho:'felicidade',brincar:'felicidade'}[key];
+ const meter={beber:'sede',banho:'higiene',carinho:'felicidade',brincar:'felicidade'}[key];
  if(meter&&state.stats[meter]>=CARE_THRESHOLD[key]){registerOvercare(key,now);return;}
  if(tooSoon(key,now))return;
  if(!canAct(Math.max(0,-(info.delta.energia||0))))return;
- if(key==='dormir'||key==='banho'){
-  if(!beginCareSequence(key,now))return;
+ if(key==='banho'){
+  if(!beginCareSequence(key))return;
   SOUND.play(key);recordCare(key,now);
-  // Bath and sleep commit their effects at the visually appropriate phase.
-  setFeedback(key==='dormir'?'🌙 Boa soneca! 💤':'🫧 Hora de ficar limpinho!');
+  setFeedback('🫧 Hora de ficar limpinho!');
   showCareCue(key,'accepted');return;
  }
  if(!playAnim(info.anim,true))return;
@@ -664,7 +678,7 @@ function treatSlime(){
 }
 function canAct(cost=0){
  if(transition)return false;
- if(activeCareSequence){setFeedback('💗 Um cuidado de cada vez!');return false;}
+ if(activeCareSequence){setFeedback(activeCareSequence.key==='dormir'?'Toque em Energia para acordar o slime.':'💗 Um cuidado de cada vez!');return false;}
  if(pet.act==='injecao_v29'){
   setFeedback('💚 Aguarde o slime terminar a injeção.');
   return false;
@@ -678,10 +692,8 @@ function canAct(cost=0){
 }
 function doAction(key){
  if(PersonalityMachine.automatic)PersonalityMachine.interrupt('action:'+key);
- // Sleep may be interrupted by a new intention. Other care animations are atomic.
- if(activeCareSequence){
-  if(activeCareSequence.key==='dormir'&&key!=='dormir')cancelCareSequence('action');
-  else {setFeedback(key==='dormir'?'💤 Estou descansando!':'💗 Só mais um instantinho!');return;}
+ if(activeCareSequence?.key==='dormir'&&key==='dormir'){
+  cancelCareSequence('energy-button');setFeedback('Acordei!');return;
  }
  if(!canAct())return;
  advanceNeeds();
@@ -698,14 +710,14 @@ function doAction(key){
 
 // V41-R4: a single care director, driven by the existing animation loop.
 // Do not store images, timeouts, wall-clock callbacks or DOM nodes in the save.
-const CARE_DURATIONS=Object.freeze({comer:2300,banho:3000,dormir:6200});
+const CARE_DURATIONS=Object.freeze({comer:2300,banho:3000,dormir:Infinity});
+const SLEEP_APPROACH_MS=1050,SLEEP_LIE_MS=650,SLEEP_ENERGY_PER_MS=.0085;
 let careAnimationOwner=false;
 function validSavedCare(raw){
  if(!raw||typeof raw!=='object'||!Object.hasOwn(CARE_DURATIONS,raw.key))return null;
  const elapsed=Number(raw.elapsed),fromX=Number(raw.fromX),toX=Number(raw.toX);
  if(!Number.isFinite(elapsed)||elapsed<0||elapsed>=CARE_DURATIONS[raw.key]||!Number.isFinite(fromX)||!Number.isFinite(toX))return null;
  return {key:raw.key,elapsed,fromX:clamp(fromX,80,644),toX:clamp(toX,80,644),
-  startEnergy:clamp(Number(raw.startEnergy)||0),earned:clamp(Number(raw.earned)||0,0,35),
   committed:!!raw.committed,room:raw.room==='quarto'?'quarto':null,scene:raw.scene==='garden'?'garden':'care'};
 }
 let activeCareSequence=validSavedCare(state.pendingCare);
@@ -714,13 +726,13 @@ function saveCareSnapshot(){state.pendingCare=activeCareSequence?{...activeCareS
 function setCarePose(name,beat){
  pet.act=name;pet.frame=clamp(Math.floor(beat),0,9);pet.frameTime=(beat%1)*FRAME_MS;
 }
-function beginCareSequence(key,now=GAME_CLOCK.wallNow()){
+function beginCareSequence(key){
  if(activeCareSequence||!Object.hasOwn(CARE_DURATIONS,key))return false;
  const room=key==='dormir'&&currentScreen==='care'?'quarto':null;
  const fromX=pet.x;
  if(room){setCasaRoom('quarto',false);Casa.trigger('rest');}
  const toX=key==='dormir'&&currentScreen==='care'?clamp(105,80,644):fromX;
- activeCareSequence={key,elapsed:0,fromX,toX,startEnergy:state.stats.energia,earned:0,committed:false,room,scene:currentScreen};
+ activeCareSequence={key,elapsed:0,fromX,toX,committed:false,room,scene:currentScreen};
  PersonalityMachine.onCareStart(key);
  if(key!=='comer'){
   careAnimationOwner=true;playAnim(key==='dormir'?'walk_esquerda':key,true);careAnimationOwner=false;
@@ -734,7 +746,7 @@ function cancelCareSequence(reason='interrupted'){
  activeCareSequence=null;state.pendingCare=null;
  pet.act='idle';pet.frame=0;pet.frameTime=0;petVisual.reaction=null;
  PersonalityMachine.onCareEnd('care-cancelled:'+reason);
- save();return true;
+ renderNeeds();save();return true;
 }
 function finishCareSequence(){
  const a=activeCareSequence;if(!a)return;
@@ -742,13 +754,7 @@ function finishCareSequence(){
   a.committed=true;state.pendingCare={...a};applyStats(actionInfo.banho.delta);
   setFeedback('✨ Limpinho e cheiroso!');
  }
- if(a.key==='dormir'){
-  // Final energy portion is granted once; hunger debit is committed once.
-  const due=Math.max(0,Math.min(35,100-a.startEnergy)-a.earned);
-  a.earned+=due;if(due)state.stats.energia=clamp(state.stats.energia+due);
-  if(!a.committed){a.committed=true;state.stats.fome=clamp(state.stats.fome-2);}
-  setFeedback('💤 Descansou e acordou feliz!');
- }
+ if(a.key==='dormir')setFeedback('Energia cheia! O slime acordou.');
  activeCareSequence=null;state.pendingCare=null;
  pet.act='idle';pet.frame=0;pet.frameTime=0;petVisual.reaction=null;
  PersonalityMachine.onCareEnd();
@@ -756,20 +762,24 @@ function finishCareSequence(){
 }
 function advanceCareSequence(deltaMs=0){
  const a=activeCareSequence;if(!a)return null;
- const duration=CARE_DURATIONS[a.key];
+ const duration=CARE_DURATIONS[a.key],previousElapsed=a.elapsed;
  const dt=clamp(Number(deltaMs)||0,0,250); // monotonic frame, throttling-safe
  a.elapsed=Math.min(duration,a.elapsed+dt);
  const p=a.elapsed/duration;
  if(a.key==='dormir'){
-  if(a.elapsed<1050){
-   pet.x=a.fromX+(a.toX-a.fromX)*ease(a.elapsed/1050);
-   setCarePose(a.toX<a.fromX?'walk_esquerda':'walk_direita',Math.min(9,a.elapsed/1050*9));
-  }else if(a.elapsed<1700){pet.x=a.toX;setCarePose('dormir',(a.elapsed-1050)/650*2);}
-  else if(a.elapsed<5150){pet.x=a.toX;setCarePose('dormir',5+Math.min(1.45,(a.elapsed-1700)/3450*1.45));}
-  else{pet.x=a.toX;setCarePose('dormir',8+Math.min(1,(a.elapsed-5150)/1050));}
-  const target=Math.min(35,100-a.startEnergy)*clamp((a.elapsed-1050)/(5150-1050),0,1);
-  const gain=Math.max(0,target-a.earned);
-  if(gain){state.stats.energia=clamp(state.stats.energia+gain);a.earned+=gain;}
+  const approach=a.toX===a.fromX?0:SLEEP_APPROACH_MS;
+  const lieEnd=approach+SLEEP_LIE_MS;
+  if(a.elapsed<approach){
+   const p=a.elapsed/approach;
+   pet.x=a.fromX+(a.toX-a.fromX)*ease(p);
+   setCarePose(a.toX<a.fromX?'walk_esquerda':'walk_direita',p*9);
+  }else{
+   pet.x=a.toX;
+   const beat=a.elapsed<lieEnd?(a.elapsed-approach)/SLEEP_LIE_MS*2:5+Math.floor((a.elapsed-lieEnd)/FRAME_MS)%2;
+   setCarePose('dormir',reducedMotion.matches?5:beat);
+  }
+  const restingMs=Math.max(0,a.elapsed-Math.max(previousElapsed,lieEnd));
+  state.stats.energia=clamp(state.stats.energia+restingMs*SLEEP_ENERGY_PER_MS);
  }else if(a.key==='banho'){
   setCarePose('banho',p*9.8);petVisual.reaction='banho';
   if(a.elapsed>=2550&&!a.committed){
@@ -781,11 +791,15 @@ function advanceCareSequence(deltaMs=0){
  }
  // Save in the established 1-second needs tick, not on every animation frame.
  state.pendingCare={...a};
- if(a.elapsed>=duration)finishCareSequence();
- return {key:a.key,phase:carePhase(a),progress:p,elapsed:a.elapsed};
+ const sleeping=a.key==='dormir';
+ if(sleeping?state.stats.energia>=100:a.elapsed>=duration)finishCareSequence();
+ return {key:a.key,phase:carePhase(a),progress:sleeping?state.stats.energia/100:p,elapsed:a.elapsed};
 }
 function carePhase(a){if(!a)return 'idle';
- if(a.key==='dormir')return a.elapsed<1050?'approach':a.elapsed<1700?'lie':a.elapsed<5150?'sleep':'wake';
+ if(a.key==='dormir'){
+  const approach=a.toX===a.fromX?0:SLEEP_APPROACH_MS;
+  return a.elapsed<approach?'approach':a.elapsed<approach+SLEEP_LIE_MS?'lie':'sleep';
+ }
  if(a.key==='banho')return a.elapsed<700?'water':a.elapsed<2550?'wash':'clean';
  return a.elapsed<520?'approach':a.elapsed<1700?'chew':'full';
 }
@@ -1037,7 +1051,6 @@ const reducedMotion={get matches(){return Boolean(state.accessibility?.reducedMo
 const DOORWAY_TRANSITION_MS=180;
 let screenRequest=0;
 async function setScreen(screen,instant=false){if(!SceneMachine.allows(screen))return;
- if(!instant&&activeCareSequence?.key==='dormir'&&screen!==currentScreen)cancelCareSequence('navigation');
  if(!instant&&!canAct())return;
  PersonalityMachine.interrupt('scene-request');
  const request=++screenRequest;
@@ -1227,7 +1240,7 @@ function syncCasaButtons(){
  document.querySelectorAll('.roomBtn').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.room===Casa.getRoom())));
 }
 function setCasaRoom(r,announce=true){
- if(activeCareSequence?.key==='dormir'&&r!==Casa.getRoom())cancelCareSequence('room');
+ if(activeCareSequence?.key==='dormir'&&r!==Casa.getRoom()){setFeedback('Toque em Energia para acordar o slime.');return false;}
  // Changing rooms does not stop a short, already-running meal or bath.
  const changed=Casa.setRoom(r);
  syncCasaButtons();
@@ -1915,22 +1928,77 @@ function updateHomeBees(reduced){
 const GARDEN_ANTS={max:5,rollMs:3000,arrivalGapMs:650,
  minCrossMs:8500,crossVariationMs:3500,firstY:491,laneGap:9,
  stridePx:1.5,clearancePx:4};
-let gardenAntTarget=1,nextGardenAntRoll=0,nextGardenAntArrival=0;
+const GARDEN_BEES={max:5,rollMs:3000,arrivalGapMs:650,
+ flightMs:2200,flightVariationMs:800,restMs:1000,restVariationMs:1700,
+ flowerHeadX:7,flowerHeadY:22,perchFrame:0,perchFootOffset:12};
+const gardenAntGroup={target:1,nextRoll:0,nextArrival:0};
+const gardenBeeGroup={target:1,nextRoll:0,nextArrival:0};
+function rollGardenGroup(group,config){
+ if(sceneTime<group.nextRoll)return;
+ group.target=1+Math.floor(Math.random()*config.max);
+ group.nextRoll=sceneTime+config.rollMs;
+}
+function spawnGardenBee(){
+ if(!faunaPresent('abelha')||!assets.visitors.abelha||!assets.gardenFlowers)return null;
+ const bees=visitors.filter(v=>v.gardenBee);
+ if(bees.length>=GARDEN_BEES.max)return null;
+ const flowers=GARDEN_FLOWERS.spots.filter(flower=>!bees.some(v=>v.gardenBee.flower===flower));
+ const flower=flowers[Math.floor(Math.random()*flowers.length)];
+ const v=newVisitor('abelha','garden');
+ const [x,y]=flower;
+ const approach=GARDEN_BEES.flightMs+Math.random()*GARDEN_BEES.flightVariationMs;
+ const rest=GARDEN_BEES.restMs+Math.random()*GARDEN_BEES.restVariationMs;
+ const departure=GARDEN_BEES.flightMs+Math.random()*GARDEN_BEES.flightVariationMs;
+ const perchX=x+GARDEN_BEES.flowerHeadX;
+ const perchY=y-GARDEN_BEES.flowerHeadY-GARDEN_BEES.perchFootOffset*v.scale;
+ v.gardenBee={flower,perchX,perchY,approach,rest,departure,total:approach+rest+departure};
+ visitors.push(v);visitCount++;
+ return v.id;
+}
+function updateGardenBees(reduced){
+ rollGardenGroup(gardenBeeGroup,GARDEN_BEES);
+ visitors=visitors.filter(v=>!v.gardenBee||sceneTime-v.started<v.gardenBee.total);
+ const bees=visitors.filter(v=>v.gardenBee);
+ if(bees.length<gardenBeeGroup.target&&sceneTime>=gardenBeeGroup.nextArrival&&spawnGardenBee()!==null){
+  gardenBeeGroup.nextArrival=sceneTime+GARDEN_BEES.arrivalGapMs;
+ }
+ // As reservas de flores duram até o fim da travessia de cada abelha.
+ for(const v of bees){
+  const {perchX,perchY,approach,rest,departure,total}=v.gardenBee;
+  const age=sceneTime-v.started;
+  const entering=age<approach;
+  const perched=!entering&&age<approach+rest;
+  const progress=entering?age/approach:clamp((age-approach-rest)/departure,0,1);
+  const blend=ease(progress);
+  const startX=entering?v.x0:perchX,endX=entering?perchX:v.x1;
+  const startY=entering?perchY-137:perchY,endY=entering?perchY:perchY-137;
+  const arc=reduced?0:Math.sin(Math.PI*blend)*34;
+  v.x=perched?perchX:v41Mix(startX,endX,blend);
+  v.laneY=perchY;
+  v.drawY=perched?perchY:v41Mix(startY,endY,blend)-arc;
+  v.progress=age/total;
+  v.phase=entering?(progress<.55?'entrar':'pousando'):perched?'pousada':progress<.42?'decolando':'sair';
+  v.facing=v.fromLeft?1:-1;
+  v.visible=v.x+v.spec.rx>=0&&v.x-v.spec.rx<=W;
+  v.frame=perched||reduced?GARDEN_BEES.perchFrame:faunaFrame(v,sceneTime,false);
+  v.near=v.visible&&Math.abs(v.x-pet.x)<153;
+  if(v.near&&!v.greeted&&GAME_CLOCK.wallNow()-lastUserAction>2200&&petAvailableForVisitor()){
+   v.greeted=true;watchVisitor(v);
+  }
+ }
+}
 function updateGardenAnts(reduced){
  if(!faunaPresent('formiga')||!assets.visitors.formiga)return;
- if(sceneTime>=nextGardenAntRoll){
-  gardenAntTarget=1+Math.floor(Math.random()*GARDEN_ANTS.max);
-  nextGardenAntRoll=sceneTime+GARDEN_ANTS.rollMs;
- }
+ rollGardenGroup(gardenAntGroup,GARDEN_ANTS);
  visitors=visitors.filter(v=>!v.gardenAnt||sceneTime-v.started<v.gardenAnt.crossMs);
  const ants=visitors.filter(v=>v.gardenAnt);
- if(ants.length<gardenAntTarget&&sceneTime>=nextGardenAntArrival){
+ if(ants.length<gardenAntGroup.target&&sceneTime>=gardenAntGroup.nextArrival){
   const v=newVisitor('formiga','garden');
   const lane=Array.from({length:GARDEN_ANTS.max},(_,i)=>i)
    .find(i=>!ants.some(other=>other.gardenAnt.lane===i));
   v.gardenAnt={lane,crossMs:GARDEN_ANTS.minCrossMs+Math.random()*GARDEN_ANTS.crossVariationMs,walkDistance:0};
   ants.push(v);visitors.push(v);visitCount++;
-  nextGardenAntArrival=sceneTime+GARDEN_ANTS.arrivalGapMs;
+  gardenAntGroup.nextArrival=sceneTime+GARDEN_ANTS.arrivalGapMs;
  }
  for(const v of ants){
   const age=sceneTime-v.started;
@@ -1969,7 +2037,7 @@ function updateVisitors(dt){
  const turnKey=turn=>turn&&turn.round+':'+turn.index;
  for(const turn of turns){
   const {kind}=turn;
-  if((kind!=='abelha'&&kind!=='patinho')||!faunaPresent(kind)||!assets.visitors[kind]||
+  if(kind!=='patinho'||!faunaPresent(kind)||!assets.visitors[kind]||
      turn.age>=VISITOR_SPEC[kind].duration||visitors.some(v=>v.kind===kind&&v.turnKey===turnKey(turn)))continue;
   const v=newVisitor(kind);
   v.turnKey=turnKey(turn);
@@ -1985,7 +2053,7 @@ function updateVisitors(dt){
   const v=visitors[i];
   if(v.screen!==currentScreen){visitors.splice(i,1);continue;}
   if(v.homeBee)continue;
-  if(v.gardenAnt)continue;
+  if(v.gardenAnt||v.gardenBee)continue;
   if(FIXED_VISITORS[v.kind]?.room){updateShelfAnimal(v,sceneTime,reduced);continue;}
   const turn=turnsByKind.get(v.kind);
   if(!turn||!faunaPresent(v.kind)){
@@ -2107,7 +2175,7 @@ function updateVisitors(dt){
   }
   v.near=near;
  }
- if(garden)updateGardenAnts(reduced);
+ if(garden){updateGardenBees(reduced);updateGardenAnts(reduced);}
  if(lookAt&&(GAME_CLOCK.wallNow()>lookAt.until||(lookAt.id!==null&&!visitors.some(v=>v.id===lookAt.id&&v.visible))))lookAt=null;
 }
 const GARDEN_PROPS={
@@ -2116,6 +2184,7 @@ const GARDEN_PROPS={
  gardenRedMushroom:{src:'../assets/jardim_cogumelo_vermelho_duplo.png',spots:[[115,537]]},
 };
 function drawGardenProps(ctx){
+ for(const [x,y] of GARDEN_FLOWERS.spots)drawGardenCastShadow(ctx,x,y,6,24,.14);
  for(const [key,{spots}] of Object.entries(GARDEN_PROPS)){
   const sprite=assets[key];
   if(!sprite)continue;
@@ -2225,10 +2294,14 @@ function drawVisitors(ctx,accept){
   if(v.clipped){
    ctx.clip(windowGlass());
   }
+  if(v.screen==='garden'){
+   const ground=Math.max(v.laneY,Math.min(400,315+v.laneY*.16));
+   const height=h*.60+Math.max(0,ground-v.drawY);
+   drawGardenCastShadow(ctx,v.x,ground+2,Math.max(2,w*.18),height,.16*opacity);
+  }
   if((v.spec.mode==='hop'||v.spec.mode==='walk'||v.spec.mode==='creep'||v.kind==='patinho')&&(!v.stationary||v.residentWalk||v.residentCycle||v.residentRabbit)){
    const contact=v.laneY+(v.kind==='sapo'?10*v.scale:2);
    const lift=Math.max(0,v.laneY-v.drawY);
-   if(v.screen==='garden'&&MEADOW_WALKS[v.kind])drawGardenCastShadow(ctx,v.x,contact,12*v.scale,17*v.scale,.12*opacity);
    ctx.globalAlpha=opacity*Math.max(.075,.18-lift*.007);
    ctx.fillStyle='#244a31';ctx.fillRect(Math.round(v.x-15*v.scale),Math.round(contact),Math.round(30*v.scale),4);
    ctx.globalAlpha=opacity;
@@ -2295,7 +2368,7 @@ function maskGardenFauna(layer){
  }
 }
 const GARDEN_FOREGROUND_ANIMALS=new Set(['joao_de_barro','joaninha','caracol','tartaruga','coelho','patinho','borboleta']);
-const drawsInGardenForeground=v=>GARDEN_FOREGROUND_ANIMALS.has(v.kind);
+const drawsInGardenForeground=v=>GARDEN_FOREGROUND_ANIMALS.has(v.kind)||Boolean(v.gardenBee);
 function drawGardenFauna(){
  const layer=gardenFaunaCtx;
  layer.clearRect(0,0,W,H);layer.imageSmoothingEnabled=false;
@@ -2463,35 +2536,54 @@ async function initAssets(){
   setFeedback(assets.ready?'🟢 Seu slime está pronto para brincar!':'⚠️ Alguns desenhos não carregaram.');
  }
 }
-function sunPosition(){const period=SUN_HALF_SWEEP*2,elapsed=((GAME_CLOCK.wallNow()-sunEpoch)%period+period)%period;
- const t=elapsed/SUN_HALF_SWEEP,progress=ease(t<=1?t:2-t);
- sun.x=636-531*progress;sun.y=76-35*Math.sin(Math.PI*progress);sun.progress=progress;}
+function updateGardenLight(){
+ const period=GARDEN_SKY_PHASE_MS*2;
+ const elapsed=((GAME_CLOCK.wallNow()-sunEpoch)%period+period)%period;
+ const progress=(elapsed%GARDEN_SKY_PHASE_MS)/GARDEN_SKY_PHASE_MS;
+ const altitude=Math.sin(Math.PI*progress);
+ const twilight=clamp(altitude*5,0,1);
+ gardenLight.night=elapsed>=GARDEN_SKY_PHASE_MS;
+ gardenLight.x=gardenLight.night?105+531*progress:636-531*progress;
+ gardenLight.y=76-35*altitude;
+ gardenLight.darkness=gardenLight.night?.30+.28*altitude:.30*(1-twilight);
+ gardenLight.shadowStrength=twilight*(gardenLight.night?.34:1);
+}
 function pixel(x,y,w,h,color){ctx.fillStyle=color;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h));}
-function shadow(x,y,dx,len,width,opacity){ctx.save();ctx.fillStyle='#143d2f';for(let i=0;i<9;i++){const p=(i+.4)/9,w=width*(1-.55*p);ctx.globalAlpha=opacity*(1-.5*p);ctx.fillRect(Math.round(x+dx*p-w),Math.round(y+len*p),Math.round(2*w),Math.round(3+2*(1-p)));}ctx.restore();}
 function drawWholeOrAtlas(img,frame,w=W,h=H){if(!img)return;const cols=Math.max(1,Math.floor(img.width/w));const rows=Math.max(1,Math.floor(img.height/h));const total=Math.max(1,cols*rows);const f=((frame%total)+total)%total;if(total===1){ctx.drawImage(img,0,0,w,h);return;}ctx.drawImage(img,(f%cols)*w,Math.floor(f/cols)*h,w,h,0,0,w,h);}
-function drawSun(){
+function drawGardenSkyBody(){
+ const {x,y,night}=gardenLight;
+ if(night){
+  pixel(x-8,y-15,16,30,'#DCEAFE');
+  pixel(x-14,y-10,28,20,'#DCEAFE');
+  pixel(x-17,y-5,34,10,'#DCEAFE');
+  pixel(x+4,y-7,6,5,'#B2C8E7');
+  pixel(x-9,y+3,5,4,'#B2C8E7');
+  return;
+ }
  const sprite=assets.gardenSun;
- if(sprite)ctx.drawImage(sprite,Math.round(sun.x-sprite.width/2),Math.round(sun.y-sprite.height/2));
+ if(sprite)ctx.drawImage(sprite,Math.round(x-sprite.width/2),Math.round(y-sprite.height/2));
 }
 function gardenShadowProjection(x,y,height){
- const sunHeight=Math.max(130,y-sun.y);
+ const sunHeight=Math.max(130,y-gardenLight.y);
  return {
-  dx:clamp((x-sun.x)*height/sunHeight,-116,116),
-  dy:height*(.17+(sun.y-41)*.002),
+  dx:clamp((x-gardenLight.x)*height/sunHeight,-116,116),
+  dy:height*(.17+(gardenLight.y-41)*.002),
  };
 }
 function drawGardenCastShadow(ctx,x,y,radius,height,opacity){
+ opacity*=gardenLight.shadowStrength;
+ if(opacity<=0)return;
  const {dx,dy}=gardenShadowProjection(x,y,height);
- ctx.save();ctx.fillStyle='#285d3f';
+ ctx.save();ctx.fillStyle=gardenLight.night?'#18243f':'#285d3f';
  for(let step=0;step<10;step++){
   const p=step/9;
   const spread=radius*(1-.48*p)+Math.sin(p*Math.PI)*radius*.12;
   ctx.globalAlpha=opacity*(1-.68*p);
-  ctx.fillRect(Math.round(x+dx*p-spread),Math.round(y+dy*p),Math.round(spread*2),3);
+  ctx.fillRect(Math.round(x+dx*p-spread),Math.round(y+dy*p),Math.round(spread*2),Math.ceil(Math.abs(dy)/9)+1);
  }
  ctx.restore();
 }
-function drawGardenSunShadows(){
+function drawGardenObjectShadows(){
  for(const [x,y,radius,height] of [[130,367,29,95],[636,319,17,58],[492,369,22,26]]){
   drawGardenCastShadow(ctx,x,y,radius,height,.16);
  }
@@ -2528,9 +2620,9 @@ function drawGardenPollen(){
  ctx.restore();
 }
 function drawGarden(){if(assets.bg)ctx.drawImage(assets.bg,0,0,W,H);else{pixel(0,0,W,320,'#89cfe9');pixel(0,320,W,223,'#7fc65e')}
- const grad=ctx.createLinearGradient(sun.x,60,724-sun.x,440);grad.addColorStop(0,'rgba(255,244,176,0.095)');grad.addColorStop(1,'rgba(24,54,49,0.045)');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
- drawSun(); // fundo do ceu; arvore, folhagem e animais sao pintados depois
- drawGardenSunShadows();
+ const grad=ctx.createLinearGradient(gardenLight.x,60,724-gardenLight.x,440);grad.addColorStop(0,gardenLight.night?'rgba(179,213,255,0.10)':'rgba(255,244,176,0.095)');grad.addColorStop(1,'rgba(24,54,49,0.045)');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+ drawGardenSkyBody();
+ drawGardenObjectShadows();
   for(const o of assets.layers){
     if(!o.img||o.name==='borboleta')continue;
    const frame=Math.floor(sceneryTime()/o.ms)%10;
@@ -2552,7 +2644,7 @@ function drawGarden(){if(assets.bg)ctx.drawImage(assets.bg,0,0,W,H);else{pixel(0
    ctx.drawImage(assets.rightTreeV26,f*145,0,145,232,543,112,145,232);
   }
  // Pixel sun flecks in trees and shimmering surface details.
- for(const [x,y,r] of [[151,155,87],[623,200,54]]){const sign=sun.x>x?1:-1;ctx.save();ctx.globalAlpha=.14;for(let i=0;i<12;i++)pixel(x+sign*r*.35+(i%3-1)*11,y-32+(i*13)%71,5+(i%2)*3,4,'#fff4a7');ctx.restore();}
+ for(const [x,y,r] of [[151,155,87],[623,200,54]]){const sign=gardenLight.x>x?1:-1;ctx.save();ctx.globalAlpha=.14*gardenLight.shadowStrength;for(let i=0;i<12;i++)pixel(x+sign*r*.35+(i%3-1)*11,y-32+(i*13)%71,5+(i%2)*3,4,'#fff4a7');ctx.restore();}
  const wave=Math.floor(sceneryTime()/180)%5;ctx.save();ctx.globalAlpha=.16;for(let i=0;i<6;i++)pixel(565+i*23+(wave*3)%9,400+(i%3)*4,10,2,'#ffffff');ctx.restore();
  if(assets.gardenExtra){const frame=Math.floor(sceneryTime()/185)%10;ctx.drawImage(assets.gardenExtra,(frame%4)*W,Math.floor(frame/4)*H,W,H,0,0,W,H);}
  drawGardenBarkBranches();drawGardenAtmosphere();}
@@ -2600,7 +2692,7 @@ function drawGardenAtmosphere(){
   const q=((t+1051*i)%period)/period;
   const x=cx+Math.sin(q*5+i)*19+(right?-1:1)*q*54+(i%3-1)*12;
   const y=(right?203:215)+q*(right?127:151);
-  const sunlight=sun.x>cx;
+  const sunlight=gardenLight.x>cx;
   ctx.globalAlpha=.25+(1-q)*.48;
   pixel(x,y,4,3,sunlight?'#BDE766':'#70B854');
   pixel(x+1,y+3,3,2,'#3A904A');
@@ -2714,7 +2806,7 @@ function slimeScale(screen,stage=currentStage()){
 function drawPetShadow(){const y=currentGround(),lift=(pet.act==='pulo'||pet.act.startsWith('walk_'))?[0,0,.28,.70,1,.76,.31,0,0,0][pet.frame]||0:0;
  const sc=slimeScale(currentScreen);
  ctx.save();ctx.fillStyle='#153d2d';ctx.globalAlpha=.20-.08*lift;ctx.beginPath();ctx.ellipse(pet.x,y-4,32*sc/1.6+lift*5,5+lift*2,0,0,Math.PI*2);ctx.fill();ctx.restore();
- const dx=(pet.x>sun.x?1:-1)*(13+8*(sun.y-41)/35);shadow(pet.x,y-3,dx,7,27*sc/1.6,.12);
+ if(currentScreen==='garden')drawGardenCastShadow(ctx,pet.x,y-3,17*sc,45*sc,.19);
 }
 function fallbackPet(){const x=pet.x,y=currentGround();ctx.save();if(currentScreen==='garden'){ctx.translate(x,y);ctx.scale(SLIME_GARDEN_SCALE,SLIME_GARDEN_SCALE);ctx.translate(-x,-y);}ctx.fillStyle='#173f19';ctx.fillRect(x-54,y-62,108,57);ctx.fillStyle='#8be735';ctx.fillRect(x-49,y-69,98,61);pixel(x-30,y-50,13,20,'#172617');pixel(x+17,y-50,13,20,'#172617');pixel(x-30,y-52,5,5,'#fff');pixel(x+17,y-52,5,5,'#fff');pixel(x-36,y-30,11,8,'#ff9aca');pixel(x+23,y-30,11,8,'#ff9aca');pixel(x-11,y-31,22,13,'#261326');pixel(x-5,y-25,12,7,'#ff8fc3');ctx.restore();}
 const shaded=document.createElement('canvas');shaded.width=128;shaded.height=128;const shadeCtx=shaded.getContext('2d');
@@ -2801,7 +2893,7 @@ function drawPet(){const evolve=currentScreen==='evolve';
  const sprite=actor.sprite||assets.actors.idle;
  if(!sprite){fallbackPet();return;}
  spriteFrame=actorAtlasFrame(sprite,spriteFrame);
- const lit=currentScreen==='evolve'?Math.sin(sceneTime/500)>0:sun.x>pet.x;
+ const lit=currentScreen==='evolve'?Math.sin(sceneTime/500)>0:currentScreen==='garden'?gardenLight.x>pet.x:true;
  if(shadedSprite!==sprite||shadedFrame!==spriteFrame||shadedScene!==currentScreen||shadedLit!==lit){
  shadedSprite=sprite;shadedFrame=spriteFrame;shadedScene=currentScreen;shadedLit=lit;
  shadeCtx.clearRect(0,0,128,128);shadeCtx.imageSmoothingEnabled=false;shadeCtx.drawImage(sprite,128*spriteFrame,0,128,128,0,0,128,128);
@@ -3011,7 +3103,7 @@ function resolveCollisionX(box,previousX,obstacles,min=box.half,max=W-box.half){
  return positions.filter(free).sort((a,b)=>Math.abs(a-target)-Math.abs(b-target))[0];
 }
 function visitorHasCollision(v){
- if(!v.visible||!COLLISION[v.kind]||v.puddleClip||v.kind==='gatinho'||v.homeBee||v.gardenAnt)return false;
+ if(!v.visible||!COLLISION[v.kind]||v.puddleClip||v.kind==='gatinho'||v.homeBee||v.gardenAnt||v.gardenBee)return false;
  const half=COLLISION[v.kind][0]/2;
  return !v.sideArrival||(v.x>=half&&v.x<=W-half);
 }
@@ -3069,8 +3161,8 @@ function frame(timestamp){
  else if(!transition){pet.frameTime+=dt;if(pet.frameTime>=FRAME_MS){pet.frameTime-=FRAME_MS;pet.frame=(pet.frame+1)%10;}}
  if(!transition&&!activeCareSequence&&pet.act.startsWith('walk_'))updateSlimeStride();
  if(!transition&&fx){fx.time+=dt;if(fx.time>=10*FRAME_MS)fx=null;}
- updateTransition(timestamp);sunPosition();updateVisitors(dt);if(currentScreen===screenBeforeFrame)resolveActorCollisions(previousPetX,previousVisitors);if(currentScreen==='garden'&&!transition)updateSnailTrail(gardenArrivalTime());updatePetVisual(dt);SOUND.ambient(currentScreen,timestamp);ctx.imageSmoothingEnabled=false;
- if(currentScreen==='garden'){drawGarden();drawWindGrass(ctx);drawGardenFlowers(ctx);drawGardenProps(ctx);drawGardenPollen();if(assets.birdHouse)ctx.drawImage(assets.birdHouse,BIRD_HOUSE.x,BIRD_HOUSE.y);}else if(currentScreen==='evolve')drawVoid();else drawHome();if(currentScreen!=='evolve'){if(currentScreen==='garden')drawGardenFauna();else drawVisitors(ctx);drawPetShadow();drawEffect();}drawPet();if(currentScreen==='garden'){drawGardenForeground();drawFrogPuddle();}drawPetReaction();drawGaze();if(currentScreen==='evolve')drawVoidPulse();drawTransitionOverlay(timestamp);
+ updateTransition(timestamp);if(currentScreen==='garden')updateGardenLight();updateVisitors(dt);if(currentScreen===screenBeforeFrame)resolveActorCollisions(previousPetX,previousVisitors);if(currentScreen==='garden'&&!transition)updateSnailTrail(gardenArrivalTime());updatePetVisual(dt);SOUND.ambient(currentScreen,timestamp);ctx.imageSmoothingEnabled=false;
+ if(currentScreen==='garden'){drawGarden();drawWindGrass(ctx);drawGardenFlowers(ctx);drawGardenProps(ctx);drawGardenPollen();if(assets.birdHouse)ctx.drawImage(assets.birdHouse,BIRD_HOUSE.x,BIRD_HOUSE.y);}else if(currentScreen==='evolve')drawVoid();else drawHome();if(currentScreen!=='evolve'){if(currentScreen==='garden')drawGardenFauna();else drawVisitors(ctx);drawPetShadow();drawEffect();}drawPet();if(currentScreen==='garden'){drawGardenForeground();drawFrogPuddle();ctx.fillStyle='rgba(12,24,65,'+gardenLight.darkness+')';ctx.fillRect(0,0,W,H);}drawPetReaction();drawGaze();if(currentScreen==='evolve')drawVoidPulse();drawTransitionOverlay(timestamp);
  frameRequest=requestAnimationFrame(frame);}
 function visitorAt(x,y){
  for(let i=visitors.length-1;i>=0;i--){
@@ -3094,7 +3186,7 @@ function clickCanvas(ev){if(transition)return;const b=canvas.getBoundingClientRe
  const ratio=slimeScale(currentScreen)/STAGES[0].scale[currentScreen];
  const onPet=currentScreen!=='evolve'&&Math.abs(x-pet.x)<(garden?61:78)*ratio&&
   y>=ground-(garden?112:148)*ratio&&y<=ground+16;
- if(onPet&&activeCareSequence?.key==='dormir'){cancelCareSequence('tap');setFeedback('☀️ Acordei! 💚');return;}
+ if(activeCareSequence?.key==='dormir'){setFeedback('Toque em Energia para acordar o slime.');return;}
  if(onPet&&PersonalityMachine.automatic){PersonalityMachine.interrupt('pet-touch');acknowledgePetTap(false);return;}
  if(onPet&&(pet.act!=='idle'||task)){acknowledgePetTap(true);return;}
  const animal=onPet&&!inspectMode?null:visitorAt(x,y);
@@ -3188,4 +3280,4 @@ startGameLoop();
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseGameLoop();else resumeGameLoop();});
 window.addEventListener('pagehide',pauseGameLoop);
 window.addEventListener('pageshow',resumeGameLoop);
-window.__slimeGameTest={getState:()=>({version:41,personality:PersonalityMachine.snapshot(),accessibility:{...state.accessibility},careSequence:careSnapshot(),evolution:JSON.parse(JSON.stringify(state.evolution)),cooldownRemaining:remainingTreatmentMs(),screen:currentScreen,act:pet.act,frame:pet.frame,x:pet.x,ready:assets.ready,loadedActors:Object.keys(assets.actors).filter(k=>assets.actors[k]).length,loadedAnimals:Object.keys(assets.visitors).filter(k=>assets.visitors[k]).length,visitors:visitors.map(v=>({kind:v.kind,x:v.x,y:v.drawY,stationary:!!v.stationary,cycle:v.residentCycle||null,phase:v.phase,visible:v.visible,frame:v.frame,facing:v.facing,rabbitAction:v.kind==='coelho'?v.rabbitAction:null})),visitCount:visitCount,visitorTuning:{abelha:{scale:VISITOR_SPEC.abelha.scale,ms:VISITOR_SPEC.abelha.ms},libelula:{scale:VISITOR_SPEC.libelula.scale,y:VISITOR_SPEC.libelula.y,ms:VISITOR_SPEC.libelula.ms},removed:['beijaflor','passarinho','coelho']},visitorDetails:visitors.map(v=>({kind:v.kind,x0:v.x0,x1:v.x1,stop:v.stop,progress:v.progress,visible:v.visible,fromLeft:v.fromLeft,phase:v.phase,frame:v.frame,near:v.near,stationary:!!v.stationary})),lookingAt:lookAt?.kind||null,inspecting:inspectMode,soundEnabled:SOUND.enabled,soundActive:SOUND.active,assetManager:AssetManager.status(),sceneMachine:SceneMachine.snapshot(),frameMs:FRAME_MS,stats:{...state.stats},healthSystem:JSON.parse(JSON.stringify(state.healthSystem)),sunX:sun.x,sunY:sun.y,buttons:document.querySelectorAll('button').length,fx:fx?.name||null,roomExtra:!!casaBg(),casaRoom:Casa.getRoom(),gardenExtra:!!assets.gardenExtra,voidBg:!!assets.voidBg,voidPulse:!!assets.voidPulse,metabolismRates:Object.fromEntries(Object.entries(currentNeedsRates()).map(([key,rate])=>[key,rate*60])),needsMode:state.needsMode,needsClock:{...needsClock},rightTreeReady:!!assets.rightTreeV26,cloudTravel:{right:((487+161+(sceneTime/1000)*13.5)%885+885)%885-161,left:((247+161-(sceneTime/1000)*10.5)%885+885)%885-161},gardenCareCount:document.querySelectorAll('#needs-garden .needButton').length,frameMs:FRAME_MS,transitionFrame:transition?Math.floor(clamp((GAME_CLOCK.animationNow()-transition.start)/transition.duration,0,1)*10):null,transitionActive:!!transition,loadedSceneSprites:{home:!!casaBg(),void:!!assets.voidV25,houseGarden:!!assets.transHG,gardenHouse:!!assets.transGH}}),personalityLogs:()=>PersonalityMachine.logs(),personalityTick:()=>PersonalityMachine.tick(),personalityTest:PersonalityMachine.test,action:doAction,advanceCare:advanceCareSequence,cancelCare:cancelCareSequence,switch:setScreen,casaRoom:setCasaRoom,casaSpots:()=>Casa.spots().map(x=>({id:x.id,x:x.x,y:x.y,w:x.w,h:x.h,care:x.care||null})),interact:startInteraction,spawnAnimal:(kind)=>{const k=kind||(currentScreen==="care"?"beijaflor":"passarinho");const choices=currentScreen==="care"?homeAnimals:currentScreen==="garden"?gardenAnimals:[];const resident=visitors.find(v=>v.kind===k&&v.stationary);if(resident)return resident.id;if(!faunaPresent(k)||visitors.filter(v=>!v.stationary).length>=2||!choices.includes(k)||!assets.visitors[k]||visitors.some(v=>v.kind===k))return null;const v=newVisitor(k);visitors.push(v);return v.id;},watch:(id)=>{const v=visitors.find(x=>x.id===id);if(v)watchVisitor(v,true);}};
+window.__slimeGameTest={getState:()=>({version:41,personality:PersonalityMachine.snapshot(),accessibility:{...state.accessibility},careSequence:careSnapshot(),evolution:JSON.parse(JSON.stringify(state.evolution)),cooldownRemaining:remainingTreatmentMs(),screen:currentScreen,act:pet.act,frame:pet.frame,x:pet.x,ready:assets.ready,loadedActors:Object.keys(assets.actors).filter(k=>assets.actors[k]).length,loadedAnimals:Object.keys(assets.visitors).filter(k=>assets.visitors[k]).length,visitors:visitors.map(v=>({kind:v.kind,x:v.x,y:v.drawY,stationary:!!v.stationary,cycle:v.residentCycle||null,phase:v.phase,visible:v.visible,frame:v.frame,facing:v.facing,rabbitAction:v.kind==='coelho'?v.rabbitAction:null})),visitCount:visitCount,visitorTuning:{abelha:{scale:VISITOR_SPEC.abelha.scale,ms:VISITOR_SPEC.abelha.ms},libelula:{scale:VISITOR_SPEC.libelula.scale,y:VISITOR_SPEC.libelula.y,ms:VISITOR_SPEC.libelula.ms},removed:['beijaflor','passarinho','coelho']},visitorDetails:visitors.map(v=>({kind:v.kind,x0:v.x0,x1:v.x1,stop:v.stop,progress:v.progress,visible:v.visible,fromLeft:v.fromLeft,phase:v.phase,frame:v.frame,near:v.near,stationary:!!v.stationary})),lookingAt:lookAt?.kind||null,inspecting:inspectMode,soundEnabled:SOUND.enabled,soundActive:SOUND.active,assetManager:AssetManager.status(),sceneMachine:SceneMachine.snapshot(),frameMs:FRAME_MS,stats:{...state.stats},healthSystem:JSON.parse(JSON.stringify(state.healthSystem)),sunX:gardenLight.x,sunY:gardenLight.y,gardenLight:{...gardenLight},buttons:document.querySelectorAll('button').length,fx:fx?.name||null,roomExtra:!!casaBg(),casaRoom:Casa.getRoom(),gardenExtra:!!assets.gardenExtra,voidBg:!!assets.voidBg,voidPulse:!!assets.voidPulse,metabolismRates:Object.fromEntries(Object.entries(currentNeedsRates()).map(([key,rate])=>[key,rate*60*PASSIVE_DECAY_MULTIPLIER])),needsMode:state.needsMode,needsClock:{...needsClock},rightTreeReady:!!assets.rightTreeV26,cloudTravel:{right:((487+161+(sceneTime/1000)*13.5)%885+885)%885-161,left:((247+161-(sceneTime/1000)*10.5)%885+885)%885-161},gardenCareCount:document.querySelectorAll('#needs-garden .needButton').length,frameMs:FRAME_MS,transitionFrame:transition?Math.floor(clamp((GAME_CLOCK.animationNow()-transition.start)/transition.duration,0,1)*10):null,transitionActive:!!transition,loadedSceneSprites:{home:!!casaBg(),void:!!assets.voidV25,houseGarden:!!assets.transHG,gardenHouse:!!assets.transGH}}),personalityLogs:()=>PersonalityMachine.logs(),personalityTick:()=>PersonalityMachine.tick(),personalityTest:PersonalityMachine.test,action:doAction,advanceCare:advanceCareSequence,cancelCare:cancelCareSequence,switch:setScreen,casaRoom:setCasaRoom,casaSpots:()=>Casa.spots().map(x=>({id:x.id,x:x.x,y:x.y,w:x.w,h:x.h,care:x.care||null})),interact:startInteraction,spawnAnimal:(kind)=>{const k=kind||(currentScreen==="care"?"beijaflor":"passarinho");if(currentScreen==='garden'&&k==='abelha')return spawnGardenBee();const choices=currentScreen==="care"?homeAnimals:currentScreen==="garden"?gardenAnimals:[];const resident=visitors.find(v=>v.kind===k&&v.stationary);if(resident)return resident.id;if(!faunaPresent(k)||visitors.filter(v=>!v.stationary).length>=2||!choices.includes(k)||!assets.visitors[k]||visitors.some(v=>v.kind===k))return null;const v=newVisitor(k);visitors.push(v);return v.id;},watch:(id)=>{const v=visitors.find(x=>x.id===id);if(v)watchVisitor(v,true);}};

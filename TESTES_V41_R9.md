@@ -233,3 +233,21 @@
 - Simulei o sorteio máximo de dez formigas no Jardim, conferi a renovação e as dez faixas de caminhada dentro da área visível. HTML offline e Pages gerados. Teste em Android físico pendente.
 - Conferi que `formiga.png` tem 20 quadros distintos de 72 × 56 px. Simulei dez formigas, mais de sete quadros de caminhada e o desvio de um coelho visível. Validei a sintaxe, a escala base de 0,26 e gerei os HTMLs offline e Pages. Conferência visual no navegador e Android físico pendentes.
 - Simulei o limite de cinco formigas e conferi que os quadros de caminhada ficam abaixo da área da poça, com espaço dentro do palco. Validação visual no navegador e Android físico pendentes.
+
+## Descanso, desgaste passivo e céu do Jardim (2026-11-24)
+
+- Edge headless abriu o HTML offline e renderizou o Jardim em 320, 390 e 430 px, sem rolagem horizontal nem exceções JavaScript durante o teste.
+- Um save legado `slime_pet_virtual_v30` abriu com 8% de energia. O botão Energia iniciou a soneca, o segundo clique preservou os 53,05% recuperados até aquele momento e a soneca seguinte terminou automaticamente aos 100%.
+- Um minuto simulado no modo Gentil confirmou quedas de 10,53 pontos em saciedade, 13,1625 em sede, 6,58125 em higiene e 7,8975 em felicidade. Energia e saúde permaneceram estáveis sem ações ou doença.
+- O relógio acelerado confirmou as duas travessias de quatro minutos, o escurecimento noturno e a inversão da direção da sombra ao longo do dia. A simulação também registrou mudanças de fase de abelhas, formigas, sapo e outros animais.
+- A aparência das sombras e a ausência de loops simultâneos em toda a fauna não foram verificadas visualmente. Android físico e a travessia em tempo real não foram testados.
+
+## Ciclo de quatro minutos no Jardim (2026-11-24)
+
+Com relógio simulado, conferi as posições no início, no meio e na virada de cada fase. A Lua assume aos 2:00 e o Sol retorna aos 4:00. A sintaxe passou no Node e o HTML offline foi gerado. A travessia em tempo real e o Android físico não foram testados nesta alteração.
+
+## Abelhas nas flores do Jardim (2026-11-24)
+
+- O HTML offline abriu no Edge headless em 320, 390 e 430 px, sem rolagem horizontal ou exceções JavaScript. Um save legado V30 carregou com 47% de energia.
+- Em 90 segundos simulados, houve 49 chegadas, com os cinco tamanhos de grupo sorteados, sete escalas individuais e pousos nas sete posições de flores. O máximo observado foi cinco abelhas visíveis e nenhuma compartilhou a flor reservada por outra. A animação passou por entrada, aproximação, pouso, decolagem e saída.
+- A captura em 430 px mostrou cinco abelhas pousadas. O teste também confirmou asas em quadro fixo com Pouco movimento. Android físico e a sincronização visual de todos os outros bichos não foram testados.

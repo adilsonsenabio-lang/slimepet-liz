@@ -22,7 +22,7 @@ const GARDEN_FAUNA_TRACKS=[
   ['sapo',25000,FROG_TIMER.tongue+FROG_TIMER.dive+FROG_TIMER.hidden],
  ]},
  {offset:4800,turns:[
-  ['abelha',11400],['joaninha',27000],['libelula',15000],['patinho',21000],
+  [null,11400],['joaninha',27000],['libelula',15000],['patinho',21000],
  ]},
 ].map(track=>({...track,period:track.turns.reduce((sum,[,duration])=>sum+duration+FAUNA_TURN_GAP_MS,0)}));
 function gardenFaunaTurn(elapsed,{period,turns}){
@@ -30,7 +30,7 @@ function gardenFaunaTurn(elapsed,{period,turns}){
  const round=Math.floor(elapsed/period);
  let age=elapsed%period;
  for(const [index,[kind,duration,phase=0]] of turns.entries()){
-  if(age<duration)return {kind,age,duration,phase,round,index};
+  if(age<duration)return kind?{kind,age,duration,phase,round,index}:null;
   if(age<duration+FAUNA_TURN_GAP_MS)return null;
   age-=duration+FAUNA_TURN_GAP_MS;
  }

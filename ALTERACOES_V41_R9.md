@@ -276,3 +276,17 @@ Execute `node scripts/build.mjs` na pasta do projeto para gerar os HTMLs em `dis
 - Os grupos de formigas do Jardim passaram a ter até dez integrantes. Redistribuí as faixas de caminhada para manter todas dentro da área visível.
 - A escala base das formigas caiu de 0,78 para 0,26. A spritesheet existente tem 20 quadros distintos e agora avança conforme a distância percorrida. O sorteio de tamanho ocorre uma vez por formiga. Durante a travessia, cada uma escolhe uma faixa livre dos outros bichos visíveis.
 - O grupo de formigas do Jardim voltou ao máximo de cinco. Suas trilhas ficam na faixa inferior, abaixo da poça.
+
+## Descanso, necessidades e iluminação do Jardim (2026-11-24)
+
+- O botão Energia inicia a soneca e passa a mostrar **Acordar**. A energia sobe durante o sono e o slime acorda automaticamente aos 100%. Acordar cedo preserva a energia recuperada. Na Casa, o slime vai para o quarto. Durante a soneca, os demais cuidados e a navegação aguardam o despertar.
+- Saciedade, sede, higiene e felicidade caem 50% mais rápido que na versão anterior, durante o jogo e no cálculo de ausência. A energia é gasta nas ações e a saúde segue as regras de tratamento existentes.
+- No Jardim, o Sol atravessa da direita para a esquerda em quatro minutos. A Lua percorre o mesmo arco da esquerda para a direita nos quatro minutos seguintes. A luz muda gradualmente no amanhecer e no anoitecer. Árvores, rocha, flores, objetos, fauna e slime projetam sombras de acordo com a posição do astro.
+
+## Ciclo mais rápido no Jardim (2026-11-24)
+
+O Sol atravessa o Jardim em dois minutos e a Lua faz o caminho inverso nos dois minutos seguintes. O ciclo completo dura quatro minutos.
+
+## Abelhas nas flores do Jardim (2026-11-24)
+
+As abelhas passaram a chegar em sequência, com a mesma lógica de sorteio dos grupos de formigas. O grupo sorteia de uma a cinco abelhas, com tamanhos individuais. Cada abelha escolhe uma flor livre, pousa por um tempo sorteado e volta a voar antes de sair do Jardim. As animações usam a spritesheet existente.

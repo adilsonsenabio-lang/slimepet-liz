@@ -41,7 +41,8 @@
 - [x] Reduzir as formigas do Jardim, integrar os quadros de caminhada e desviar dos outros bichos (2026-11-24).
 - [x] Limitar as formigas do Jardim a cinco e manter as trilhas abaixo da poça (2026-11-24).
 
+- [x] Alternar o descanso pelo botão Energia, acelerar em 50% o desgaste passivo e iluminar o Jardim com Sol e Lua (2026-11-24).
 
+- [x] Reduzir para dois minutos a travessia de cada astro no Jardim (2026-11-24).
 
-
-
+- [x] Aumentar a frequência das abelhas do Jardim e sortear quantidade, tamanhos e pousos nas flores (2026-11-24).
