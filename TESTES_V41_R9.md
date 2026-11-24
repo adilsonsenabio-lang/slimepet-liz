@@ -223,3 +223,5 @@
 - Testei sala, quarto e cozinha no Edge em 320, 390 e 430 px com um save V30. Confirmei o voo atrás das janelas e disparei uma visita rara para conferir a travessia pelo interior. Em simulação, confirmei os intervalos de 2 a 4 minutos, a continuidade da janela e o máximo de cinco abelhas, com e sem movimento reduzido. Android físico não testado.
 
 - Conferi a escala de 12% na lógica de renderização da Casa e do Jardim e nos builds offline e Pages. A conferência visual desta revisão e o teste em Android físico ficaram pendentes.
+
+- Simulei as sete faixas de escala das abelhas e confirmei as categorias de raridade nos dois ambientes. Validei o fator de frequência de 1,30 do Jardim e regenerei os HTMLs offline e Pages. Android físico não testado.

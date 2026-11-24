@@ -269,3 +269,5 @@ Execute `node scripts/build.mjs` na pasta do projeto para gerar os HTMLs em `dis
 - Tripliquei o desgaste passivo de fome, sede, higiene e felicidade nas três dificuldades.
 - O voo frequente das abelhas volta a ficar atrás da janela dos três cômodos. A cada 2 a 4 minutos de tempo na Casa, uma abelha pode atravessar o interior, assim que houver espaço no limite de cinco. As abelhas da janela continuam o revezamento durante a visita.
 - Aumentei em 12% a escala das abelhas nas janelas, nas visitas ao interior e no Jardim.
+- As abelhas agora podem nascer com variação de -20%, -15%, -10%, base, +10%, +15% ou +20%. As faixas de ±20% são super raras, ±15% raras e ±10% pouco raras.
+- O relógio dos rodízios do Jardim foi acelerado em 30%, aumentando a frequência das aparições sem alterar o limite de espécies simultâneas.

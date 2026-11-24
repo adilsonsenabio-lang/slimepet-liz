@@ -1358,7 +1358,12 @@ function pickWindowStop(kind,spec){
 const HOME_ANT_SCALE=.90;
 function visitorScale(kind,screen){
  const base=VISITOR_SPEC[kind].scale;
- if(kind==='abelha'&&screen==='garden')return base*1.20;
+ if(kind==='abelha'){
+  const roll=Math.random();
+  const variation=roll<.02?.20:roll<.08?.15:roll<.20?.10:
+   roll>.98?-.20:roll>.92?-.15:roll>.80?-.10:0;
+  return base*(screen==='garden'?1.20:1)*(1+variation);
+ }
  if(kind==='formiga'&&screen==='care')return base*HOME_ANT_SCALE*(Casa.getRoom()==='sala'?.85:1);
  return base;
 }

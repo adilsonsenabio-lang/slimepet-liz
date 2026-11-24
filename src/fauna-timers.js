@@ -11,6 +11,7 @@ FROG_PHASES.push(['repouso',FROG_PERIOD-FROG_PHASES.reduce((sum,[,duration])=>su
 const CAT_SHELF_WALK_MS=15000,CAT_SHELF_REST_MS=15000;
 const CAT_SHELF_CYCLE_MS=CAT_SHELF_WALK_MS+CAT_SHELF_REST_MS;
 const FAUNA_TURN_GAP_MS=450;
+const GARDEN_FREQUENCY=1.30;
 const GARDEN_FAUNA_TRACKS=[
  {offset:0,turns:[
   ['joao_de_barro',5500,-3000],['coelho',29000],
@@ -36,7 +37,7 @@ function gardenFaunaTurn(elapsed,{period,turns}){
  return null;
 }
 function gardenFaunaTurns(elapsed){
- return GARDEN_FAUNA_TRACKS.map(track=>gardenFaunaTurn(elapsed-track.offset,track)).filter(Boolean);
+ return GARDEN_FAUNA_TRACKS.map(track=>gardenFaunaTurn(elapsed*GARDEN_FREQUENCY-track.offset,track)).filter(Boolean);
 }
 const MEADOW_WALKS={
  coelho:{from:-51,to:658,delay:600,leg:12800,wait:2200,stride:36},

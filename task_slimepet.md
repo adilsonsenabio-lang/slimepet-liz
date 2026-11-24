@@ -34,6 +34,7 @@
 - [x] Fazer as abelhas atravessarem o cômodo e triplicar o desgaste passivo (2026-11-24).
 - [x] Voltar com o voo frequente às janelas e sortear visitas raras dentro dos cômodos (2026-11-24).
 - [x] Aumentar o tamanho das abelhas em 12% (2026-11-24).
+- [x] Adicionar variações raras de tamanho às abelhas e aumentar em 30% a frequência do Jardim (2026-11-24).
 
 
 
