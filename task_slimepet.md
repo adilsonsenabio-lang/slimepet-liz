@@ -69,3 +69,5 @@
 - [x] Reforçar a luz dos vaga-lumes no cenário e tornar a batida de asas da coruja mais legível (2026-11-25).
 
 - [x] Recolher o joão-de-barro antes da Lua, aumentar as aranhas em 15% e escurecer as nuvens noturnas (2026-11-25).
+
+- [x] Variar quantidade e tamanho das nuvens e repetir as visitas diurnas do joão-de-barro cerca de seis vezes (2026-11-25).

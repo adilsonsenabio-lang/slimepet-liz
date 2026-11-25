@@ -299,3 +299,7 @@ O Edge confirmou os 12 quadros efetivamente desenhados em cada trecho de voo da 
 ## Recolhida e visual noturno (2026-11-25)
 
 O Edge confirmou a entrada do joão-de-barro ao anoitecer, a permanência na casinha pelos dois minutos da Lua e a saída ao amanhecer. A escala-base da aranha passou de 0,62 para 0,713 e continuou variando. O filtro escuro foi aplicado às duas nuvens somente sob a Lua. O HTML abriu em 320, 390 e 430 px com um save V30. Android físico não foi testado.
+
+## Nuvens variadas e visitas à casinha (2026-11-25)
+
+No Edge, três ciclos simulados registraram seis entradas do joão-de-barro na casinha a cada fase diurna, incluindo a recolhida do anoitecer, e nenhuma aparição sob a Lua. Dia e noite mostraram quantidades variáveis, até três nuvens, e mais de vinte larguras no teste. As nuvens vieram das duas bordas e mantiveram o filtro noturno. O HTML abriu em 320, 390 e 430 px com um save V30. Android físico não foi testado.

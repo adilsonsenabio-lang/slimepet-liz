@@ -1,4 +1,4 @@
-const BIRD_HOUSE_TIMER={first:0,enter:1800,inside:60000,exit:1800,perch:20000};
+const BIRD_HOUSE_TIMER={enter:1800,inside:9000,exit:1800,perch:9000};
 const FROG_TIMER={first:0,tongue:1600,dive:1090,diveContactMs:780,hidden:60000,rise:2100,between:8000,hop:1600,atPond:9000,outside:60000,splash:1100,manualHop:1020};
 const FROG_PHASES=[
  ['sapo_lingua',FROG_TIMER.tongue],['sapo_mergulho',FROG_TIMER.dive],['na_poca',FROG_TIMER.hidden],

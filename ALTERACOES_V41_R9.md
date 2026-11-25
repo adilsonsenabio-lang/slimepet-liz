@@ -342,3 +342,7 @@ O brilho do vaga-lume ilumina uma área maior em volta do abdômen e diminui sua
 ## Recolhida e visual noturno (2026-11-25)
 
 O joão-de-barro entra na casinha ao anoitecer e reaparece ao amanhecer. As aranhas têm tamanho-base 15% maior, com a mesma variação de tamanhos e as mesmas trilhas. As nuvens ficam mais escuras e menos saturadas durante a Lua.
+
+## Nuvens variadas e visitas à casinha (2026-11-25)
+
+As nuvens chegam pelas bordas com tamanhos, alturas, velocidades e intervalos sorteados. O Jardim pode ter até três nuvens simultâneas de dia ou de noite, com a cor escura sob a Lua. O joão-de-barro faz pausas de nove segundos no galho e na casinha durante o dia, totalizando cerca de cinco ou seis visitas antes de dormir até o amanhecer.
