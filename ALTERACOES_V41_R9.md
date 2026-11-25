@@ -354,3 +354,7 @@ O sapo, as árvores, as flores, os arbustos e a grama projetam seus contornos em
 ## Aranhas, coruja e sombras frontais (2026-11-25)
 
 A aranha usa os 12 quadros da caminhada com cadência ligada à distância e tamanho-base 15% maior. Em cada visita, a coruja pode ter o tamanho-base ou variar de 10% menor a 30% maior. As sombras das flores, arbustos, árvores e pedra se estendem mais para a frente do Jardim. As do slime e do pato ficaram maiores e continuam acompanhando o Sol.
+
+## Corvo na rocha (2026-11-25)
+
+O corvo visita o Jardim de dia e de noite, com intervalo sorteado entre 96 e 122 segundos. Ele usa os 12 quadros da folha de voo na chegada e na saída e o sprite parado ao pousar na rocha por cinco segundos.

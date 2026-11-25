@@ -311,3 +311,7 @@ No Edge, setenta projeções acompanharam o Sol e as novas silhuetas ficaram aus
 ## Aranhas, coruja e sombras frontais (2026-11-25)
 
 O Edge confirmou os 12 quadros da aranha com movimento reduzido e a escala-base de 0,81995. Foram testados os extremos e o tamanho-base da coruja. A projeção do slime e do pato inverteu de lado conforme o Sol passou, e as sombras dos objetos se projetaram para a frente. O HTML abriu em 320, 390 e 430 px e carregou um save V30. Android físico não foi testado.
+
+## Corvo na rocha (2026-11-25)
+
+Em 500 segundos simulados no Edge, o corvo apareceu de dia e de noite, em cinco visitas espaçadas por 109 segundos com o sorteio fixado para o teste. O renderizador usou os 12 quadros em cada trecho e o PNG parado no pouso, com os pés sobre a rocha. O HTML abriu em 320, 390 e 430 px e carregou um save V30. Android físico não foi testado.

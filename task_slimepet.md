@@ -75,3 +75,5 @@
 - [x] Projetar sombras solares do sapo e das plantas, manter formigas só de dia e corrigir o percurso do caracol (2026-11-25).
 
 - [x] Corrigir quadros e aumentar a aranha, variar o tamanho da coruja e ampliar as sombras frontais (2026-11-25).
+
+- [x] Adicionar o corvo diurno e noturno com voo completo e pouso na rocha (2026-11-25).
