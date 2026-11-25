@@ -335,3 +335,7 @@ O Edge registrou a mesma gravação nos dois horários em duas noites simuladas 
 ## Novas sprites do slime (2026-11-25)
 
 O Edge carregou as 36 folhas, todas em 2560 × 128 px. Foram medidos os 20 quadros de caminhada, pulo, comida, sono, repousos e outras poses. O corpo principal coube na tela nas duas bordas da Casa e do Jardim nos três estágios. O toque no corpo foi reconhecido. O HTML abriu em 320, 390 e 430 px com um save V30. As partículas mais distantes podem alcançar as bordas e Android físico não foi testado.
+
+## Novo áudio e novo gato (2026-11-25)
+
+O Edge decodificou o novo MP3 em 4,08 segundos. Os testes simularam o início e a metade da noite, chamadas repetidas, tentativa de sobreposição e horário já registrado. No Quarto, o gato percorreu a prateleira nos dois sentidos com os 12 quadros e voltou ao sprite parado. O HTML abriu em 320, 390 e 430 px com um save V30. Smartphone físico não foi testado.

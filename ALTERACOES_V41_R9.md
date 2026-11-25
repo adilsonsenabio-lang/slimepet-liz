@@ -378,3 +378,7 @@ O jogo tenta iniciar o áudio ao abrir. A mesma gravação toca no início e na 
 ## Novas sprites do slime (2026-11-25)
 
 Foram instaladas as 34 folhas de `entrada.zip`, com os nomes e o formato esperados pelo jogo. `comeu_demais` e `injecao_v29` continuam com as folhas anteriores, como orienta o README. Os repousos provisórios usam a nova animação de idle. A posição do desenho perto das bordas foi ajustada para alinhar corpo, sombra, toque e efeitos. As folhas antigas receberam uma cópia de segurança local.
+
+## Novo áudio e novo gato (2026-11-25)
+
+O jogo usa o novo MP3, com nome canônico, e registra os horários do uivo para impedir que se repita na mesma janela ou se sobreponha a outro clipe. O gato passou a usar o sprite de repouso e os 12 quadros de caminhada fornecidos, com a cor e o ciclo de 15 segundos de passeio e 15 de repouso na prateleira do Quarto.

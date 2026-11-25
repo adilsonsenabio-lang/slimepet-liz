@@ -87,3 +87,5 @@
 - [x] Tentar o uivo automático e repetir o mesmo MP3 no começo e na metade de cada noite (2026-11-25).
 
 - [x] Instalar as 34 folhas do slime de entrada.zip e conferir o encaixe visual (2026-11-25).
+
+- [x] Atualizar o MP3, impedir uivos repetidos e instalar o novo gato na prateleira (2026-11-25).

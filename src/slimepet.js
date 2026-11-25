@@ -48,10 +48,11 @@ const FRIEND_DAILY_LIMIT=8,FRIEND_SPECIES_COOLDOWN=10*60000;
 const MAX_BOND_UNITS=Number.MAX_SAFE_INTEGER;
 
 // Sons do jogo offline. Se o navegador exigir interação, tente novamente no primeiro toque.
-const WOLF_HOWL_SOURCE='../assets_audios/Uivo_lobo.mp3.mpeg';
+const WOLF_HOWL_SOURCE='../assets_audios/uivo_lobo.mp3';
+const WOLF_HOWL_CUE_KEY='slime_pet_liz_uivo';
 const WOLF_HOWL_START_WINDOW_MS=2200;
 const SOUND=(()=>{
- let howlBuffer=null,activeHowl=null,lastHowlAt=-Infinity;
+ let howlBuffer=null,activeHowl=null,lastHowlCue=-Infinity;
  let ac=null,master=null,effectBus=null,ambBus=null,limiter=null,noiseBuffer=null;
   let enabled=true,softAudio=true,lastFX=0,lastAmbient=0,lastScene='',lastIndividual={},resumeRequest=null,resumeOnShow=false;
  const rand=(a,b)=>a+Math.random()*(b-a);
@@ -158,11 +159,14 @@ const SOUND=(()=>{
   try{(FX[type]||FX.click)()}catch(e){}
  }
  function playScheduledHowl(now){
-  if(!howlBuffer||!isGardenNight(now))return;
+  if(!howlBuffer||activeHowl||!isGardenNight(now))return;
   const interval=GARDEN_SKY_PHASE_MS/2;
-  const sinceCue=(skyCycleElapsed(now)-GARDEN_SKY_PHASE_MS)%interval;
-  const cueAt=now-sinceCue;
-  if(sinceCue>=WOLF_HOWL_START_WINDOW_MS||cueAt<=lastHowlAt)return;
+  const slot=Math.floor((now-sunEpoch)/interval);
+  const sinceCue=skyCycleElapsed(now)%interval;
+  if(sinceCue>=WOLF_HOWL_START_WINDOW_MS||slot<=lastHowlCue)return;
+  const cueKey=sunEpoch+':'+slot;
+  lastHowlCue=slot;
+  try{if(localStorage.getItem(WOLF_HOWL_CUE_KEY)===cueKey)return;}catch(e){}
   const source=ac.createBufferSource();
   source.buffer=howlBuffer;
   const gain=ac.createGain();
@@ -170,7 +174,8 @@ const SOUND=(()=>{
   source.connect(gain);gain.connect(effectBus);
   source.onended=()=>{if(activeHowl===source)activeHowl=null;};
   source.start();
-  activeHowl=source;lastHowlAt=cueAt;
+  activeHowl=source;
+  try{localStorage.setItem(WOLF_HOWL_CUE_KEY,cueKey);}catch(e){}
  }
  function ambient(scene,now){
   if(!enabled||!ac||ac.state!=='running'||document.hidden)return;
@@ -1356,7 +1361,7 @@ const VISITOR_SPEC={
  tartaruga:{label:'tartaruga',scenes:['garden'],row:0,rarity:.65,mode:'creep',scale:1.1,y:452,min:84,max:644,duration:Infinity,ms:940,rx:29,ry:21,sound:'tartaruga'},
  libelula:{label:'libélula',scenes:['garden'],row:0,rarity:.88,mode:'dart',scale:.5695,y:185,min:370,max:620,duration:16700,ms:185,rx:22,ry:17,sound:'libelula'},
  patinho:{label:'patinho',scenes:['garden'],row:0,rarity:.75,mode:'paddle',scale:1.13,y:GARDEN_DUCK_Y,min:582,max:647,duration:21000,ms:270,rx:28,ry:23,sound:'patinho'},
- gatinho:{label:'gatinho',scenes:['care'],row:0,rarity:.88,mode:'walk',scale:1.20,y:463,min:290,max:510,duration:16500,ms:190,rx:31,ry:27,sound:'gatinho'},
+ gatinho:{label:'gatinho',scenes:['care'],row:0,rarity:.88,mode:'walk',scale:1.20,y:463,min:290,max:510,duration:16500,ms:190,rx:31,ry:27,sound:'gatinho',frameSize:64,frames:12,anchor:{x:32,y:55}},
  camaleao:{label:'camaleão',scenes:['care'],mode:'walk',scale:1.20,ms:190,rx:31,ry:25,anchor:{x:36,y:47}},
  hamster:{label:'hamster',scenes:['care'],mode:'walk',scale:1.20,ms:190,rx:28,ry:25,anchor:{x:36,y:47}},
  joao_de_barro:{label:'joão-de-barro',scenes:['garden'],row:0,rarity:.63,mode:'perch',scale:.9265,y:178,min:134,max:272,duration:11900,ms:205,rx:28,ry:23,sound:'joao_de_barro'}
@@ -1383,7 +1388,7 @@ const VISITOR_LOCAL_ZONES={sapo:{left:493,right:724},patinho:{left:520,right:724
 const gardenAnimals=['sapo','abelha','borboleta','formiga'];
 const homeAnimals=['abelha','formiga'];
 // Grade de vinte células de 72 × 56, com fundo transparente.
-const FAUNA_SHEETS={"abelha":"../assets/abelha.png","borboleta":"../assets/borboleta_3.png","caracol":"../assets/caracol.png","coelho":"../assets/coelho.png","formiga":"../assets/formiga.png","gatinho":"../assets/gatinho.png","gatinho_reacao":"../assets/gatinho_reacao.png","joaninha":"../assets/joaninha.png","joao_de_barro":"../assets/joao_de_barro.png","libelula":"../assets/libelula_voando.png","patinho":"../assets/patinho.png","sapo":"../assets/sapo.png","sapo_salto":"../assets/sapo_salto.png","tartaruga":"../assets/tartaruga.png","vagalume":"../assets_noturnos/vagalume_voo_direita_12.png","aranha":"../assets_noturnos/aranha_andar_direita_12.png","gamba":"../assets_noturnos/gamba_andar_direita_12.png","coruja":"../assets_noturnos/coruja_voo_direita_12.png","corvo":"../assets/corvo_voo_direita_12.png"};
+const FAUNA_SHEETS={"abelha":"../assets/abelha.png","borboleta":"../assets/borboleta_3.png","caracol":"../assets/caracol.png","coelho":"../assets/coelho.png","formiga":"../assets/formiga.png","gatinho":"../assets/gatinho.png","joaninha":"../assets/joaninha.png","joao_de_barro":"../assets/joao_de_barro.png","libelula":"../assets/libelula_voando.png","patinho":"../assets/patinho.png","sapo":"../assets/sapo.png","sapo_salto":"../assets/sapo_salto.png","tartaruga":"../assets/tartaruga.png","vagalume":"../assets_noturnos/vagalume_voo_direita_12.png","aranha":"../assets_noturnos/aranha_andar_direita_12.png","gamba":"../assets_noturnos/gamba_andar_direita_12.png","coruja":"../assets_noturnos/coruja_voo_direita_12.png","corvo":"../assets/corvo_voo_direita_12.png"};
 const FAUNA_REACTIONS={"caracol":"../assets/reacao_caracol.png","formiga":"../assets/reacao_formiga.png","joaninha":"../assets/reacao_joaninha.png","joao_de_barro":"../assets/reacao_joao_de_barro.png","libelula":"../assets/reacao_libelula.png","patinho":"../assets/reacao_patinho.png","tartaruga":"../assets/reacao_tartaruga.png"};
 // V41-R7 — Coelhinho A: cinco ciclos aprovados, 6 quadros de 72x56, PNG em base64 offline.
 const RABBIT_ACTION_SHEETS={"idle":"../assets/coelho_idle.png","andar":"../assets/coelho_andar.png","saltar":"../assets/coelho_saltar.png","descansar":"../assets/coelho_descansar.png","feliz":"../assets/coelho_feliz.png"};
@@ -1396,7 +1401,7 @@ const BIRD_HOUSE_ACTIONS={
 const FAUNA_FRAME_W=72,FAUNA_FRAME_H=56,FAUNA_FRAMES=20;
 const FAUNA_ANCHORS={abelha:34,borboleta:28,vagalume:28,sapo:48,gatinho:47};
 const FAUNA_FRAME_MS={abelha:95,borboleta:105,libelula:90,joaninha:100,caracol:155,
- gatinho:220,joao_de_barro:185,formiga:120,patinho:130,sapo:145,tartaruga:145};
+ joao_de_barro:185,formiga:120,patinho:130,sapo:145,tartaruga:145};
 for(const [kind,spec] of Object.entries(VISITOR_SPEC)){
  spec.anchor??={x:36,y:FAUNA_ANCHORS[kind]??49};
  if(spec.scenes?.includes('garden')&&kind!=='patinho')gardenAnimals.push(kind);
@@ -1754,8 +1759,14 @@ function updateShelfAnimal(v,time,reduced){
  v.drawY=v.laneY=shelf.y*H/360;
  v.facing=walking&&returning?-v.residentFacing:v.residentFacing;
  v.walking=walking;
- const strideFrame=Math.floor(distance/SHELF_STRIDE_PX*FAUNA_FRAMES);
- v.frame=walking?(reduced?strideFrame-strideFrame%2:strideFrame)%FAUNA_FRAMES:faunaFrame(v,time,reduced);
+ const frames=v.spec.frames??FAUNA_FRAMES;
+ const strideFrame=Math.floor(distance/SHELF_STRIDE_PX*frames);
+ if(walking){
+  const step=reduced&&v.kind!=='gatinho'?strideFrame-strideFrame%2:strideFrame;
+  v.frame=step%frames;
+ }else{
+  v.frame=v.kind==='gatinho'?0:faunaFrame(v,time,reduced);
+ }
 }
 const FROG_WATER={puddle:{x:618,y:403},pond:{x:665,y:398}};
 const FROG_SPLASH={
@@ -2598,7 +2609,10 @@ function drawVisitors(ctx,accept){
   }
   ctx.translate(Math.round(v.x),0);
   ctx.scale(v.facing*(v.residentFlutter?(v.turnScale??1):1),1);
-  if(v.kind==='gatinho')img=catCoatSheet(img);
+  if(v.kind==='gatinho'){
+   img=catCoatSheet(img);
+   if(img.width===fw)frame=0;
+  }
   if(v.kind==='coruja'&&v.phase==='pousada'){
    const footX=4*v.scale,footY=v.drawY+(49-anchor)*v.scale;
    ctx.translate(footX,footY);ctx.rotate(-Math.PI/7);ctx.translate(-footX,-footY);
