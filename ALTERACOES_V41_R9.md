@@ -322,3 +322,7 @@ O sapo permanece no Jardim e repete suas ações na poça e na lagoa. O joão-de
 - Vaga-lumes reaproveitam a lógica das abelhas, com grupos, variação de tamanhos, pousos em flores livres e travessia pelas bordas.
 - Aranhas usam a lógica das formigas, com grupos, tamanhos variados e trilhas no gramado. O gambá entra, pausa e sai pela lateral, como o pato. A coruja faz no céu o percurso de ida, pausa e volta do coelho.
 - Os quatro aparecem sob a Lua. O build offline incorpora as folhas horizontais fornecidas, com 12 quadros por animação.
+
+## Ajustes na fauna do Jardim (2026-11-25)
+
+A coruja pousa no galho do joão-de-barro por cinco segundos. As abelhas do Jardim encerram as visitas antes da Lua. Pode aparecer um segundo gambá pela esquerda, além do gambá da direita. A ponta do abdômen do vaga-lume pulsa com luz amarela. A joaninha permanece no Jardim e voa em um circuito curto entre a flor e o arbusto.

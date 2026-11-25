@@ -59,3 +59,5 @@
 - [x] Manter sapo e joão-de-barro abrigados até o amanhecer, reduzir insetos à noite, reservar o pato para o dia e reforçar sombras solares (2026-11-25).
 
 - [x] Integrar vaga-lume, aranha, gambá e coruja à fauna noturna do Jardim (2026-11-25).
+
+- [x] Ajustar pouso da coruja, horários das abelhas, laterais do gambá, luz do vaga-lume e rota da joaninha (2026-11-25).

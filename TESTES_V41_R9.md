@@ -279,3 +279,7 @@ O Edge confirmou que os dois bichos ficaram abrigados durante a fase noturna sim
 ## Bichos noturnos do Jardim (2026-11-25)
 
 O Edge carregou as quatro folhas com as dimensões originais e um save V30. Em 365 segundos simulados, os quatro bichos apareceram só à noite e todos os quadros ficaram dentro das folhas. Foram observados pouso e decolagem de vaga-lumes, travessia de aranhas, pausa do gambá e ida e volta da coruja no céu. No teste apareceram até quatro vaga-lumes, cinco aranhas, um gambá e uma coruja. O HTML offline abriu em 320, 390 e 430 px sem rolagem horizontal. Android físico não foi testado.
+
+## Ajustes na fauna do Jardim (2026-11-25)
+
+Em 490 segundos simulados no Edge, a coruja pousou no galho por 5.000 ms, o gambá apareceu pelos dois lados e nenhuma abelha ficou visível sob a Lua. A joaninha permaneceu visível e dentro do trecho local. A renderização acionou o halo do vaga-lume. O HTML offline abriu em 320, 390 e 430 px sem rolagem horizontal e carregou um save V30. Android físico não foi testado.
