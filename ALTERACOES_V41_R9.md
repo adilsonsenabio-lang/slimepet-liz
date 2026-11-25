@@ -330,3 +330,7 @@ A coruja pousa no galho do joão-de-barro por cinco segundos. As abelhas do Jard
 ## João-de-barro no galho (2026-11-25)
 
 O joão-de-barro permanece no galho e repete apenas a entrada na casinha e o retorno ao galho. Passa 20 segundos no galho, fica um minuto na casinha de dia e espera o amanhecer quando se abriga à noite.
+
+## Asas, luz e horários da fauna (2026-11-25)
+
+A coruja bate as asas na ida e na volta e para durante o pouso. O vaga-lume voa 20% mais devagar, usa os 12 quadros em voo e tem um halo com núcleo luminoso desenhado sobre o escurecimento noturno. O coelho aparece só de dia. O jogo usa a mesma fase para desenho e comportamento: Sol é dia e Lua é noite.

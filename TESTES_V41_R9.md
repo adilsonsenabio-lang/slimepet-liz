@@ -287,3 +287,7 @@ Em 490 segundos simulados no Edge, a coruja pousou no galho por 5.000 ms, o gamb
 ## João-de-barro no galho (2026-11-25)
 
 No Edge, dois ciclos diurnos simulados passaram pelo galho, entrada na casinha, abrigo e volta ao galho, sem deslocamento até as bordas. O teste noturno confirmou o abrigo até o amanhecer e a saída pela casinha. O HTML abriu em 320, 390 e 430 px e carregou um save V30. Android físico não foi testado.
+
+## Asas, luz e horários da fauna (2026-11-25)
+
+No Edge, a coruja usou os 12 quadros em cada trajeto e apenas o quadro de repouso no galho. O vaga-lume usou os 12 quadros com movimento reduzido ativo e velocidade de voo a 80% da anterior. A amostra de pixels confirmou o núcleo luminoso e o halo sobre o fundo escuro. Em oito minutos simulados, o coelho apareceu apenas sob o Sol e a fase exibida coincidiu com a usada pela fauna. O HTML abriu em 320, 390 e 430 px e carregou um save V30. Android físico não foi testado.

@@ -353,6 +353,7 @@ function skyCycleElapsed(now){
  const cycle=2*GARDEN_SKY_PHASE_MS;
  return ((now-sunEpoch)%cycle+cycle)%cycle;
 }
+// Sol no céu significa dia. Lua no céu significa noite, para o desenho e para a fauna.
 function isGardenNight(now){return skyCycleElapsed(now)>=GARDEN_SKY_PHASE_MS;}
 function daylightThrough(now){
  const cycle=2*GARDEN_SKY_PHASE_MS;
@@ -1956,6 +1957,7 @@ const GARDEN_ANTS={max:5,rollMs:3000,arrivalGapMs:650,
  minCrossMs:8500,crossVariationMs:3500,firstY:491,laneGap:9,
  stridePx:1.5,clearancePx:4};
 const GARDEN_BEE_ARRIVAL_RATE=.90;
+const GARDEN_FIREFLY_FLIGHT_SPEED=.80;
 const GARDEN_BEES={max:5,rollMs:3000,arrivalGapMs:650/GARDEN_BEE_ARRIVAL_RATE,
  flightMs:2200,flightVariationMs:800,restMs:1000,restVariationMs:1700,
  flowerHeadX:7,flowerHeadY:22,perchFrame:0,perchFootOffset:12};
@@ -1976,9 +1978,10 @@ function spawnGardenBee(kind='abelha',timeLeft=Infinity){
  const flower=flowers[Math.floor(Math.random()*flowers.length)];
  const v=newVisitor(kind,'garden');
  const [x,y]=flower;
- const approach=GARDEN_BEES.flightMs+Math.random()*GARDEN_BEES.flightVariationMs;
+ const speed=kind==='vagalume'?GARDEN_FIREFLY_FLIGHT_SPEED:1;
+ const approach=(GARDEN_BEES.flightMs+Math.random()*GARDEN_BEES.flightVariationMs)/speed;
  const rest=GARDEN_BEES.restMs+Math.random()*GARDEN_BEES.restVariationMs;
- const departure=GARDEN_BEES.flightMs+Math.random()*GARDEN_BEES.flightVariationMs;
+ const departure=(GARDEN_BEES.flightMs+Math.random()*GARDEN_BEES.flightVariationMs)/speed;
  const perchX=x+GARDEN_BEES.flowerHeadX;
  const perchY=y-GARDEN_BEES.flowerHeadY-GARDEN_BEES.perchFootOffset*v.scale;
  const total=approach+rest+departure;
@@ -2016,7 +2019,7 @@ function updateGardenBees(reduced,night,timeLeft,kind='abelha'){
   v.phase=entering?(progress<.55?'entrar':'pousando'):perched?'pousada':progress<.42?'decolando':'sair';
   v.facing=v.fromLeft?1:-1;
   v.visible=v.x+v.spec.rx>=0&&v.x-v.spec.rx<=W;
-  v.frame=perched||reduced?GARDEN_BEES.perchFrame:faunaFrame(v,sceneTime,false);
+  v.frame=perched||(reduced&&kind==='abelha')?GARDEN_BEES.perchFrame:faunaFrame(v,sceneTime,reduced);
   v.near=v.visible&&Math.abs(v.x-pet.x)<153;
   if(v.near&&!v.greeted&&GAME_CLOCK.wallNow()-lastUserAction>2200&&petAvailableForVisitor()){
    v.greeted=true;watchVisitor(v);
@@ -2103,7 +2106,7 @@ function updateOwl(v,turn,reduced){
  v.visible=v.x+half>0;
  v.facing=entering||perched?1:-1;
  v.phase=perched?'pousada':entering?'entrar':'sair';
- v.frame=perched||reduced?0:faunaFrame(v,sceneTime,false);
+ v.frame=perched?0:faunaFrame(v,sceneTime,reduced);
 }
 function updateVisitors(dt){
  if(currentScreen==='evolve'){visitors=[];return;}
@@ -2112,13 +2115,14 @@ function updateVisitors(dt){
  const reduced=reducedMotion?.matches;
  if(garden)flowerFlightClock+=dt*.90*(reduced?.38:1);
  else updateHomeBees(reduced);
- const daylightMs=garden?GARDEN_SKY_PHASE_MS-skyCycleElapsed(GAME_CLOCK.wallNow()):0;
- const night=daylightMs<=0;
+ const now=GAME_CLOCK.wallNow();
+ const daylightMs=garden?GARDEN_SKY_PHASE_MS-skyCycleElapsed(now):0;
+ const night=isGardenNight(now);
  const nightMs=GARDEN_SKY_PHASE_MS+daylightMs;
  const turns=garden?gardenFaunaTurns(gardenArrivalTime()).flatMap(turn=>{
   if(!night)return turn;
   if(turn.kind==='patinho')return {...turn,kind:'gamba'};
-  if(turn.kind==='coelho')return [turn,{...turn,kind:'coruja'}];
+  if(turn.kind==='coelho')return {...turn,kind:'coruja'};
   return turn;
  }):[];
  const turnsByKind=new Map(turns.map(turn=>[turn.kind,turn]));
@@ -2172,6 +2176,10 @@ function updateVisitors(dt){
   }
   if(!FIXED_VISITORS[v.kind]&&v.turnKey!==turnKey(turn)){visitors.splice(i,1);continue;}
   const age=turn.age;
+  if(v.residentRabbit&&v.rabbitDayTurnKey!==turnKey(turn)){
+   if(age>300||daylightMs<=(turn.duration-age)/GARDEN_FREQUENCY+1000){v.visible=false;continue;}
+   v.rabbitDayTurnKey=turnKey(turn);
+  }
   if(v.gardenTurnKey!==turnKey(turn)){
    v.gardenTurnKey=turnKey(turn);
    v.turnEntrySide=v.residentX<W/2?-1:1;
@@ -2422,19 +2430,27 @@ function drawVisitors(ctx,accept){
   if(v.kind==='gatinho')img=catCoatSheet(img);
   ctx.drawImage(img,frame*fw,0,fw,fh,-Math.round(w/2),
    Math.round(v.drawY-anchor*v.scale),Math.round(w),Math.round(h));
-  if(v.kind==='vagalume'){
-   const pulse=reducedMotion.matches?.8:.55+.45*Math.sin((sceneTime+v.id*157)/210)**2;
-   const x=-8*v.scale,y=v.drawY+3*v.scale;
-   const radius=12*v.scale;
-   const glow=ctx.createRadialGradient(x,y,0,x,y,radius);
-   glow.addColorStop(0,'rgba(248,255,125,'+pulse+')');
-   glow.addColorStop(1,'rgba(238,255,90,0)');
-   ctx.fillStyle=glow;ctx.fillRect(x-radius,y-radius,2*radius,2*radius);
-   ctx.globalAlpha=opacity*pulse;ctx.fillStyle='#FFFFAE';
-   ctx.fillRect(Math.round(x)-1,Math.round(y)-1,3,3);
-  }
   ctx.restore();
  }
+}
+function drawFireflyLights(){
+ if(!gardenLight.night)return;
+ const reduced=reducedMotion.matches;
+ ctx.save();
+ for(const v of visitors){
+  if(!v.visible||v.kind!=='vagalume')continue;
+  const pulse=reduced?.88:.65+.35*Math.sin((sceneTime+v.id*157)/210)**2;
+  const x=Math.round(v.x-8*v.scale*v.facing),y=Math.round(v.drawY+3*v.scale);
+  const radius=16*v.scale;
+  const glow=ctx.createRadialGradient(x,y,0,x,y,radius);
+  glow.addColorStop(0,'rgba(255,240,130,'+pulse+')');
+  glow.addColorStop(.35,'rgba(245,228,74,'+pulse*.5+')');
+  glow.addColorStop(1,'rgba(232,230,57,0)');
+  ctx.fillStyle=glow;ctx.fillRect(x-radius,y-radius,2*radius,2*radius);
+  ctx.fillStyle='#FFF190';ctx.fillRect(x-2,y-1,5,3);
+  ctx.fillStyle='#FFFFE1';ctx.fillRect(x-1,y-1,3,2);
+ }
+ ctx.restore();
 }
 const gardenFaunaCanvas=document.createElement('canvas');
 gardenFaunaCanvas.width=W;gardenFaunaCanvas.height=H;
@@ -2666,11 +2682,12 @@ async function initAssets(){
  }
 }
 function updateGardenLight(){
- const elapsed=skyCycleElapsed(GAME_CLOCK.wallNow());
+ const now=GAME_CLOCK.wallNow();
+ const elapsed=skyCycleElapsed(now);
  const progress=(elapsed%GARDEN_SKY_PHASE_MS)/GARDEN_SKY_PHASE_MS;
  const altitude=Math.sin(Math.PI*progress);
  const twilight=clamp(altitude*5,0,1);
- gardenLight.night=elapsed>=GARDEN_SKY_PHASE_MS;
+ gardenLight.night=isGardenNight(now);
  gardenLight.x=gardenLight.night?105+531*progress:636-531*progress;
  gardenLight.y=76-35*altitude;
  gardenLight.darkness=gardenLight.night?.30+.28*altitude:.30*(1-twilight);
@@ -3298,7 +3315,7 @@ function frame(timestamp){
  if(!transition&&!activeCareSequence&&pet.act.startsWith('walk_'))updateSlimeStride();
  if(!transition&&fx){fx.time+=dt;if(fx.time>=10*FRAME_MS)fx=null;}
  updateTransition(timestamp);if(currentScreen==='garden')updateGardenLight();updateVisitors(dt);if(currentScreen===screenBeforeFrame)resolveActorCollisions(previousPetX,previousVisitors);if(currentScreen==='garden'&&!transition)updateSnailTrail(gardenArrivalTime());updatePetVisual(dt);SOUND.ambient(currentScreen,timestamp);ctx.imageSmoothingEnabled=false;
- if(currentScreen==='garden'){drawGarden();drawWindGrass(ctx);drawGardenFlowers(ctx);drawGardenProps(ctx);drawGardenPollen();if(assets.birdHouse)ctx.drawImage(assets.birdHouse,BIRD_HOUSE.x,BIRD_HOUSE.y);}else if(currentScreen==='evolve')drawVoid();else drawHome();if(currentScreen!=='evolve'){if(currentScreen==='garden')drawGardenFauna();else drawVisitors(ctx);drawPetShadow();drawEffect();}drawPet();if(currentScreen==='garden'){drawGardenForeground();drawFrogPuddle();ctx.fillStyle='rgba(12,24,65,'+gardenLight.darkness+')';ctx.fillRect(0,0,W,H);}drawPetReaction();drawGaze();if(currentScreen==='evolve')drawVoidPulse();drawTransitionOverlay(timestamp);
+ if(currentScreen==='garden'){drawGarden();drawWindGrass(ctx);drawGardenFlowers(ctx);drawGardenProps(ctx);drawGardenPollen();if(assets.birdHouse)ctx.drawImage(assets.birdHouse,BIRD_HOUSE.x,BIRD_HOUSE.y);}else if(currentScreen==='evolve')drawVoid();else drawHome();if(currentScreen!=='evolve'){if(currentScreen==='garden')drawGardenFauna();else drawVisitors(ctx);drawPetShadow();drawEffect();}drawPet();if(currentScreen==='garden'){drawGardenForeground();drawFrogPuddle();ctx.fillStyle='rgba(12,24,65,'+gardenLight.darkness+')';ctx.fillRect(0,0,W,H);drawFireflyLights();}drawPetReaction();drawGaze();if(currentScreen==='evolve')drawVoidPulse();drawTransitionOverlay(timestamp);
  frameRequest=requestAnimationFrame(frame);}
 function visitorAt(x,y){
  for(let i=visitors.length-1;i>=0;i--){

@@ -63,3 +63,5 @@
 - [x] Ajustar pouso da coruja, horários das abelhas, laterais do gambá, luz do vaga-lume e rota da joaninha (2026-11-25).
 
 - [x] Manter o joão-de-barro entre o galho e a casinha, sem voos pelas bordas (2026-11-25).
+
+- [x] Corrigir asas da coruja e luz do vaga-lume, reduzir o voo do vaga-lume em 20% e limitar o coelho ao dia (2026-11-25).
