@@ -65,3 +65,5 @@
 - [x] Manter o joão-de-barro entre o galho e a casinha, sem voos pelas bordas (2026-11-25).
 
 - [x] Corrigir asas da coruja e luz do vaga-lume, reduzir o voo do vaga-lume em 20% e limitar o coelho ao dia (2026-11-25).
+
+- [x] Reforçar a luz dos vaga-lumes no cenário e tornar a batida de asas da coruja mais legível (2026-11-25).

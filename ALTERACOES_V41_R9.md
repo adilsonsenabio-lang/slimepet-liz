@@ -334,3 +334,7 @@ O joão-de-barro permanece no galho e repete apenas a entrada na casinha e o ret
 ## Asas, luz e horários da fauna (2026-11-25)
 
 A coruja bate as asas na ida e na volta e para durante o pouso. O vaga-lume voa 20% mais devagar, usa os 12 quadros em voo e tem um halo com núcleo luminoso desenhado sobre o escurecimento noturno. O coelho aparece só de dia. O jogo usa a mesma fase para desenho e comportamento: Sol é dia e Lua é noite.
+
+## Luz dos vaga-lumes e asas da coruja (2026-11-25)
+
+O brilho do vaga-lume ilumina uma área maior em volta do abdômen e diminui suavemente com a distância. A coruja usa uma cadência própria, com mais tempo nos quadros de asas abertas. Os 12 quadros passam na ida e na volta, com pausa de animação durante o pouso.

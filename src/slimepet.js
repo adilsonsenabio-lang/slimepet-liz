@@ -2094,6 +2094,17 @@ function applyGardenTurnEdges(v,turn,reduced){
  }
 }
 const OWL_PERCH_MS=5000;
+// Os quadros com as asas mais abertas ficam visíveis por mais tempo.
+const OWL_WING_FRAME_MS=[55,55,70,100,100,75,55,65,100,90,70,55];
+const OWL_WING_CYCLE_MS=OWL_WING_FRAME_MS.reduce((sum,ms)=>sum+ms,0);
+function owlWingFrame(elapsed,reduced){
+ let clock=(elapsed/(reduced?1.15:1))%OWL_WING_CYCLE_MS;
+ for(const [frame,ms] of OWL_WING_FRAME_MS.entries()){
+  if(clock<ms)return frame;
+  clock-=ms;
+ }
+ return 0;
+}
 function updateOwl(v,turn,reduced){
  const age=turn.age/GARDEN_FREQUENCY;
  const leg=(turn.duration/GARDEN_FREQUENCY-OWL_PERCH_MS)/2;
@@ -2106,7 +2117,12 @@ function updateOwl(v,turn,reduced){
  v.visible=v.x+half>0;
  v.facing=entering||perched?1:-1;
  v.phase=perched?'pousada':entering?'entrar':'sair';
- v.frame=perched?0:faunaFrame(v,sceneTime,reduced);
+ const flightMs=entering?age:age-leg-OWL_PERCH_MS;
+ v.frame=perched?0:owlWingFrame(flightMs,reduced);
+ if(!perched&&!reduced){
+  const lift=2*Math.sin((flightMs%OWL_WING_CYCLE_MS)/OWL_WING_CYCLE_MS*2*Math.PI);
+  v.drawY-=lift*Math.sin(Math.PI*progress);
+ }
 }
 function updateVisitors(dt){
  if(currentScreen==='evolve'){visitors=[];return;}
@@ -2439,13 +2455,23 @@ function drawFireflyLights(){
  ctx.save();
  for(const v of visitors){
   if(!v.visible||v.kind!=='vagalume')continue;
-  const pulse=reduced?.88:.65+.35*Math.sin((sceneTime+v.id*157)/210)**2;
+  const pulse=reduced?.92:.78+.22*Math.sin((sceneTime+v.id*157)/210)**2;
   const x=Math.round(v.x-8*v.scale*v.facing),y=Math.round(v.drawY+3*v.scale);
-  const radius=16*v.scale;
+  // Clareie os pixels já escurecidos ao redor do abdômen.
+  const reach=Math.max(40,64*v.scale);
+  const spill=ctx.createRadialGradient(x,y,0,x,y,reach);
+  spill.addColorStop(0,'rgba(255,233,132,'+pulse*.64+')');
+  spill.addColorStop(.25,'rgba(255,224,101,'+pulse*.47+')');
+  spill.addColorStop(.60,'rgba(246,215,100,'+pulse*.20+')');
+  spill.addColorStop(1,'rgba(246,215,100,0)');
+  ctx.globalCompositeOperation='screen';
+  ctx.fillStyle=spill;ctx.fillRect(x-reach,y-reach,2*reach,2*reach);
+  ctx.globalCompositeOperation='source-over';
+  const radius=18*v.scale;
   const glow=ctx.createRadialGradient(x,y,0,x,y,radius);
-  glow.addColorStop(0,'rgba(255,240,130,'+pulse+')');
-  glow.addColorStop(.35,'rgba(245,228,74,'+pulse*.5+')');
-  glow.addColorStop(1,'rgba(232,230,57,0)');
+  glow.addColorStop(0,'rgba(255,250,175,'+pulse+')');
+  glow.addColorStop(.4,'rgba(255,224,95,'+pulse*.55+')');
+  glow.addColorStop(1,'rgba(246,215,100,0)');
   ctx.fillStyle=glow;ctx.fillRect(x-radius,y-radius,2*radius,2*radius);
   ctx.fillStyle='#FFF190';ctx.fillRect(x-2,y-1,5,3);
   ctx.fillStyle='#FFFFE1';ctx.fillRect(x-1,y-1,3,2);

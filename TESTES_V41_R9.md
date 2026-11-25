@@ -291,3 +291,7 @@ No Edge, dois ciclos diurnos simulados passaram pelo galho, entrada na casinha, 
 ## Asas, luz e horários da fauna (2026-11-25)
 
 No Edge, a coruja usou os 12 quadros em cada trajeto e apenas o quadro de repouso no galho. O vaga-lume usou os 12 quadros com movimento reduzido ativo e velocidade de voo a 80% da anterior. A amostra de pixels confirmou o núcleo luminoso e o halo sobre o fundo escuro. Em oito minutos simulados, o coelho apareceu apenas sob o Sol e a fase exibida coincidiu com a usada pela fauna. O HTML abriu em 320, 390 e 430 px e carregou um save V30. Android físico não foi testado.
+
+## Luz dos vaga-lumes e asas da coruja (2026-11-25)
+
+O Edge confirmou os 12 quadros efetivamente desenhados em cada trecho de voo da coruja, com movimento reduzido, e apenas o quadro de repouso no galho. Em um ponto a 22 pixels lógicos da luz, a cor do cenário passou de RGB (37, 72, 94) para (89, 110, 110). Uma amostra fora do alcance manteve a cor. O HTML abriu em 320, 390 e 430 px com um save V30. Android físico não foi testado.
