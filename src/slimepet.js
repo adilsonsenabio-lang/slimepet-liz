@@ -1414,7 +1414,7 @@ function pickWindowStop(kind,spec){
  return Math.round(a+Math.random()*Math.max(0,b-a));
 }
 const HOME_ANT_SCALE=.90;
-const VARIABLE_SIZE_ANIMALS=new Set(['vagalume','aranha','abelha','borboleta','coelho','caracol','tartaruga','libelula','patinho','formiga']);
+const VARIABLE_SIZE_ANIMALS=new Set(['vagalume','abelha','borboleta','coelho','caracol','tartaruga','libelula','patinho','formiga']);
 function faunaSizeVariation(){
  const roll=Math.random();
  return roll<.02?.20:roll<.08?.15:roll<.20?.10:
@@ -1422,6 +1422,7 @@ function faunaSizeVariation(){
 }
 function visitorScale(kind,screen){
  const base=VISITOR_SPEC[kind].scale;
+ if(kind==='aranha')return base*(.80+Math.random()*.40);
  if(kind==='coruja'){
   const roll=Math.random();
   return roll<.40?base:base*(.90+.40*(roll-.40)/.60);
@@ -2001,7 +2002,8 @@ function updateHomeBees(reduced){
 }
 const GARDEN_ANTS={max:5,rollMs:3000,arrivalGapMs:650,
  minCrossMs:8500,crossVariationMs:3500,firstY:491,laneGap:9,
- stridePx:1.5,spiderStridePx:6,clearancePx:4};
+ stridePx:1.5,spiderStridePx:6,clearancePx:4,
+ antMinY:405,antYVariation:99,antBendPx:9,pondDetourY:452};
 const GARDEN_BEE_ARRIVAL_RATE=.90;
 const GARDEN_FIREFLY_FLIGHT_SPEED=.80;
 const GARDEN_BEES={max:5,rollMs:3000,arrivalGapMs:650/GARDEN_BEE_ARRIVAL_RATE,
@@ -2064,12 +2066,22 @@ function updateGardenBees(reduced,night,timeLeft,kind='abelha'){
   v.phase=entering?(progress<.55?'entrar':'pousando'):perched?'pousada':progress<.42?'decolando':'sair';
   v.facing=v.fromLeft?1:-1;
   v.visible=v.x+v.spec.rx>=0&&v.x-v.spec.rx<=W;
-  v.frame=perched||(reduced&&kind==='abelha')?GARDEN_BEES.perchFrame:faunaFrame(v,sceneTime,reduced);
+  v.frame=perched?GARDEN_BEES.perchFrame:faunaFrame(v,sceneTime,reduced);
   v.near=v.visible&&Math.abs(v.x-pet.x)<153;
   if(v.near&&!v.greeted&&GAME_CLOCK.wallNow()-lastUserAction>2200&&petAvailableForVisitor()){
    v.greeted=true;watchVisitor(v);
   }
  }
+}
+function gardenAntTrailY(v,x,lane){
+ const trail=v.gardenAnt;
+ const indexOffset=lane*GARDEN_ANTS.laneGap;
+ if(v.kind==='aranha')return GARDEN_ANTS.firstY+indexOffset;
+ const bend=Math.sin(clamp(x/W,0,1)*Math.PI)*trail.bend;
+ const y=trail.baseY+indexOffset+bend;
+ // Comece a contornar a água antes de chegar à borda da poça.
+ const detour=ease(clamp((x-435)/95,0,1));
+ return v41Mix(y,Math.max(y,GARDEN_ANTS.pondDetourY+indexOffset),detour);
 }
 function updateGardenAnts(reduced,night,timeLeft,kind='formiga'){
  const active=night===(kind==='aranha');
@@ -2084,6 +2096,10 @@ function updateGardenAnts(reduced,night,timeLeft,kind='formiga'){
    const lane=Array.from({length:GARDEN_ANTS.max},(_,i)=>i)
     .find(i=>!ants.some(other=>other.gardenAnt.lane===i));
    v.gardenAnt={lane,crossMs,walkDistance:0};
+   if(kind==='formiga'){
+    v.gardenAnt.baseY=GARDEN_ANTS.antMinY+Math.random()*GARDEN_ANTS.antYVariation;
+    v.gardenAnt.bend=(Math.random()*2-1)*GARDEN_ANTS.antBendPx;
+   }
    ants.push(v);visitors.push(v);visitCount++;
   }
   group.nextArrival=sceneTime+GARDEN_ANTS.arrivalGapMs;
@@ -2096,7 +2112,7 @@ function updateGardenAnts(reduced,night,timeLeft,kind='formiga'){
   const lanes=Array.from({length:GARDEN_ANTS.max},(_,i)=>i)
    .sort((a,b)=>Math.abs(a-v.gardenAnt.lane)-Math.abs(b-v.gardenAnt.lane));
   const safeLane=lanes.find(lane=>{
-   const y=GARDEN_ANTS.firstY+lane*GARDEN_ANTS.laneGap;
+   const y=gardenAntTrailY(v,nextX,lane);
    return otherAnimals.every(other=>{
     const horizontal=((v.spec.frameSize??FAUNA_FRAME_W)*v.scale+(other.spec.frameSize??FAUNA_FRAME_W)*other.scale)/2+GARDEN_ANTS.clearancePx;
     const vertical=((v.spec.frameSize??FAUNA_FRAME_H)*v.scale+(other.spec.frameSize??FAUNA_FRAME_H)*other.scale)/2+GARDEN_ANTS.clearancePx;
@@ -2106,7 +2122,7 @@ function updateGardenAnts(reduced,night,timeLeft,kind='formiga'){
   v.gardenAnt.lane=safeLane??v.gardenAnt.lane;
   v.gardenAnt.walkDistance+=Math.abs(nextX-v.x);
   v.x=nextX;
-  v.laneY=v.drawY=GARDEN_ANTS.firstY+v.gardenAnt.lane*GARDEN_ANTS.laneGap;
+  v.laneY=v.drawY=gardenAntTrailY(v,nextX,v.gardenAnt.lane);
   v.facing=v.fromLeft?1:-1;
   v.visible=v.x+v.spec.rx>=0&&v.x-v.spec.rx<=W;
   v.phase=progress<.2?'entrar':progress>.8?'sair':'andar';
@@ -2142,6 +2158,7 @@ function applyGardenTurnEdges(v,turn,reduced){
 const OWL_PERCH_MS=5000;
 const CROW_VISIT={firstMs:16000,firstVariationMs:11000,minIntervalMs:96000,intervalVariationMs:26000};
 const CROW_ROCK_PERCH={x:492,y:331};
+const CROW_ROUTES=['travessia','rocha_direita','rocha_esquerda'];
 // Os quadros com as asas mais abertas ficam visíveis por mais tempo.
 const OWL_WING_FRAME_MS=[55,55,70,100,100,75,55,65,100,90,70,55];
 const OWL_WING_CYCLE_MS=OWL_WING_FRAME_MS.reduce((sum,ms)=>sum+ms,0);
@@ -2153,16 +2170,17 @@ function owlWingFrame(elapsed,reduced){
  }
  return 0;
 }
-function updatePerchingBirdFlight(v,age,duration,perch,fromLeft,reduced){
+function updatePerchingBirdFlight(v,age,duration,perch,fromLeft,reduced,exitLeft=fromLeft){
  const leg=(duration-OWL_PERCH_MS)/2;
  const entering=age<leg,perched=age>=leg&&age<leg+OWL_PERCH_MS;
  const progress=perched?1:ease(entering?age/leg:(duration-age)/leg);
  const half=v.spec.frameSize*v.scale/2;
- const edge=fromLeft?-half-5:W+half+5;
+ const leftEdge=entering||perched?fromLeft:exitLeft;
+ const edge=leftEdge?-half-5:W+half+5;
  v.x=v41Mix(edge,perch.x,progress);
  v.drawY=v.laneY=v41Mix(v.residentY,perch.y-(49-v.spec.anchor.y)*v.scale,progress**4);
  v.visible=v.x+half>0&&v.x-half<W;
- v.facing=entering||perched?(fromLeft?1:-1):(fromLeft?-1:1);
+ v.facing=entering||perched?(fromLeft?1:-1):(exitLeft?-1:1);
  v.phase=perched?'pousada':entering?'entrar':'sair';
  const flightMs=entering?age:age-leg-OWL_PERCH_MS;
  v.frame=perched?0:owlWingFrame(flightMs,reduced);
@@ -2182,9 +2200,20 @@ function updateCrow(v,reduced){
  const age=clock-v.nextCrowVisit;
  if(age>=v.spec.duration){
   v.nextCrowVisit+=CROW_VISIT.minIntervalMs+Math.random()*CROW_VISIT.intervalVariationMs;
-  v.visible=false;return;
+  v.crowRoute=null;v.visible=false;return;
  }
- updatePerchingBirdFlight(v,age,v.spec.duration,CROW_ROCK_PERCH,false,reduced);
+ v.crowRoute??=CROW_ROUTES[Math.floor(Math.random()*CROW_ROUTES.length)];
+ if(v.crowRoute==='travessia'){
+  const half=v.spec.frameSize*v.scale/2;
+  const progress=age/v.spec.duration;
+  v.x=v41Mix(W+half+5,-half-5,progress);
+  v.drawY=v.laneY=v.residentY+(reduced?0:24*Math.sin(progress*2*Math.PI));
+  v.visible=v.x+half>0&&v.x-half<W;
+  v.facing=-1;v.phase=progress<.2?'entrar':progress>.8?'sair':'voar';
+  v.frame=owlWingFrame(age,reduced);
+ }else{
+  updatePerchingBirdFlight(v,age,v.spec.duration,CROW_ROCK_PERCH,false,reduced,v.crowRoute==='rocha_esquerda');
+ }
 }
 function updateVisitors(dt){
  if(currentScreen==='evolve'){visitors=[];return;}

@@ -319,3 +319,7 @@ Em 500 segundos simulados no Edge, o corvo apareceu de dia e de noite, em cinco 
 ## Uivo noturno (2026-11-25)
 
 O Edge decodificou o MP3 incorporado, com duração de 4,08 segundos, e iniciou duas reproduções nos horários esperados em cada uma das duas noites simuladas. O som desativado interrompeu o clipe e impediu novos uivos. O HTML abriu em 320, 390 e 430 px com um save V30. Android físico não foi testado.
+
+## Rotas do corvo, insetos e aranhas (2026-11-25)
+
+O Edge confirmou os três trajetos diurnos e noturnos do corvo e 25 tamanhos distintos de aranha em 25 sorteios. A folha de abelha forneceu todos os 20 quadros em voo com movimento reduzido e o quadro de repouso no pouso. As formigas cruzaram diferentes faixas no solo, sem atingir a área molhada. O HTML abriu em 320, 390 e 430 px com um save V30. Android físico não foi testado.

@@ -362,3 +362,7 @@ O corvo visita o Jardim de dia e de noite, com intervalo sorteado entre 96 e 122
 ## Uivo noturno (2026-11-25)
 
 O MP3 fornecido toca no começo da noite e novamente um minuto depois, na metade do percurso da Lua. O som segue o botão de áudio e vem incorporado ao HTML offline. Os uivos perdidos com o som desativado ou o jogo fechado não são reproduzidos depois.
+
+## Rotas do corvo, insetos e aranhas (2026-11-25)
+
+O corvo entra pela direita e sorteia a cada visita entre cruzar direto para a esquerda ou pousar na rocha e sair por qualquer lado, tanto de dia como de noite. Aranhas sorteiam um tamanho entre 20% menor e 20% maior que seu tamanho-base. As abelhas usam os 20 quadros da folha em voo também com movimento reduzido. As formigas ocupam mais faixas do gramado e contornam a água.

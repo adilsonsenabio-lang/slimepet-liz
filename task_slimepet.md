@@ -79,3 +79,5 @@
 - [x] Adicionar o corvo diurno e noturno com voo completo e pouso na rocha (2026-11-25).
 
 - [x] Reproduzir o MP3 de uivo duas vezes por noite (2026-11-25).
+
+- [x] Sortear rotas do corvo, variar continuamente o tamanho das aranhas, animar asas das abelhas e ampliar trilhas das formigas (2026-11-25).
