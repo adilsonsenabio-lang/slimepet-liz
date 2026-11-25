@@ -89,3 +89,5 @@
 - [x] Instalar as 34 folhas do slime de entrada.zip e conferir o encaixe visual (2026-11-25).
 
 - [x] Atualizar o MP3, impedir uivos repetidos e instalar o novo gato na prateleira (2026-11-25).
+
+- [x] Adicionar o morcego noturno com voo pelas bordas e repouso de cabeça para baixo no galho (2026-11-25).

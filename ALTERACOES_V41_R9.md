@@ -382,3 +382,7 @@ Foram instaladas as 34 folhas de `entrada.zip`, com os nomes e o formato esperad
 ## Novo áudio e novo gato (2026-11-25)
 
 O jogo usa o novo MP3, com nome canônico, e registra os horários do uivo para impedir que se repita na mesma janela ou se sobreponha a outro clipe. O gato passou a usar o sprite de repouso e os 12 quadros de caminhada fornecidos, com a cor e o ciclo de 15 segundos de passeio e 15 de repouso na prateleira do Quarto.
+
+## Morcego noturno no galho (2026-11-25)
+
+O morcego sorteia a borda de chegada a cada noite, voa até o galho da árvore direita e fica pendurado de cabeça para baixo até o amanhecer. Ele usa as duas folhas de 12 quadros fornecidas e sai voando quando o Sol volta.

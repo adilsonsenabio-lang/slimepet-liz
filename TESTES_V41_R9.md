@@ -339,3 +339,7 @@ O Edge carregou as 36 folhas, todas em 2560 × 128 px. Foram medidos os 20 quadr
 ## Novo áudio e novo gato (2026-11-25)
 
 O Edge decodificou o novo MP3 em 4,08 segundos. Os testes simularam o início e a metade da noite, chamadas repetidas, tentativa de sobreposição e horário já registrado. No Quarto, o gato percorreu a prateleira nos dois sentidos com os 12 quadros e voltou ao sprite parado. O HTML abriu em 320, 390 e 430 px com um save V30. Smartphone físico não foi testado.
+
+## Morcego noturno no galho (2026-11-25)
+
+Duas noites simuladas no Edge verificaram chegadas pelas duas bordas, 12 quadros desenhados em voo e 12 no galho, permanência pendurada durante a noite e saída ao amanhecer. A captura confirmou os pés apoiados no galho. O HTML abriu em 320, 390 e 430 px e carregou um save V30. Android físico não foi testado.
