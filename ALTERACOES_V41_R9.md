@@ -310,3 +310,9 @@ A cadência de chegada das abelhas do Jardim foi ajustada para cerca de 10% meno
 ## Abrigos do sapo e do joão-de-barro (2026-11-24)
 
 O sapo permanece no Jardim e repete suas ações na poça e na lagoa. O joão-de-barro continua chegando e saindo pela lateral e entra na casinha entre os dois períodos no galho. Os dois descansam 60 segundos no abrigo de dia e 90 segundos quando entram sob a Lua. O tempo é definido na entrada e se mantém durante o descanso, inclusive se o céu mudar de fase.
+
+## Amanhecer e sombras no Jardim (2026-11-25)
+
+- Durante a Lua, o sapo permanece submerso na poça e o joão-de-barro fica na casinha. Se o anoitecer os encontrar abrigados, também esperam o amanhecer para sair.
+- À noite chegam menos abelhas e formigas. O patinho recebe apenas turnos diurnos, com tempo para completar a saída pela borda.
+- Árvores, arbustos, flores e rocha projetam sombras mais visíveis de acordo com a posição do Sol.

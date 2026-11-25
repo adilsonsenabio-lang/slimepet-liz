@@ -1716,28 +1716,35 @@ const FROG_ACTIONS={
  sapo_salto_ida:'../assets/sapo_salto_ida.png',
  sapo_salto_volta:'../assets/sapo_salto_volta.png',
 };
-const NIGHT_SHELTER_RATE=1.5;
-function advanceShelterCycle(v,dt,hideAt,basePeriod,dayShelterMs){
- const previous=v.shelterAge??0;
- let age=previous+dt;
- let shelterMs=v.shelterMs??dayShelterMs;
- if(previous<hideAt&&age>=hideAt){
-  shelterMs=dayShelterMs*(isGardenNight(GAME_CLOCK.wallNow())?NIGHT_SHELTER_RATE:1);
+function advanceShelterCycle(v,dt,hideAt,period,dayShelterMs){
+ let age=v.shelterAge??0;
+ const leaveAt=hideAt+dayShelterMs;
+ const night=isGardenNight(GAME_CLOCK.wallNow());
+ if(v.waitingForSun){
+  if(night){
+   v.shelterAge=Math.min(age+dt,leaveAt-1);
+   return;
+  }
+  age=leaveAt;
+  v.waitingForSun=false;
+ }else{
+  const next=age+dt;
+  if(night&&age<leaveAt&&next>=hideAt){
+   // Pause o relógio dentro do abrigo e retome pela saída ao amanhecer.
+   v.shelterAge=Math.min(next,leaveAt-1);
+   v.waitingForSun=true;
+   return;
+  }
+  age=next;
  }
- const duration=basePeriod+shelterMs-dayShelterMs;
- if(age>=duration){
-  age-=duration;shelterMs=dayShelterMs;v.turnExitSide=null;
- }
- v.shelterAge=age;v.shelterMs=shelterMs;
+ if(age>=period){age-=period;v.turnExitSide=null;}
+ v.shelterAge=age;
 }
 function updatePondFrog(v,time,reduced,dt){
  const r=FROG_TIMER;
  const hideAt=r.tongue+r.dive;
  advanceShelterCycle(v,dt,hideAt,FROG_PERIOD,r.hidden);
- const elapsed=v.shelterAge;
- // No período extra de sono, mantenha o sapo submerso sem repetir o splash.
- const extra=v.shelterMs-r.hidden;
- let t=elapsed<hideAt?elapsed:Math.max(Math.min(elapsed,hideAt+r.hidden-1),elapsed-extra);
+ let t=v.shelterAge;
  v.x=v.residentX;v.drawY=v.laneY=v.residentY;v.facing=v.residentFacing;
  v.visible=true;v.phase='repouso';v.activity=null;v.frogJumpFrame=null;v.splash=0;v.puddleClip=false;v.puddleSplash=null;v.opacity=1;
  v.frame=reduced?0:faunaFrame(v,time,false);
@@ -1806,16 +1813,15 @@ function updateResidentBird(v,time,dt,reduced){
  const hideAt=rule.perch+rule.enter;
  const basePeriod=2*rule.perch+rule.enter+rule.inside+rule.exit;
  advanceShelterCycle(v,dt,hideAt,basePeriod+FAUNA_TURN_GAP_MS,rule.inside);
- const duration=basePeriod+v.shelterMs-rule.inside;
- if(v.shelterAge>=duration){v.visible=false;return;}
- updateBirdHouse(v,time,v.shelterAge-rule.perch,reduced,v.shelterMs);
+ if(v.shelterAge>=basePeriod){v.visible=false;return;}
+ updateBirdHouse(v,time,v.shelterAge-rule.perch,reduced);
  v.turnEntrySide=1;
- applyGardenTurnEdges(v,{age:v.shelterAge,duration},reduced);
+ applyGardenTurnEdges(v,{age:v.shelterAge,duration:basePeriod},reduced);
  if(v.visible&&v.phase==='repouso')reactToResidentIdle(v);
 }
-function updateBirdHouse(v,time,elapsed,reduced,insideMs){
+function updateBirdHouse(v,time,elapsed,reduced){
  const rule=BIRD_HOUSE_TIMER;
- const exitAt=rule.enter+insideMs,perchAt=exitAt+rule.exit;
+ const exitAt=rule.enter+rule.inside,perchAt=exitAt+rule.exit;
  const t=elapsed;
  v.x=v.residentX;v.drawY=v.laneY=v.residentY;v.scale=v.spec.scale;
  v.facing=v.residentFacing;
@@ -1972,12 +1978,14 @@ function spawnGardenBee(){
  visitors.push(v);visitCount++;
  return v.id;
 }
-function updateGardenBees(reduced){
+const NIGHT_INSECT_GAP_MULTIPLIER=2;
+function updateGardenBees(reduced,night){
  rollGardenGroup(gardenBeeGroup,GARDEN_BEES);
  visitors=visitors.filter(v=>!v.gardenBee||sceneTime-v.started<v.gardenBee.slotMs);
  const bees=visitors.filter(v=>v.gardenBee);
- if(bees.length<gardenBeeGroup.target&&sceneTime>=gardenBeeGroup.nextArrival&&spawnGardenBee()!==null){
-  gardenBeeGroup.nextArrival=sceneTime+GARDEN_BEES.arrivalGapMs;
+ const target=night?Math.ceil(gardenBeeGroup.target/2):gardenBeeGroup.target;
+ if(bees.length<target&&sceneTime>=gardenBeeGroup.nextArrival&&spawnGardenBee()!==null){
+  gardenBeeGroup.nextArrival=sceneTime+GARDEN_BEES.arrivalGapMs*(night?NIGHT_INSECT_GAP_MULTIPLIER:1);
  }
  // As reservas de flores duram até o fim da travessia de cada abelha.
  for(const v of bees){
@@ -2005,18 +2013,19 @@ function updateGardenBees(reduced){
   }
  }
 }
-function updateGardenAnts(reduced){
+function updateGardenAnts(reduced,night){
  if(!faunaPresent('formiga')||!assets.visitors.formiga)return;
  rollGardenGroup(gardenAntGroup,GARDEN_ANTS);
  visitors=visitors.filter(v=>!v.gardenAnt||sceneTime-v.started<v.gardenAnt.crossMs);
  const ants=visitors.filter(v=>v.gardenAnt);
- if(ants.length<gardenAntGroup.target&&sceneTime>=gardenAntGroup.nextArrival){
+ const target=night?Math.ceil(gardenAntGroup.target/2):gardenAntGroup.target;
+ if(ants.length<target&&sceneTime>=gardenAntGroup.nextArrival){
   const v=newVisitor('formiga','garden');
   const lane=Array.from({length:GARDEN_ANTS.max},(_,i)=>i)
    .find(i=>!ants.some(other=>other.gardenAnt.lane===i));
   v.gardenAnt={lane,crossMs:GARDEN_ANTS.minCrossMs+Math.random()*GARDEN_ANTS.crossVariationMs,walkDistance:0};
   ants.push(v);visitors.push(v);visitCount++;
-  gardenAntGroup.nextArrival=sceneTime+GARDEN_ANTS.arrivalGapMs;
+  gardenAntGroup.nextArrival=sceneTime+GARDEN_ANTS.arrivalGapMs*(night?NIGHT_INSECT_GAP_MULTIPLIER:1);
  }
  for(const v of ants){
   const age=sceneTime-v.started;
@@ -2075,12 +2084,13 @@ function updateVisitors(dt){
  const reduced=reducedMotion?.matches;
  if(garden)flowerFlightClock+=dt*.90*(reduced?.38:1);
  else updateHomeBees(reduced);
+ const daylightMs=garden?GARDEN_SKY_PHASE_MS-skyCycleElapsed(GAME_CLOCK.wallNow()):0;
  const turns=garden?gardenFaunaTurns(gardenArrivalTime()):[];
  const turnsByKind=new Map(turns.map(turn=>[turn.kind,turn]));
  const turnKey=turn=>turn&&turn.round+':'+turn.index;
  for(const turn of turns){
   const {kind}=turn;
-  if(kind!=='patinho'||!faunaPresent(kind)||!assets.visitors[kind]||
+  if(kind!=='patinho'||daylightMs<=(turn.duration-turn.age)/GARDEN_FREQUENCY+1000||!faunaPresent(kind)||!assets.visitors[kind]||
      turn.age>=VISITOR_SPEC[kind].duration||visitors.some(v=>v.kind===kind&&v.turnKey===turnKey(turn)))continue;
   const v=newVisitor(kind);
   v.turnKey=turnKey(turn);
@@ -2101,6 +2111,13 @@ function updateVisitors(dt){
   if(v.residentFlutter){updateFlowerVisitor(v,dt,reduced);continue;}
   if(v.residentPond){updatePondFrog(v,sceneTime,reduced,dt);continue;}
   if(v.kind==='joao_de_barro'){updateResidentBird(v,sceneTime,dt,reduced);continue;}
+  if(v.kind==='patinho'&&(daylightMs<=1500||v.duskDeparture)){
+   const exit=v.duskDeparture??={x:v.x,ms:0,duration:clamp(daylightMs,250,1500)};
+   exit.ms+=dt;
+   if(!v.visible||exit.ms>=exit.duration){visitors.splice(i,1);continue;}
+   v.phase='sair';v.facing=1;v.x=v41Mix(exit.x,v.x1,ease(exit.ms/exit.duration));
+   visitPose(v,sceneTime,dt,reduced);continue;
+  }
   const turn=turnsByKind.get(v.kind);
   if(!turn||!faunaPresent(v.kind)){
    if(!FIXED_VISITORS[v.kind]){visitors.splice(i,1);continue;}
@@ -2215,7 +2232,7 @@ function updateVisitors(dt){
   for(const v of visitors){
    if(FIXED_VISITORS[v.kind]?.screen==='garden'&&!v.residentFlutter&&!v.residentPond&&v.kind!=='joao_de_barro')applyGardenTurnEdges(v,turnsByKind.get(v.kind),reduced);
   }
-  updateGardenBees(reduced);updateGardenAnts(reduced);
+  updateGardenBees(reduced,daylightMs<=0);updateGardenAnts(reduced,daylightMs<=0);
  }
  if(lookAt&&(GAME_CLOCK.wallNow()>lookAt.until||(lookAt.id!==null&&!visitors.some(v=>v.id===lookAt.id&&v.visible))))lookAt=null;
 }
@@ -2225,7 +2242,6 @@ const GARDEN_PROPS={
  gardenRedMushroom:{src:'../assets/jardim_cogumelo_vermelho_duplo.png',spots:[[115,537]]},
 };
 function drawGardenProps(ctx){
- for(const [x,y] of GARDEN_FLOWERS.spots)drawGardenCastShadow(ctx,x,y,6,24,.14);
  for(const [key,{spots}] of Object.entries(GARDEN_PROPS)){
   const sprite=assets[key];
   if(!sprite)continue;
@@ -2638,8 +2654,19 @@ function drawGardenCastShadow(ctx,x,y,radius,height,opacity){
  ctx.restore();
 }
 function drawGardenObjectShadows(){
- for(const [x,y,radius,height] of [[130,367,29,95],[636,319,17,58],[492,369,22,26]]){
-  drawGardenCastShadow(ctx,x,y,radius,height,.16);
+ // Pés dos troncos, rocha e centros dos três trechos de arbustos.
+ for(const [x,y,radius,height,opacity] of [
+  [130,367,37,125,.23],[636,319,25,88,.22],[492,369,26,34,.22],
+  [95,344,28,34,.17],[306,341,34,32,.17],[503,345,26,30,.17],
+ ]){
+  drawGardenCastShadow(ctx,x,y,radius,height,opacity);
+ }
+ for(const layer of assets.layers){
+  if(!layer.img||!layer.name.startsWith('flor_'))continue;
+  drawGardenCastShadow(ctx,layer.x+layer.w/2,layer.y+layer.h-5,7,layer.h*.55,.18);
+ }
+ if(assets.gardenFlowers){
+  for(const [x,y] of GARDEN_FLOWERS.spots)drawGardenCastShadow(ctx,x,y,7,26,.18);
  }
  for(const [key,{spots}] of Object.entries(GARDEN_PROPS)){
   const item=assets[key];

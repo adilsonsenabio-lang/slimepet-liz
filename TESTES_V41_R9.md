@@ -271,3 +271,7 @@ Na simulação de 90 segundos no Edge, as chegadas passaram de 49 para 43 (aprox
 ## Abrigos do sapo e do joão-de-barro (2026-11-24)
 
 O Edge confirmou o reinício do ciclo do sapo e as fases de mergulho, saída da poça, ida à lagoa e volta. O relógio simulado mediu 60 segundos de abrigo diurno e 90 segundos de abrigo noturno para os dois bichos, inclusive com a troca de fase do céu durante a espera. A entrada lateral e as ações na casinha também foram verificadas. Android físico não foi testado.
+
+## Amanhecer e sombras no Jardim (2026-11-25)
+
+O Edge confirmou que os dois bichos ficaram abrigados durante a fase noturna simulada e saíram ao amanhecer. Em janelas de 80 segundos simulados, as chegadas passaram de 38 para 26 abelhas e de 32 para 18 formigas à noite. O patinho ficou visível apenas no período diurno testado. A captura mostrou as sombras no Jardim, e a projeção inverteu a direção entre manhã e fim do dia. O HTML abriu em 320, 390 e 430 px sem rolagem horizontal e carregou um save V30. Android físico não foi testado.
