@@ -1315,7 +1315,7 @@ const VISITOR_SPEC={
  formiga:{label:'formiguinha',mode:'walk',scale:.26,y:466,min:165,max:540,duration:14500,ms:195,rx:10,ry:7,sound:'formiga',useSupplied:false,anchor:{x:36,y:49}},
  borboleta:{label:'borboleta',mode:'flutter',scale:1.2,y:260,min:376,max:530,duration:12500,ms:190,rx:24,ry:21,sound:'borboleta'},
  vagalume:{label:'vaga-lume',scenes:['garden'],mode:'glow',scale:.68,y:191,min:362,max:540,duration:13700,ms:175,rx:14,ry:12,frameSize:32,frames:12,anchor:{x:16,y:16}},
- aranha:{label:'aranha',scenes:['garden'],mode:'creep',scale:.713,y:491,min:0,max:724,duration:12000,ms:140,rx:12,ry:10,frameSize:32,frames:12,anchor:{x:16,y:22}},
+ aranha:{label:'aranha',scenes:['garden'],mode:'creep',scale:.81995,y:491,min:0,max:724,duration:12000,ms:140,rx:12,ry:10,frameSize:32,frames:12,anchor:{x:16,y:22}},
  gamba:{label:'gambá',scenes:['garden'],mode:'walk',scale:.91,y:GARDEN_DUCK_Y,min:582,max:647,duration:21000,ms:220,rx:26,ry:21,frameSize:64,frames:12,anchor:{x:32,y:49}},
  coruja:{label:'coruja',scenes:['garden'],mode:'glow',scale:.95,y:102,min:0,max:724,duration:29000,ms:180,rx:27,ry:20,frameSize:64,frames:12,anchor:{x:32,y:31}},
  joaninha:{label:'joaninha',scenes:['garden'],row:0,rarity:.80,mode:'flutter',scale:.5904,y:300,min:390,max:525,duration:13800,ms:175,rx:18,ry:16,sound:'joaninha'},
@@ -1396,6 +1396,10 @@ function faunaSizeVariation(){
 }
 function visitorScale(kind,screen){
  const base=VISITOR_SPEC[kind].scale;
+ if(kind==='coruja'){
+  const roll=Math.random();
+  return roll<.40?base:base*(.90+.40*(roll-.40)/.60);
+ }
  if(kind==='formiga'&&screen==='care')return base*HOME_ANT_SCALE*(Casa.getRoom()==='sala'?.85:1);
  return base*(kind==='abelha'&&screen==='garden'?1.20:1)*
   (VARIABLE_SIZE_ANIMALS.has(kind)?1+faunaSizeVariation():1);
@@ -1971,7 +1975,7 @@ function updateHomeBees(reduced){
 }
 const GARDEN_ANTS={max:5,rollMs:3000,arrivalGapMs:650,
  minCrossMs:8500,crossVariationMs:3500,firstY:491,laneGap:9,
- stridePx:1.5,clearancePx:4};
+ stridePx:1.5,spiderStridePx:6,clearancePx:4};
 const GARDEN_BEE_ARRIVAL_RATE=.90;
 const GARDEN_FIREFLY_FLIGHT_SPEED=.80;
 const GARDEN_BEES={max:5,rollMs:3000,arrivalGapMs:650/GARDEN_BEE_ARRIVAL_RATE,
@@ -2080,7 +2084,8 @@ function updateGardenAnts(reduced,night,timeLeft,kind='formiga'){
   v.facing=v.fromLeft?1:-1;
   v.visible=v.x+v.spec.rx>=0&&v.x-v.spec.rx<=W;
   v.phase=progress<.2?'entrar':progress>.8?'sair':'andar';
-  v.frame=reduced?0:Math.floor(v.gardenAnt.walkDistance/GARDEN_ANTS.stridePx)%(v.spec.frames??FAUNA_FRAMES);
+  const stride=kind==='aranha'?GARDEN_ANTS.spiderStridePx*(reduced?1.45:1):GARDEN_ANTS.stridePx;
+  v.frame=reduced&&kind==='formiga'?0:Math.floor(v.gardenAnt.walkDistance/stride)%(v.spec.frames??FAUNA_FRAMES);
  }
 }
 const GARDEN_EDGE_TRANSIT_MS=3200;
@@ -2204,6 +2209,7 @@ function updateVisitors(dt){
    if(v.owlTurnKey!==turnKey(turn)){
     if(turn.age>300||nightMs<=(turn.duration-turn.age)/GARDEN_FREQUENCY+1000)continue;
     v.owlTurnKey=turnKey(turn);
+    v.scale=visitorScale(v.kind,'garden');
    }
    updateOwl(v,turn,reduced);continue;
   }
@@ -2449,6 +2455,8 @@ function drawVisitors(ctx,accept){
    const height=h*.60+Math.max(0,ground-v.drawY);
    if(v.kind==='sapo'){
     if(!v.puddleClip)drawGardenSpriteShadow(ctx,img,frame*fw,0,fw,fh,v.x,v.laneY+3,w,53*v.scale+Math.max(0,v.laneY-v.drawY),.39*opacity,v.facing);
+   }else if(v.kind==='patinho'){
+    drawGardenSpriteShadow(ctx,img,frame*fw,0,fw,fh,v.x,v.laneY+4,w*1.25,76*v.scale,.38*opacity,v.facing,1.35);
    }else{
     drawGardenCastShadow(ctx,v.x,ground+2,Math.max(2,w*.18),height,.16*opacity);
    }
@@ -2767,21 +2775,22 @@ function gardenShadowProjection(x,y,height){
   dy:height*(.17+(gardenLight.y-41)*.002),
  };
 }
-function drawGardenCastShadow(ctx,x,y,radius,height,opacity){
+function drawGardenCastShadow(ctx,x,y,radius,height,opacity,frontScale=1){
  opacity*=gardenLight.shadowStrength;
  if(opacity<=0)return;
  const {dx,dy}=gardenShadowProjection(x,y,height);
+ const depth=dy*frontScale;
  ctx.save();ctx.fillStyle=gardenLight.night?'#18243f':'#285d3f';
  for(let step=0;step<10;step++){
   const p=step/9;
   const spread=radius*(1-.48*p)+Math.sin(p*Math.PI)*radius*.12;
   ctx.globalAlpha=opacity*(1-.68*p);
-  ctx.fillRect(Math.round(x+dx*p-spread),Math.round(y+dy*p),Math.round(spread*2),Math.ceil(Math.abs(dy)/9)+1);
+  ctx.fillRect(Math.round(x+dx*p-spread),Math.round(y+depth*p),Math.round(spread*2),Math.ceil(depth/9)+1);
  }
  ctx.restore();
 }
 const gardenShadowMasks=new WeakMap();
-function drawGardenSpriteShadow(ctx,img,sx,sy,sw,sh,x,y,width,height,opacity,facing=1){
+function drawGardenSpriteShadow(ctx,img,sx,sy,sw,sh,x,y,width,height,opacity,facing=1,frontScale=1){
  if(gardenLight.night||gardenLight.shadowStrength<=0)return;
  let frames=gardenShadowMasks.get(img);
  if(!frames){frames=new Map();gardenShadowMasks.set(img,frames);}
@@ -2799,7 +2808,8 @@ function drawGardenSpriteShadow(ctx,img,sx,sy,sw,sh,x,y,width,height,opacity,fac
  ctx.save();
  ctx.globalAlpha=opacity*gardenLight.shadowStrength;
  // A base do sprite permanece no chão. O topo se projeta para longe do Sol.
- ctx.transform(facing,0,-dx/sh,-Math.max(3,dy)/sh,x+dx-facing*width/2,y+Math.max(3,dy));
+ const depth=Math.max(3,dy*frontScale);
+ ctx.transform(facing,0,-dx/sh,-depth/sh,x+dx-facing*width/2,y+depth);
  ctx.drawImage(mask,0,0,width,sh);
  ctx.restore();
 }
@@ -2816,14 +2826,14 @@ function drawGardenObjectShadows(){
   const root=tree?(name==='arvore_grande'?[130,367]:[636,319]):[x+w/2,y+h-5];
   const width=tree?w*.53:flower?w*.8:name==='arbustos'?w*.88:w*.78;
   const height=tree?h*.91:flower?h*.70:name==='arbustos'?36:44;
-  drawGardenSpriteShadow(ctx,layer.img,frame*w,0,w,h,root[0],root[1],width,height,tree?.40:.32);
+  drawGardenSpriteShadow(ctx,layer.img,frame*w,0,w,h,root[0],root[1],width,height,tree?.40:.32,1,1.85);
  }
  if(assets.gardenFlowers){
   const tick=Math.floor(time/GARDEN_FLOWERS.frameMs);
   for(const [i,[x,y,row]] of GARDEN_FLOWERS.spots.entries()){
    const frame=reduced?0:(tick+i*3)%FAUNA_FRAMES;
    drawGardenSpriteShadow(ctx,assets.gardenFlowers,frame*FAUNA_FRAME_W,row*FAUNA_FRAME_H,
-    FAUNA_FRAME_W,FAUNA_FRAME_H,x,y,FAUNA_FRAME_W,42,.31);
+    FAUNA_FRAME_W,FAUNA_FRAME_H,x,y,FAUNA_FRAME_W,42,.31,1,1.70);
   }
  }
  if(assets.windGrass){
@@ -3099,7 +3109,7 @@ function slimeScale(screen,stage=currentStage()){
 function drawPetShadow(){const y=currentGround(),lift=(pet.act==='pulo'||pet.act.startsWith('walk_'))?[0,0,.28,.70,1,.76,.31,0,0,0][pet.frame]||0:0;
  const sc=slimeScale(currentScreen);
  ctx.save();ctx.fillStyle='#153d2d';ctx.globalAlpha=(.20-.08*lift)*(currentScreen==='garden'&&gardenLight.night?.25:1);ctx.beginPath();ctx.ellipse(pet.x,y-4,32*sc/1.6+lift*5,5+lift*2,0,0,Math.PI*2);ctx.fill();ctx.restore();
- if(currentScreen==='garden')drawGardenCastShadow(ctx,pet.x,y-3,17*sc,45*sc,.19);
+ if(currentScreen==='garden')drawGardenCastShadow(ctx,pet.x,y-3,29*sc,74*sc,.34,1.38);
 }
 function fallbackPet(){const x=pet.x,y=currentGround();ctx.save();if(currentScreen==='garden'){ctx.translate(x,y);ctx.scale(SLIME_GARDEN_SCALE,SLIME_GARDEN_SCALE);ctx.translate(-x,-y);}ctx.fillStyle='#173f19';ctx.fillRect(x-54,y-62,108,57);ctx.fillStyle='#8be735';ctx.fillRect(x-49,y-69,98,61);pixel(x-30,y-50,13,20,'#172617');pixel(x+17,y-50,13,20,'#172617');pixel(x-30,y-52,5,5,'#fff');pixel(x+17,y-52,5,5,'#fff');pixel(x-36,y-30,11,8,'#ff9aca');pixel(x+23,y-30,11,8,'#ff9aca');pixel(x-11,y-31,22,13,'#261326');pixel(x-5,y-25,12,7,'#ff8fc3');ctx.restore();}
 const shaded=document.createElement('canvas');shaded.width=128;shaded.height=128;const shadeCtx=shaded.getContext('2d');

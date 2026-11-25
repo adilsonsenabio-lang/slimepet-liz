@@ -307,3 +307,7 @@ No Edge, três ciclos simulados registraram seis entradas do joão-de-barro na c
 ## Sombras, horários e percurso do caracol (2026-11-25)
 
 No Edge, setenta projeções acompanharam o Sol e as novas silhuetas ficaram ausentes sob a Lua. O sapo projetou sombras em direções opostas conforme o Sol passou por ele. Em 155 segundos simulados, o caracol completou duas idas e voltas, com deslocamento máximo de 0,36 pixel lógico a cada 50 ms. Nenhuma formiga apareceu à noite. O sorteio produziu grupos de um a cinco vaga-lumes, com até cinco visíveis e sete tamanhos. O HTML abriu em 320, 390 e 430 px e carregou um save V30. Android físico não foi testado.
+
+## Aranhas, coruja e sombras frontais (2026-11-25)
+
+O Edge confirmou os 12 quadros da aranha com movimento reduzido e a escala-base de 0,81995. Foram testados os extremos e o tamanho-base da coruja. A projeção do slime e do pato inverteu de lado conforme o Sol passou, e as sombras dos objetos se projetaram para a frente. O HTML abriu em 320, 390 e 430 px e carregou um save V30. Android físico não foi testado.

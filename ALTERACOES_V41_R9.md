@@ -350,3 +350,7 @@ As nuvens chegam pelas bordas com tamanhos, alturas, velocidades e intervalos so
 ## Sombras, horários e percurso do caracol (2026-11-25)
 
 O sapo, as árvores, as flores, os arbustos e a grama projetam seus contornos em direção oposta ao Sol. As formigas completam a travessia de dia. O caracol entra e sai devagar pela esquerda, com um ciclo próprio de ida, volta e pausa fora do Jardim. Os vaga-lumes continuam sorteando grupos de um a cinco e tamanhos individuais.
+
+## Aranhas, coruja e sombras frontais (2026-11-25)
+
+A aranha usa os 12 quadros da caminhada com cadência ligada à distância e tamanho-base 15% maior. Em cada visita, a coruja pode ter o tamanho-base ou variar de 10% menor a 30% maior. As sombras das flores, arbustos, árvores e pedra se estendem mais para a frente do Jardim. As do slime e do pato ficaram maiores e continuam acompanhando o Sol.
