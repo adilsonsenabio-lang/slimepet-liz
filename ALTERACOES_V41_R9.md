@@ -346,3 +346,7 @@ O joão-de-barro entra na casinha ao anoitecer e reaparece ao amanhecer. As aran
 ## Nuvens variadas e visitas à casinha (2026-11-25)
 
 As nuvens chegam pelas bordas com tamanhos, alturas, velocidades e intervalos sorteados. O Jardim pode ter até três nuvens simultâneas de dia ou de noite, com a cor escura sob a Lua. O joão-de-barro faz pausas de nove segundos no galho e na casinha durante o dia, totalizando cerca de cinco ou seis visitas antes de dormir até o amanhecer.
+
+## Sombras, horários e percurso do caracol (2026-11-25)
+
+O sapo, as árvores, as flores, os arbustos e a grama projetam seus contornos em direção oposta ao Sol. As formigas completam a travessia de dia. O caracol entra e sai devagar pela esquerda, com um ciclo próprio de ida, volta e pausa fora do Jardim. Os vaga-lumes continuam sorteando grupos de um a cinco e tamanhos individuais.

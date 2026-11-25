@@ -303,3 +303,7 @@ O Edge confirmou a entrada do joão-de-barro ao anoitecer, a permanência na cas
 ## Nuvens variadas e visitas à casinha (2026-11-25)
 
 No Edge, três ciclos simulados registraram seis entradas do joão-de-barro na casinha a cada fase diurna, incluindo a recolhida do anoitecer, e nenhuma aparição sob a Lua. Dia e noite mostraram quantidades variáveis, até três nuvens, e mais de vinte larguras no teste. As nuvens vieram das duas bordas e mantiveram o filtro noturno. O HTML abriu em 320, 390 e 430 px com um save V30. Android físico não foi testado.
+
+## Sombras, horários e percurso do caracol (2026-11-25)
+
+No Edge, setenta projeções acompanharam o Sol e as novas silhuetas ficaram ausentes sob a Lua. O sapo projetou sombras em direções opostas conforme o Sol passou por ele. Em 155 segundos simulados, o caracol completou duas idas e voltas, com deslocamento máximo de 0,36 pixel lógico a cada 50 ms. Nenhuma formiga apareceu à noite. O sorteio produziu grupos de um a cinco vaga-lumes, com até cinco visíveis e sete tamanhos. O HTML abriu em 320, 390 e 430 px e carregou um save V30. Android físico não foi testado.

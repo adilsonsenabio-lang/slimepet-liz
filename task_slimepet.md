@@ -71,3 +71,5 @@
 - [x] Recolher o joão-de-barro antes da Lua, aumentar as aranhas em 15% e escurecer as nuvens noturnas (2026-11-25).
 
 - [x] Variar quantidade e tamanho das nuvens e repetir as visitas diurnas do joão-de-barro cerca de seis vezes (2026-11-25).
+
+- [x] Projetar sombras solares do sapo e das plantas, manter formigas só de dia e corrigir o percurso do caracol (2026-11-25).
