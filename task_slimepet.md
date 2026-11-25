@@ -83,3 +83,5 @@
 - [x] Sortear rotas do corvo, variar continuamente o tamanho das aranhas, animar asas das abelhas e ampliar trilhas das formigas (2026-11-25).
 
 - [x] Separar as visitas dos gambás, corrigir tartaruga e pouso da coruja, suavizar as bordas e liberar o uivo no toque (2026-11-25).
+
+- [x] Tentar o uivo automático e repetir o mesmo MP3 no começo e na metade de cada noite (2026-11-25).

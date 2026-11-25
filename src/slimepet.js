@@ -47,19 +47,16 @@ const FRIEND_REACTIONS={
 const FRIEND_DAILY_LIMIT=8,FRIEND_SPECIES_COOLDOWN=10*60000;
 const MAX_BOND_UNITS=Number.MAX_SAFE_INTEGER;
 
-// V30: offline sound synthesis. AudioContext is created only after a real user gesture (Android autoplay rule).
-// Slime Pet v31: original, layered Web Audio sound design. Offline and child-friendly.
-// Audio only starts after a real user gesture, as required by Android browsers.
+// Sons do jogo offline. Se o navegador exigir interação, tente novamente no primeiro toque.
 const WOLF_HOWL_SOURCE='../assets_audios/Uivo_lobo.mp3.mpeg';
 const WOLF_HOWL_START_WINDOW_MS=2200;
 const SOUND=(()=>{
- let howlBuffer=null,activeHowl=null,lastHowlAt=-Infinity,audioUnlocked=false;
+ let howlBuffer=null,activeHowl=null,lastHowlAt=-Infinity;
  let ac=null,master=null,effectBus=null,ambBus=null,limiter=null,noiseBuffer=null;
   let enabled=true,softAudio=true,lastFX=0,lastAmbient=0,lastScene='',lastIndividual={},resumeRequest=null,resumeOnShow=false;
  const rand=(a,b)=>a+Math.random()*(b-a);
  function ensure(fromGesture=false){
-  if(!enabled||document.hidden||(!audioUnlocked&&!fromGesture))return null;
-  if(fromGesture)audioUnlocked=true;
+  if(!enabled||document.hidden)return null;
   if(!ac){try{
    const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;
    ac=new A();master=ac.createGain();master.gain.value=softAudio?.30:.56;
@@ -208,7 +205,7 @@ const SOUND=(()=>{
  function ui(){if(!ensure())return;const now=GAME_CLOCK.animationNow();if(now-lastFX<90)return;lastFX=now;FX.click()}
   return {unlock:ensure,play,ui,ambient,setEnabled,setSoftAudio,scene,visibility,get softAudio(){return softAudio},get enabled(){return enabled},get active(){return !!(ac&&ac.state==='running')}};
 })();
-// Automatically unlock audio on the first touch, but keep a single unobtrusive mute button.
+// Um toque também pode liberar a reprodução quando o navegador bloqueia o início automático.
 function unlockGameAudio(event){if(event.isTrusted)SOUND.unlock(true);}
 document.addEventListener('pointerup',unlockGameAudio,{capture:true});
 document.addEventListener('touchend',unlockGameAudio,{capture:true,passive:true});
@@ -3667,6 +3664,7 @@ document.querySelectorAll('[data-screen]').forEach(b=>b.addEventListener('click'
 const explore=$('exploreActions');THINGS.forEach(t=>{const b=document.createElement('button');b.type='button';b.className='actionButton';b.textContent=t.label;b.addEventListener('click',()=>startInteraction(t.id));explore.appendChild(b)});
 
 SOUND.setSoftAudio(state.accessibility.softAudio);
+SOUND.unlock();
 let frameRequest=null,needsTimer=null,gameSuspended=false,nextAutoSave=GAME_CLOCK.wallNow()+15000;
 function tickNeeds(){
  if(document.hidden||gameSuspended)return;

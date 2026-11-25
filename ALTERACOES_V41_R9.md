@@ -370,3 +370,7 @@ O corvo entra pela direita e sorteia a cada visita entre cruzar direto para a es
 ## Gambá, tartaruga, áudio no celular e tamanhos (2026-11-25)
 
 À direita, mãe e filhote chegam juntos. O gambá da esquerda tem uma visita separada, com horário sorteado e percurso mais longo pelo gramado. A coruja fica mais ereta pousada no galho. Os bichos aparecem e somem aos poucos nas bordas, incluindo sombras e luzes. A tartaruga faz o percurso inteiro em ritmo próprio e volta pela borda. O áudio é liberado ao completar um toque e o uivo usa o canal de efeitos para ficar mais audível, respeitando o botão de som. Abelhas, formigas e aranhas têm mais indivíduos próximos ao tamanho-base e exemplos extremos mais raros.
+
+## Reprodução automática do uivo (2026-11-25)
+
+O jogo tenta iniciar o áudio ao abrir. A mesma gravação toca no início e na metade de cada noite. O primeiro toque continua disponível para liberar o som quando o navegador exige interação.

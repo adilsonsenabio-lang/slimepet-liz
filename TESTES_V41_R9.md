@@ -327,3 +327,7 @@ O Edge confirmou os três trajetos diurnos e noturnos do corvo e 25 tamanhos dis
 ## Gambá, tartaruga, áudio no celular e tamanhos (2026-11-25)
 
 O Edge em modo celular, com reprodução automática bloqueada, liberou o áudio no toque e registrou dois uivos por noite simulada. O botão de som interrompeu o clipe. Em quatro noites simuladas, mãe e filhote apareceram à direita em horários separados do gambá da esquerda. O teste conferiu a rotação da coruja no galho e a transição gradual da opacidade nas duas bordas. A tartaruga entrou pela borda com deslocamento máximo de 0,79 pixel lógico por intervalo de 50 ms. Dez mil sorteios por espécie confirmaram a raridade de extremos em abelhas, formigas e aranhas. O HTML abriu em 320, 390 e 430 px com um save V30. Android físico não foi testado.
+
+## Reprodução automática do uivo (2026-11-25)
+
+O Edge registrou a mesma gravação nos dois horários em duas noites simuladas sem toque, com reprodução automática permitida. Com a restrição ativa no modo celular, um toque liberou a reprodução nos mesmos horários. O som desligado impediu novas reproduções. O HTML abriu em 320, 390 e 430 px com um save V30. Smartphone físico não foi testado.
