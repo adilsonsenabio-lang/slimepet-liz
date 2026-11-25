@@ -331,3 +331,7 @@ O Edge em modo celular, com reprodução automática bloqueada, liberou o áudio
 ## Reprodução automática do uivo (2026-11-25)
 
 O Edge registrou a mesma gravação nos dois horários em duas noites simuladas sem toque, com reprodução automática permitida. Com a restrição ativa no modo celular, um toque liberou a reprodução nos mesmos horários. O som desligado impediu novas reproduções. O HTML abriu em 320, 390 e 430 px com um save V30. Smartphone físico não foi testado.
+
+## Novas sprites do slime (2026-11-25)
+
+O Edge carregou as 36 folhas, todas em 2560 × 128 px. Foram medidos os 20 quadros de caminhada, pulo, comida, sono, repousos e outras poses. O corpo principal coube na tela nas duas bordas da Casa e do Jardim nos três estágios. O toque no corpo foi reconhecido. O HTML abriu em 320, 390 e 430 px com um save V30. As partículas mais distantes podem alcançar as bordas e Android físico não foi testado.

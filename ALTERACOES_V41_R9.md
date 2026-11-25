@@ -374,3 +374,7 @@ O corvo entra pela direita e sorteia a cada visita entre cruzar direto para a es
 ## Reprodução automática do uivo (2026-11-25)
 
 O jogo tenta iniciar o áudio ao abrir. A mesma gravação toca no início e na metade de cada noite. O primeiro toque continua disponível para liberar o som quando o navegador exige interação.
+
+## Novas sprites do slime (2026-11-25)
+
+Foram instaladas as 34 folhas de `entrada.zip`, com os nomes e o formato esperados pelo jogo. `comeu_demais` e `injecao_v29` continuam com as folhas anteriores, como orienta o README. Os repousos provisórios usam a nova animação de idle. A posição do desenho perto das bordas foi ajustada para alinhar corpo, sombra, toque e efeitos. As folhas antigas receberam uma cópia de segurança local.

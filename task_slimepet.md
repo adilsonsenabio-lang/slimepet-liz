@@ -85,3 +85,5 @@
 - [x] Separar as visitas dos gambás, corrigir tartaruga e pouso da coruja, suavizar as bordas e liberar o uivo no toque (2026-11-25).
 
 - [x] Tentar o uivo automático e repetir o mesmo MP3 no começo e na metade de cada noite (2026-11-25).
+
+- [x] Instalar as 34 folhas do slime de entrada.zip e conferir o encaixe visual (2026-11-25).

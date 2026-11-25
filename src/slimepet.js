@@ -2709,7 +2709,8 @@ function drawGaze(){
  const ex=target.x;
  const ey=lookAt.id===null?target.y:target.drawY+((target.spec.frameSize??FAUNA_FRAME_H)/2-target.spec.anchor.y)*target.scale;
  const scale=slimeScale(currentScreen);
- const sx=pet.x+Math.sign(ex-pet.x)*20*scale,sy=currentGround()-45*scale;
+ const petX=slimeCanvasX(pet.x,scale);
+ const sx=petX+Math.sign(ex-petX)*20*scale,sy=currentGround()-45*scale;
  const dx=ex-sx,dy=ey-sy,length=Math.hypot(dx,dy);
  const inset=14;
  const usable=length-2*inset;
@@ -3236,12 +3237,17 @@ function currentGround(){return screenGround(currentScreen);}
 function slimeScale(screen,stage=currentStage()){
  return stage.scale[screen]*(screen==='garden'?SLIME_GARDEN_SCALE:1);
 }
-function drawPetShadow(){const y=currentGround(),lift=(pet.act==='pulo'||pet.act.startsWith('walk_'))?[0,0,.28,.70,1,.76,.31,0,0,0][pet.frame]||0:0;
- const sc=slimeScale(currentScreen);
- ctx.save();ctx.fillStyle='#153d2d';ctx.globalAlpha=(.20-.08*lift)*(currentScreen==='garden'&&gardenLight.night?.25:1);ctx.beginPath();ctx.ellipse(pet.x,y-4,32*sc/1.6+lift*5,5+lift*2,0,0,Math.PI*2);ctx.fill();ctx.restore();
- if(currentScreen==='garden')drawGardenCastShadow(ctx,pet.x,y-3,29*sc,74*sc,.34,1.38);
+function slimeCanvasX(x=pet.x,scale=slimeScale(currentScreen)){
+ // Reserve espaço para o corpo e o balanço das folhas novas nas bordas.
+ const margin=54*scale+5;
+ return clamp(x,margin,W-margin);
 }
-function fallbackPet(){const x=pet.x,y=currentGround();ctx.save();if(currentScreen==='garden'){ctx.translate(x,y);ctx.scale(SLIME_GARDEN_SCALE,SLIME_GARDEN_SCALE);ctx.translate(-x,-y);}ctx.fillStyle='#173f19';ctx.fillRect(x-54,y-62,108,57);ctx.fillStyle='#8be735';ctx.fillRect(x-49,y-69,98,61);pixel(x-30,y-50,13,20,'#172617');pixel(x+17,y-50,13,20,'#172617');pixel(x-30,y-52,5,5,'#fff');pixel(x+17,y-52,5,5,'#fff');pixel(x-36,y-30,11,8,'#ff9aca');pixel(x+23,y-30,11,8,'#ff9aca');pixel(x-11,y-31,22,13,'#261326');pixel(x-5,y-25,12,7,'#ff8fc3');ctx.restore();}
+function drawPetShadow(){const y=currentGround(),lift=(pet.act==='pulo'||pet.act.startsWith('walk_'))?[0,0,.28,.70,1,.76,.31,0,0,0][pet.frame]||0:0;
+ const sc=slimeScale(currentScreen),x=slimeCanvasX(pet.x,sc);
+ ctx.save();ctx.fillStyle='#153d2d';ctx.globalAlpha=(.20-.08*lift)*(currentScreen==='garden'&&gardenLight.night?.25:1);ctx.beginPath();ctx.ellipse(x,y-4,32*sc/1.6+lift*5,5+lift*2,0,0,Math.PI*2);ctx.fill();ctx.restore();
+ if(currentScreen==='garden')drawGardenCastShadow(ctx,x,y-3,29*sc,74*sc,.34,1.38);
+}
+function fallbackPet(){const x=slimeCanvasX(),y=currentGround();ctx.save();if(currentScreen==='garden'){ctx.translate(x,y);ctx.scale(SLIME_GARDEN_SCALE,SLIME_GARDEN_SCALE);ctx.translate(-x,-y);}ctx.fillStyle='#173f19';ctx.fillRect(x-54,y-62,108,57);ctx.fillStyle='#8be735';ctx.fillRect(x-49,y-69,98,61);pixel(x-30,y-50,13,20,'#172617');pixel(x+17,y-50,13,20,'#172617');pixel(x-30,y-52,5,5,'#fff');pixel(x+17,y-52,5,5,'#fff');pixel(x-36,y-30,11,8,'#ff9aca');pixel(x+23,y-30,11,8,'#ff9aca');pixel(x-11,y-31,22,13,'#261326');pixel(x-5,y-25,12,7,'#ff8fc3');ctx.restore();}
 const shaded=document.createElement('canvas');shaded.width=128;shaded.height=128;const shadeCtx=shaded.getContext('2d');
 let shadedSprite=null,shadedFrame=-1,shadedScene='',shadedLit=false;
 const REST_POSES={
@@ -3338,7 +3344,7 @@ function drawPet(){const evolve=currentScreen==='evolve';
  }shadeCtx.restore();
  }
  const sc=slimeScale(currentScreen,stage);
- const gx=evolve?362+(reduced?0:Math.round(4*Math.sin(sceneTime/210))):pet.x;
+ const gx=evolve?362+(reduced?0:Math.round(4*Math.sin(sceneTime/210))):slimeCanvasX(pet.x,sc);
  const floatY=evolve&&!reduced?Math.round(7*Math.sin(sceneTime/330)):0;
  const sleeping=activeCareSequence?.key==='dormir'&&['lie','sleep'].includes(carePhase(activeCareSequence));
  const sleepBlend=sleeping?1:0;
@@ -3357,7 +3363,7 @@ function drawPet(){const evolve=currentScreen==='evolve';
  // Original dormir spritesheet frames 10–12 retain naturally closed eyes during the nap.
  if(evolve){ctx.save();ctx.fillStyle='rgba(197,232,255,.92)';const drip=Math.floor(sceneTime/FRAME_MS)%10;ctx.fillRect(Math.round(gx+78),Math.round(currentGround()-206*sc/2+floatY+drip*2),6,10);ctx.fillRect(Math.round(gx+85),Math.round(currentGround()-193*sc/2+floatY+drip),4,7);ctx.fillStyle='rgba(255,240,170,.55)';ctx.fillRect(Math.round(gx-84),Math.round(currentGround()-191*sc/2+floatY),7,7);ctx.restore();}
  if(currentScreen!=='evolve'&&pet.act==='banho'&&assets.tub){const fade=[0,.20,.55,.9,1,1,1,.9,.5,.1][pet.frame]||0;ctx.save();ctx.globalAlpha=fade;const w=currentScreen==='garden'?150:188,h=w*assets.tub.height/assets.tub.width;
- ctx.drawImage(assets.tub,Math.round(pet.x-w/2),Math.round(currentGround()-28),w,h);ctx.restore();}
+ ctx.drawImage(assets.tub,Math.round(gx-w/2),Math.round(currentGround()-28),w,h);ctx.restore();}
 }
 const PET_MARKS={
  heart:['0110110','1111111','1111111','0111110','0011100','0001000'],
@@ -3389,30 +3395,30 @@ function drawPetMark(mark,x,y,size,color){
 function drawPetReaction(){
  if(currentScreen==='evolve'||transition)return;
  const scale=currentScreen==='garden'?.8*SLIME_GARDEN_SCALE:1;
- const ground=currentGround();
+ const ground=currentGround(),petX=slimeCanvasX();
  const reduced=reducedMotion?.matches;
  const care=activeCareSequence;
  if(care&&currentScreen!=='evolve'){
   const phase=carePhase(care),ground=currentGround();
   if(care.key==='dormir'&&['lie','sleep'].includes(phase)){
-   const x=Math.round(pet.x+42),y=Math.round(ground-120-(care.elapsed/280)%27);
+   const x=Math.round(petX+42),y=Math.round(ground-120-(care.elapsed/280)%27);
    drawPetMark('sleep',x,y,3,'#F1F2FF');
    drawPetMark('sleep',x+24,y-29,2,'#D8EAFB');
   }
   if(care.key==='comer'){
    const t=care.elapsed/CARE_DURATIONS.comer;
-   const bx=Math.round(pet.x+58*(1-ease(Math.min(1,t/.35)))-12);
+   const bx=Math.round(petX+58*(1-ease(Math.min(1,t/.35)))-12);
    const by=Math.round(ground-73+Math.sin(t*14)*3);
    if(phase!=='full'){
     ctx.save();ctx.fillStyle='#D84F59';ctx.fillRect(bx-6,by-6,13,13);ctx.fillStyle='#F38972';ctx.fillRect(bx-4,by-5,4,3);
     ctx.fillStyle='#4A7839';ctx.fillRect(bx,by-10,7,4);ctx.restore();
    }
-   if(phase==='chew'&&Math.floor(care.elapsed/170)%2===0)drawPetMark('crumb',Math.round(pet.x+26),Math.round(ground-58),2,'#FFE4A7');
-   if(phase==='full')drawPetMark('heart',Math.round(pet.x+40),Math.round(ground-108),2,'#F8B8A1');
+   if(phase==='chew'&&Math.floor(care.elapsed/170)%2===0)drawPetMark('crumb',Math.round(petX+26),Math.round(ground-58),2,'#FFE4A7');
+   if(phase==='full')drawPetMark('heart',Math.round(petX+40),Math.round(ground-108),2,'#F8B8A1');
   }
   if(care.key==='banho'&&phase!=='clean'){
    for(let i=0;i<5;i++){
-    const x=Math.round(pet.x-55+i*24+Math.sin(care.elapsed/170+i)*5);
+    const x=Math.round(petX-55+i*24+Math.sin(care.elapsed/170+i)*5);
     const y=Math.round(ground-15-i*19-(care.elapsed/85)%25);
     drawPetMark('bubble',x,y,2,'#D8FFFF');
    }
@@ -3423,16 +3429,16 @@ function drawPetReaction(){
   const frame=reduced?9:Math.min(19,pet.frame*2+Math.floor(pet.frameTime*2/FRAME_MS));
   const petScale=slimeScale(currentScreen),zoom=Math.max(2,petScale*1.4);
   const w=Math.round(72*zoom),h=Math.round(56*zoom);
-  const x=Math.round(pet.x-w/2),y=Math.round(ground-50*petScale-47*zoom);
+  const x=Math.round(petX-w/2),y=Math.round(ground-50*petScale-47*zoom);
   ctx.drawImage(assets.affection,frame*72,0,72,56,x,y,w,h);
  }else if(reaction&&pet.act!=='idle'&&pet.frame>=reaction.start&&pet.frame<=reaction.end){
   const tick=reduced?0:pet.frame-reaction.start;
-  drawPetMark(reaction.mark,pet.x+reaction.x*scale+tick*2,ground+reaction.y*scale-tick*3,3,reaction.color);
+  drawPetMark(reaction.mark,petX+reaction.x*scale+tick*2,ground+reaction.y*scale-tick*3,3,reaction.color);
  }
  const elapsed=sceneTime-petVisual.tapAt;
  if(elapsed<460){
   const offset=reduced?0:Math.floor(elapsed/90)*3;
-  drawPetMark('sparkle',pet.x-57*scale-offset,ground-85*scale-offset,3,petVisual.tapBusy?'#DBF9EA':'#FFD6E8');
+  drawPetMark('sparkle',petX-57*scale-offset,ground-85*scale-offset,3,petVisual.tapBusy?'#DBF9EA':'#FFD6E8');
  }
 }
 
@@ -3466,7 +3472,7 @@ function drawTransitionOverlay(now){
      const ground=v41Mix(screenGround(transition.from),screenGround(transition.to),t);
      const sc=v41Mix(slimeScale(transition.from),slimeScale(transition.to),ease(t));
      ctx.save();ctx.globalAlpha=1;
-     ctx.drawImage(walking,actorAtlasFrame(walking,t*10)*128,0,128,128,Math.round(x-64*sc),Math.round(ground-103*sc),128*sc,128*sc);
+     ctx.drawImage(walking,actorAtlasFrame(walking,t*10)*128,0,128,128,Math.round(slimeCanvasX(x,sc)-64*sc),Math.round(ground-103*sc),128*sc,128*sc);
      ctx.restore();
    }
  }else{
@@ -3607,7 +3613,7 @@ function acknowledgePetTap(busy){
 function clickCanvas(ev){if(transition)return;const b=canvas.getBoundingClientRect(),x=(ev.clientX-b.left)*W/b.width,y=(ev.clientY-b.top)*H/b.height;
  const garden=currentScreen==='garden',ground=currentGround();
  const ratio=slimeScale(currentScreen)/STAGES[0].scale[currentScreen];
- const onPet=currentScreen!=='evolve'&&Math.abs(x-pet.x)<(garden?61:78)*ratio&&
+ const onPet=currentScreen!=='evolve'&&Math.abs(x-slimeCanvasX())<(garden?61:78)*ratio&&
   y>=ground-(garden?112:148)*ratio&&y<=ground+16;
  if(activeCareSequence?.key==='dormir'){setFeedback('Toque em Energia para acordar o slime.');return;}
  if(onPet&&PersonalityMachine.automatic){PersonalityMachine.interrupt('pet-touch');acknowledgePetTap(false);return;}
