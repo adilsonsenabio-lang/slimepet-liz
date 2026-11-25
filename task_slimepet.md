@@ -67,3 +67,5 @@
 - [x] Corrigir asas da coruja e luz do vaga-lume, reduzir o voo do vaga-lume em 20% e limitar o coelho ao dia (2026-11-25).
 
 - [x] Reforçar a luz dos vaga-lumes no cenário e tornar a batida de asas da coruja mais legível (2026-11-25).
+
+- [x] Recolher o joão-de-barro antes da Lua, aumentar as aranhas em 15% e escurecer as nuvens noturnas (2026-11-25).

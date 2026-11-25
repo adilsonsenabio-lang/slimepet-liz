@@ -338,3 +338,7 @@ A coruja bate as asas na ida e na volta e para durante o pouso. O vaga-lume voa 
 ## Luz dos vaga-lumes e asas da coruja (2026-11-25)
 
 O brilho do vaga-lume ilumina uma área maior em volta do abdômen e diminui suavemente com a distância. A coruja usa uma cadência própria, com mais tempo nos quadros de asas abertas. Os 12 quadros passam na ida e na volta, com pausa de animação durante o pouso.
+
+## Recolhida e visual noturno (2026-11-25)
+
+O joão-de-barro entra na casinha ao anoitecer e reaparece ao amanhecer. As aranhas têm tamanho-base 15% maior, com a mesma variação de tamanhos e as mesmas trilhas. As nuvens ficam mais escuras e menos saturadas durante a Lua.

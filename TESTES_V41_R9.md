@@ -295,3 +295,7 @@ No Edge, a coruja usou os 12 quadros em cada trajeto e apenas o quadro de repous
 ## Luz dos vaga-lumes e asas da coruja (2026-11-25)
 
 O Edge confirmou os 12 quadros efetivamente desenhados em cada trecho de voo da coruja, com movimento reduzido, e apenas o quadro de repouso no galho. Em um ponto a 22 pixels lógicos da luz, a cor do cenário passou de RGB (37, 72, 94) para (89, 110, 110). Uma amostra fora do alcance manteve a cor. O HTML abriu em 320, 390 e 430 px com um save V30. Android físico não foi testado.
+
+## Recolhida e visual noturno (2026-11-25)
+
+O Edge confirmou a entrada do joão-de-barro ao anoitecer, a permanência na casinha pelos dois minutos da Lua e a saída ao amanhecer. A escala-base da aranha passou de 0,62 para 0,713 e continuou variando. O filtro escuro foi aplicado às duas nuvens somente sob a Lua. O HTML abriu em 320, 390 e 430 px com um save V30. Android físico não foi testado.

@@ -1315,7 +1315,7 @@ const VISITOR_SPEC={
  formiga:{label:'formiguinha',mode:'walk',scale:.26,y:466,min:165,max:540,duration:14500,ms:195,rx:10,ry:7,sound:'formiga',useSupplied:false,anchor:{x:36,y:49}},
  borboleta:{label:'borboleta',mode:'flutter',scale:1.2,y:260,min:376,max:530,duration:12500,ms:190,rx:24,ry:21,sound:'borboleta'},
  vagalume:{label:'vaga-lume',scenes:['garden'],mode:'glow',scale:.68,y:191,min:362,max:540,duration:13700,ms:175,rx:14,ry:12,frameSize:32,frames:12,anchor:{x:16,y:16}},
- aranha:{label:'aranha',scenes:['garden'],mode:'creep',scale:.62,y:491,min:0,max:724,duration:12000,ms:140,rx:12,ry:10,frameSize:32,frames:12,anchor:{x:16,y:22}},
+ aranha:{label:'aranha',scenes:['garden'],mode:'creep',scale:.713,y:491,min:0,max:724,duration:12000,ms:140,rx:12,ry:10,frameSize:32,frames:12,anchor:{x:16,y:22}},
  gamba:{label:'gambá',scenes:['garden'],mode:'walk',scale:.91,y:GARDEN_DUCK_Y,min:582,max:647,duration:21000,ms:220,rx:26,ry:21,frameSize:64,frames:12,anchor:{x:32,y:49}},
  coruja:{label:'coruja',scenes:['garden'],mode:'glow',scale:.95,y:102,min:0,max:724,duration:29000,ms:180,rx:27,ry:20,frameSize:64,frames:12,anchor:{x:32,y:31}},
  joaninha:{label:'joaninha',scenes:['garden'],row:0,rarity:.80,mode:'flutter',scale:.5904,y:300,min:390,max:525,duration:13800,ms:175,rx:18,ry:16,sound:'joaninha'},
@@ -1826,7 +1826,23 @@ function updateResidentBird(v,time,dt,reduced){
  const rule=BIRD_HOUSE_TIMER;
  const hideAt=rule.perch+rule.enter;
  const period=hideAt+rule.inside+rule.exit;
- advanceShelterCycle(v,dt,hideAt,period,rule.inside);
+ const now=GAME_CLOCK.wallNow();
+ const daylightMs=GARDEN_SKY_PHASE_MS-skyCycleElapsed(now);
+ const leaveAt=hideAt+rule.inside;
+ if(isGardenNight(now)){
+  // Se a cena voltou de uma pausa durante a noite, o pássaro já está abrigado.
+  v.shelterAge=hideAt;
+  v.waitingForSun=true;
+ }else if(daylightMs<=rule.enter){
+  const age=v.shelterAge??0;
+  // Se estava saindo, volte pela mesma posição da animação de entrada.
+  const enteringAge=age>=leaveAt
+   ?hideAt-(age-leaveAt)*rule.enter/rule.exit
+   :Math.max(age,rule.perch);
+  v.shelterAge=enteringAge>=hideAt?enteringAge:Math.min(hideAt,enteringAge+dt);
+ }else{
+  advanceShelterCycle(v,dt,hideAt,period,rule.inside);
+ }
  updateBirdHouse(v,time,v.shelterAge-rule.perch,reduced);
  if(v.visible&&v.phase==='repouso')reactToResidentIdle(v);
 }
@@ -2821,7 +2837,10 @@ function drawGarden(){if(assets.bg)ctx.drawImage(assets.bg,0,0,W,H);else{pixel(0
     const speed=o.name==='nuvem_direita'?13.5:-10.5;
     const span=W+o.w;
     const x=((o.x+o.w+(sceneryTime()/1000)*speed)%span+span)%span-o.w;
+    ctx.save();
+    if(gardenLight.night)ctx.filter='brightness('+(0.80-gardenLight.skyDarkness*.36)+') saturate(.78)';
     ctx.drawImage(o.img,frame*o.w,0,o.w,o.h,Math.round(x),o.y,o.w,o.h);
+    ctx.restore();
    }else{
     ctx.drawImage(o.img,frame*o.w,0,o.w,o.h,o.x,o.y,o.w,o.h);
    }
