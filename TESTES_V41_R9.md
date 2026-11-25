@@ -315,3 +315,7 @@ O Edge confirmou os 12 quadros da aranha com movimento reduzido e a escala-base 
 ## Corvo na rocha (2026-11-25)
 
 Em 500 segundos simulados no Edge, o corvo apareceu de dia e de noite, em cinco visitas espaçadas por 109 segundos com o sorteio fixado para o teste. O renderizador usou os 12 quadros em cada trecho e o PNG parado no pouso, com os pés sobre a rocha. O HTML abriu em 320, 390 e 430 px e carregou um save V30. Android físico não foi testado.
+
+## Uivo noturno (2026-11-25)
+
+O Edge decodificou o MP3 incorporado, com duração de 4,08 segundos, e iniciou duas reproduções nos horários esperados em cada uma das duas noites simuladas. O som desativado interrompeu o clipe e impediu novos uivos. O HTML abriu em 320, 390 e 430 px com um save V30. Android físico não foi testado.

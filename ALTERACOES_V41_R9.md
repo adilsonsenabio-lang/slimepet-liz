@@ -358,3 +358,7 @@ A aranha usa os 12 quadros da caminhada com cadência ligada à distância e tam
 ## Corvo na rocha (2026-11-25)
 
 O corvo visita o Jardim de dia e de noite, com intervalo sorteado entre 96 e 122 segundos. Ele usa os 12 quadros da folha de voo na chegada e na saída e o sprite parado ao pousar na rocha por cinco segundos.
+
+## Uivo noturno (2026-11-25)
+
+O MP3 fornecido toca no começo da noite e novamente um minuto depois, na metade do percurso da Lua. O som segue o botão de áudio e vem incorporado ao HTML offline. Os uivos perdidos com o som desativado ou o jogo fechado não são reproduzidos depois.

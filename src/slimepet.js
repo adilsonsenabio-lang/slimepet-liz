@@ -50,7 +50,10 @@ const MAX_BOND_UNITS=Number.MAX_SAFE_INTEGER;
 // V30: offline sound synthesis. AudioContext is created only after a real user gesture (Android autoplay rule).
 // Slime Pet v31: original, layered Web Audio sound design. Offline and child-friendly.
 // Audio only starts after a real user gesture, as required by Android browsers.
+const WOLF_HOWL_SOURCE='../assets_audios/Uivo_lobo.mp3.mpeg';
+const WOLF_HOWL_START_WINDOW_MS=2200;
 const SOUND=(()=>{
+ let howlBuffer=null,activeHowl=null,lastHowlAt=-Infinity;
  let ac=null,master=null,effectBus=null,ambBus=null,limiter=null,noiseBuffer=null;
   let enabled=true,softAudio=true,lastFX=0,lastAmbient=0,lastScene='',lastIndividual={},resumeRequest=null,resumeOnShow=false;
  const rand=(a,b)=>a+Math.random()*(b-a);
@@ -64,6 +67,10 @@ const SOUND=(()=>{
    effectBus.connect(limiter);ambBus.connect(limiter);limiter.connect(master);master.connect(ac.destination);
    noiseBuffer=ac.createBuffer(1,ac.sampleRate*2,ac.sampleRate);
    let d=noiseBuffer.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+   fetch(WOLF_HOWL_SOURCE).then(response=>{
+    if(!response.ok)throw new Error('Áudio indisponível');
+    return response.arrayBuffer();
+   }).then(data=>ac.decodeAudioData(data)).then(buffer=>{howlBuffer=buffer;}).catch(()=>{});
   }catch(e){ac=null;return null;}}
    if(ac.state==='suspended'&&!resumeRequest){
     try{resumeRequest=ac.resume().catch(()=>{}).finally(()=>{resumeRequest=null;});}catch(e){}
@@ -149,8 +156,22 @@ const SOUND=(()=>{
   if(t-last<({click:70,andar:130,passarinho:550,abelha:500}[type]||130))return;lastIndividual[type]=t;
   try{(FX[type]||FX.click)()}catch(e){}
  }
+ function playScheduledHowl(now){
+  if(!howlBuffer||!isGardenNight(now))return;
+  const interval=GARDEN_SKY_PHASE_MS/2;
+  const sinceCue=(skyCycleElapsed(now)-GARDEN_SKY_PHASE_MS)%interval;
+  const cueAt=now-sinceCue;
+  if(sinceCue>=WOLF_HOWL_START_WINDOW_MS||cueAt<=lastHowlAt)return;
+  const source=ac.createBufferSource();
+  source.buffer=howlBuffer;
+  source.connect(ambBus);
+  source.onended=()=>{if(activeHowl===source)activeHowl=null;};
+  source.start();
+  activeHowl=source;lastHowlAt=cueAt;
+ }
  function ambient(scene,now){
   if(!enabled||!ac||ac.state!=='running'||document.hidden)return;
+  playScheduledHowl(GAME_CLOCK.wallNow());
   if(scene!==lastScene){lastScene=scene;lastAmbient=0;}
   const interval=scene==='garden'?3600:scene==='care'?5100:5400;
   if(now-lastAmbient<interval)return;lastAmbient=now+rand(0,1500);
@@ -166,7 +187,10 @@ const SOUND=(()=>{
    tone(134,141,1.5,'sine',.017,0,0,true);tone(224,201,1.0,'sine',.010,.3,.32,true);
   }
  }
-  function suspend(){if(ac&&(ac.state==='running'||resumeRequest))ac.suspend().catch(()=>{});}
+  function suspend(){
+   if(activeHowl){activeHowl.stop();activeHowl=null;}
+   if(ac&&(ac.state==='running'||resumeRequest))ac.suspend().catch(()=>{});
+  }
   function visibility(){
    if(document.hidden){resumeOnShow=enabled&&Boolean(ac&&(ac.state==='running'||resumeRequest));suspend();}
    else if(resumeOnShow){resumeOnShow=false;ensure();}
