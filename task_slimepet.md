@@ -91,3 +91,5 @@
 - [x] Atualizar o MP3, impedir uivos repetidos e instalar o novo gato na prateleira (2026-11-25).
 
 - [x] Adicionar o morcego noturno com voo pelas bordas e repouso de cabeça para baixo no galho (2026-11-25).
+
+- [x] Modernizar os sons dos cliques da interface (2026-11-25).

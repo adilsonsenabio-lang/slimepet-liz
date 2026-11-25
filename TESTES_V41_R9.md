@@ -343,3 +343,7 @@ O Edge decodificou o novo MP3 em 4,08 segundos. Os testes simularam o início e 
 ## Morcego noturno no galho (2026-11-25)
 
 Duas noites simuladas no Edge verificaram chegadas pelas duas bordas, 12 quadros desenhados em voo e 12 no galho, permanência pendurada durante a noite e saída ao amanhecer. A captura confirmou os pés apoiados no galho. O HTML abriu em 320, 390 e 430 px e carregou um save V30. Android físico não foi testado.
+
+## Sons dos cliques (2026-11-25)
+
+No Edge, a interface acionou clipes de 56, 76 e 68 ms conforme o botão. Os clipes começam e terminam em silêncio, o toque rápido duplicado foi filtrado e o som desligado silenciou os cliques. O HTML abriu em 320, 390 e 430 px com um save V30. Smartphone físico não foi testado.

@@ -386,3 +386,7 @@ O jogo usa o novo MP3, com nome canônico, e registra os horários do uivo para 
 ## Morcego noturno no galho (2026-11-25)
 
 O morcego sorteia a borda de chegada a cada noite, voa até o galho da árvore direita e fica pendurado de cabeça para baixo até o amanhecer. Ele usa as duas folhas de 12 quadros fornecidas e sai voando quando o Sol volta.
+
+## Sons dos cliques (2026-11-25)
+
+Os botões ganharam sons curtos e suaves, com variações para toque comum, navegação e alternância de opções. O jogo gera e reutiliza esses sons offline e mantém o controle de som.

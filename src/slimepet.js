@@ -56,6 +56,35 @@ const SOUND=(()=>{
  let ac=null,master=null,effectBus=null,ambBus=null,limiter=null,noiseBuffer=null;
   let enabled=true,softAudio=true,lastFX=0,lastAmbient=0,lastScene='',lastIndividual={},resumeRequest=null,resumeOnShow=false;
  const rand=(a,b)=>a+Math.random()*(b-a);
+ const clickSounds={
+  press:{ms:56,start:580,end:420,level:.16},
+  nav:{ms:76,start:490,end:720,level:.145},
+  toggle:{ms:68,start:590,end:830,level:.14},
+ };
+ const clickBuffers=new Map();
+ function playClick(kind='press'){
+  if(!ac||!enabled||ac.state!=='running')return;
+  let buffer=clickBuffers.get(kind);
+  if(!buffer){
+   const {ms,start,end,level}=clickSounds[kind];
+   const samples=Math.ceil(ac.sampleRate*ms/1000);
+   buffer=ac.createBuffer(1,samples,ac.sampleRate);
+   const data=buffer.getChannelData(0);
+   let phase=0;
+   for(let i=0;i<samples;i++){
+    const p=i/(samples-1);
+    const frequency=start+(end-start)*Math.sqrt(p);
+    phase+=2*Math.PI*frequency/ac.sampleRate;
+    const attack=Math.min(1,p/.055);
+    const decay=(1-p)**3;
+    const overtone=Math.sin(phase*2)*.17*(1-p)**2;
+    data[i]=level*attack*decay*(Math.sin(phase)+overtone);
+   }
+   clickBuffers.set(kind,buffer);
+  }
+  const source=ac.createBufferSource();
+  source.buffer=buffer;source.connect(effectBus);source.start();
+ }
  function ensure(fromGesture=false){
   if(!enabled||document.hidden)return null;
   if(!ac){try{
@@ -118,7 +147,7 @@ const SOUND=(()=>{
   }
  }
  const FX={
-  click(){tone(570,710,.055,'sine',.022);tone(850,730,.055,'triangle',.009,.038)},
+  click(){playClick()},
   switch(){seq([[440,1.15,.14],[620,1.13,.17],[800,1.03,.22]],.095,.021,'sine');noise(.13,.006,1250,.06)},
   evolution(){seq([[392,1,.35],[523,1,.42],[659,1,.46],[784,1,.6]],.14,.032);tone(1047,1047,.5,'sine',.013,.56);},
   comer(){noise(.13,.042,2200,0,-.1,'bandpass');tone(330,250,.12,'triangle',.031,0,-.1);
@@ -207,7 +236,16 @@ const SOUND=(()=>{
   const b=$('soundToggle');b.textContent=enabled?'🔊':'🔇';b.classList.toggle('off',!enabled);b.setAttribute('aria-label',enabled?'Desativar sons':'Ativar sons');}
  function setSoftAudio(value){softAudio=!!value;if(master)master.gain.value=softAudio?.30:.56;}
  function scene(){lastAmbient=0;lastScene='';play('switch')}
- function ui(){if(!ensure())return;const now=GAME_CLOCK.animationNow();if(now-lastFX<90)return;lastFX=now;FX.click()}
+ function ui(kind='press'){
+  if(!ensure())return;
+  const now=GAME_CLOCK.animationNow();
+  if(now-lastFX<70)return;
+  lastFX=now;
+  if(ac.state==='running')playClick(kind);
+  else resumeRequest?.then(()=>{
+   if(lastFX===now&&GAME_CLOCK.animationNow()-now<180)playClick(kind);
+  });
+ }
   return {unlock:ensure,play,ui,ambient,setEnabled,setSoftAudio,scene,visibility,get softAudio(){return softAudio},get enabled(){return enabled},get active(){return !!(ac&&ac.state==='running')}};
 })();
 // Um toque também pode liberar a reprodução quando o navegador bloqueia o início automático.
@@ -216,9 +254,16 @@ document.addEventListener('pointerup',unlockGameAudio,{capture:true});
 document.addEventListener('touchend',unlockGameAudio,{capture:true,passive:true});
 document.addEventListener('click',event=>{
  unlockGameAudio(event);
- if(event.target.closest('button'))SOUND.ui();
+ const button=event.target.closest('button');
+ if(!button||button.disabled||button.id==='soundToggle')return;
+ const kind=button.matches('[data-screen],[data-room]')?'nav':
+  button.hasAttribute('aria-pressed')&&!button.classList.contains('needButton')?'toggle':'press';
+ SOUND.ui(kind);
 },{capture:true});
-$('soundToggle').addEventListener('click',()=>SOUND.setEnabled(!SOUND.enabled));
+$('soundToggle').addEventListener('click',()=>{
+ SOUND.setEnabled(!SOUND.enabled);
+ if(SOUND.enabled)SOUND.ui('toggle');
+});
 document.addEventListener('visibilitychange',SOUND.visibility);
 
 const clamp=(x,a=0,b=100)=>Math.max(a,Math.min(b,x));
