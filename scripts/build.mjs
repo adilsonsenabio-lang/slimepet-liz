@@ -15,7 +15,7 @@ const html = index
   .replace('<script src="collision.js"></script>', () => '<script>' + collision + '</script>')
   .replace('<script src="fauna-timers.js"></script>', () => '<script>' + faunaTimers + '</script>')
   .replace('<script src="slimepet.js"></script>', () => '<script>' + js + '</script>');
-const assetPattern = /\.\.\/assets\/[a-z0-9_-]+\.png/g;
+const assetPattern = /\.\.\/assets(?:_noturnos)?\/[a-z0-9_-]+\.png/g;
 const paths = [...new Set(html.match(assetPattern))];
 const images = new Map(await Promise.all(paths.map(async (path) => {
   const png = await readFile(new URL(path.slice(3), root));

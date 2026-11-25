@@ -275,3 +275,7 @@ O Edge confirmou o reinício do ciclo do sapo e as fases de mergulho, saída da 
 ## Amanhecer e sombras no Jardim (2026-11-25)
 
 O Edge confirmou que os dois bichos ficaram abrigados durante a fase noturna simulada e saíram ao amanhecer. Em janelas de 80 segundos simulados, as chegadas passaram de 38 para 26 abelhas e de 32 para 18 formigas à noite. O patinho ficou visível apenas no período diurno testado. A captura mostrou as sombras no Jardim, e a projeção inverteu a direção entre manhã e fim do dia. O HTML abriu em 320, 390 e 430 px sem rolagem horizontal e carregou um save V30. Android físico não foi testado.
+
+## Bichos noturnos do Jardim (2026-11-25)
+
+O Edge carregou as quatro folhas com as dimensões originais e um save V30. Em 365 segundos simulados, os quatro bichos apareceram só à noite e todos os quadros ficaram dentro das folhas. Foram observados pouso e decolagem de vaga-lumes, travessia de aranhas, pausa do gambá e ida e volta da coruja no céu. No teste apareceram até quatro vaga-lumes, cinco aranhas, um gambá e uma coruja. O HTML offline abriu em 320, 390 e 430 px sem rolagem horizontal. Android físico não foi testado.

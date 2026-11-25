@@ -57,3 +57,5 @@
 - [x] Manter o sapo em ciclo contínuo e prolongar à noite o tempo de abrigo do sapo e do joão-de-barro (2026-11-24).
 
 - [x] Manter sapo e joão-de-barro abrigados até o amanhecer, reduzir insetos à noite, reservar o pato para o dia e reforçar sombras solares (2026-11-25).
+
+- [x] Integrar vaga-lume, aranha, gambá e coruja à fauna noturna do Jardim (2026-11-25).

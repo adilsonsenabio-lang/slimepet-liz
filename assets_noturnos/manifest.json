@@ -1,0 +1,57 @@
+{
+  "animations": [
+    {
+      "id": "aranha",
+      "action": "andar",
+      "direction": "right",
+      "frames": 12,
+      "frameWidth": 32,
+      "frameHeight": 32,
+      "horizontalSheet": "aranha_andar_direita_12.png",
+      "gridSheet": "aranha_andar_direita_grade_4x3.png",
+      "gridColumns": 4,
+      "gridRows": 3,
+      "sprite": "aranha_andar_direita_sprite.png",
+      "preview": "aranha_andar_direita_preview.gif"
+    },
+    {
+      "id": "coruja",
+      "action": "voo",
+      "direction": "right",
+      "frames": 12,
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "horizontalSheet": "coruja_voo_direita_12.png",
+      "gridSheet": "coruja_voo_direita_grade_4x3.png",
+      "gridColumns": 4,
+      "gridRows": 3,
+      "sprite": "coruja_voo_direita_sprite.png"
+    },
+    {
+      "id": "gamba",
+      "action": "andar",
+      "direction": "right",
+      "frames": 12,
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "horizontalSheet": "gamba_andar_direita_12.png",
+      "gridSheet": "gamba_andar_direita_grade_4x3.png",
+      "gridColumns": 4,
+      "gridRows": 3,
+      "sprite": "gamba_andar_direita_sprite.png"
+    },
+    {
+      "id": "vagalume",
+      "action": "voo",
+      "direction": "right",
+      "frames": 12,
+      "frameWidth": 32,
+      "frameHeight": 32,
+      "horizontalSheet": "vagalume_voo_direita_12.png",
+      "gridSheet": "vagalume_voo_direita_grade_4x3.png",
+      "gridColumns": 4,
+      "gridRows": 3,
+      "sprite": "vagalume_voo_direita_sprite.png"
+    }
+  ]
+}

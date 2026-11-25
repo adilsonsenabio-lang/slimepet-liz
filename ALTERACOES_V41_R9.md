@@ -316,3 +316,9 @@ O sapo permanece no Jardim e repete suas ações na poça e na lagoa. O joão-de
 - Durante a Lua, o sapo permanece submerso na poça e o joão-de-barro fica na casinha. Se o anoitecer os encontrar abrigados, também esperam o amanhecer para sair.
 - À noite chegam menos abelhas e formigas. O patinho recebe apenas turnos diurnos, com tempo para completar a saída pela borda.
 - Árvores, arbustos, flores e rocha projetam sombras mais visíveis de acordo com a posição do Sol.
+
+## Bichos noturnos do Jardim (2026-11-25)
+
+- Vaga-lumes reaproveitam a lógica das abelhas, com grupos, variação de tamanhos, pousos em flores livres e travessia pelas bordas.
+- Aranhas usam a lógica das formigas, com grupos, tamanhos variados e trilhas no gramado. O gambá entra, pausa e sai pela lateral, como o pato. A coruja faz no céu o percurso de ida, pausa e volta do coelho.
+- Os quatro aparecem sob a Lua. O build offline incorpora as folhas horizontais fornecidas, com 12 quadros por animação.
