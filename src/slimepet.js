@@ -53,12 +53,13 @@ const MAX_BOND_UNITS=Number.MAX_SAFE_INTEGER;
 const WOLF_HOWL_SOURCE='../assets_audios/Uivo_lobo.mp3.mpeg';
 const WOLF_HOWL_START_WINDOW_MS=2200;
 const SOUND=(()=>{
- let howlBuffer=null,activeHowl=null,lastHowlAt=-Infinity;
+ let howlBuffer=null,activeHowl=null,lastHowlAt=-Infinity,audioUnlocked=false;
  let ac=null,master=null,effectBus=null,ambBus=null,limiter=null,noiseBuffer=null;
   let enabled=true,softAudio=true,lastFX=0,lastAmbient=0,lastScene='',lastIndividual={},resumeRequest=null,resumeOnShow=false;
  const rand=(a,b)=>a+Math.random()*(b-a);
- function ensure(){
-   if(!enabled||document.hidden)return null;
+ function ensure(fromGesture=false){
+  if(!enabled||document.hidden||(!audioUnlocked&&!fromGesture))return null;
+  if(fromGesture)audioUnlocked=true;
   if(!ac){try{
    const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;
    ac=new A();master=ac.createGain();master.gain.value=softAudio?.30:.56;
@@ -72,9 +73,12 @@ const SOUND=(()=>{
     return response.arrayBuffer();
    }).then(data=>ac.decodeAudioData(data)).then(buffer=>{howlBuffer=buffer;}).catch(()=>{});
   }catch(e){ac=null;return null;}}
-   if(ac.state==='suspended'&&!resumeRequest){
-    try{resumeRequest=ac.resume().catch(()=>{}).finally(()=>{resumeRequest=null;});}catch(e){}
-   }
+  if(ac.state!=='running'&&(!resumeRequest||fromGesture)){
+   try{
+    const pending=ac.resume().catch(()=>{}).finally(()=>{if(resumeRequest===pending)resumeRequest=null;});
+    resumeRequest=pending;
+   }catch(e){}
+  }
   return ac;
  }
  function wire(g,ambient=false,pan=0){
@@ -164,7 +168,9 @@ const SOUND=(()=>{
   if(sinceCue>=WOLF_HOWL_START_WINDOW_MS||cueAt<=lastHowlAt)return;
   const source=ac.createBufferSource();
   source.buffer=howlBuffer;
-  source.connect(ambBus);
+  const gain=ac.createGain();
+  gain.gain.value=.82;
+  source.connect(gain);gain.connect(effectBus);
   source.onended=()=>{if(activeHowl===source)activeHowl=null;};
   source.start();
   activeHowl=source;lastHowlAt=cueAt;
@@ -195,7 +201,7 @@ const SOUND=(()=>{
    if(document.hidden){resumeOnShow=enabled&&Boolean(ac&&(ac.state==='running'||resumeRequest));suspend();}
    else if(resumeOnShow){resumeOnShow=false;ensure();}
   }
-  function setEnabled(value){enabled=!!value;if(!enabled){resumeOnShow=false;suspend();}else ensure();
+  function setEnabled(value){enabled=!!value;if(!enabled){resumeOnShow=false;suspend();}else ensure(true);
   const b=$('soundToggle');b.textContent=enabled?'🔊':'🔇';b.classList.toggle('off',!enabled);b.setAttribute('aria-label',enabled?'Desativar sons':'Ativar sons');}
  function setSoftAudio(value){softAudio=!!value;if(master)master.gain.value=softAudio?.30:.56;}
  function scene(){lastAmbient=0;lastScene='';play('switch')}
@@ -203,8 +209,13 @@ const SOUND=(()=>{
   return {unlock:ensure,play,ui,ambient,setEnabled,setSoftAudio,scene,visibility,get softAudio(){return softAudio},get enabled(){return enabled},get active(){return !!(ac&&ac.state==='running')}};
 })();
 // Automatically unlock audio on the first touch, but keep a single unobtrusive mute button.
-document.addEventListener('pointerdown',()=>SOUND.unlock(),{capture:true});
-document.addEventListener('click',(event)=>{if(event.target.closest('button'))SOUND.ui();},{capture:true});
+function unlockGameAudio(event){if(event.isTrusted)SOUND.unlock(true);}
+document.addEventListener('pointerup',unlockGameAudio,{capture:true});
+document.addEventListener('touchend',unlockGameAudio,{capture:true,passive:true});
+document.addEventListener('click',event=>{
+ unlockGameAudio(event);
+ if(event.target.closest('button'))SOUND.ui();
+},{capture:true});
 $('soundToggle').addEventListener('click',()=>SOUND.setEnabled(!SOUND.enabled));
 document.addEventListener('visibilitychange',SOUND.visibility);
 
@@ -1422,7 +1433,11 @@ function faunaSizeVariation(){
 }
 function visitorScale(kind,screen){
  const base=VISITOR_SPEC[kind].scale;
- if(kind==='aranha')return base*(.80+Math.random()*.40);
+ if(kind==='aranha'){
+  const roll=Math.random(),pick=Math.random();
+  const size=roll<.70?pick*.06:roll<.93?.06+pick*.08:.14+pick*.06;
+  return base*(1+(Math.random()<.5?-size:size));
+ }
  if(kind==='coruja'){
   const roll=Math.random();
   return roll<.40?base:base*(.90+.40*(roll-.40)/.60);
@@ -2215,6 +2230,23 @@ function updateCrow(v,reduced){
   updatePerchingBirdFlight(v,age,v.spec.duration,CROW_ROCK_PERCH,false,reduced,v.crowRoute==='rocha_esquerda');
  }
 }
+const OPOSSUM_VISIT={durationMs:21000,firstMs:7000,secondMs:58000,timeVariationMs:21000,pupDelayMs:700};
+let opossumNightPlan=null;
+function gardenOpossumTurn(now,nightAge){
+ const round=Math.floor((now-sunEpoch)/(GARDEN_SKY_PHASE_MS*2));
+ if(opossumNightPlan?.round!==round){
+  const leftFirst=Math.random()<.5;
+  opossumNightPlan={round,visits:[
+   {start:OPOSSUM_VISIT.firstMs+Math.random()*OPOSSUM_VISIT.timeVariationMs,fromLeft:leftFirst},
+   {start:OPOSSUM_VISIT.secondMs+Math.random()*OPOSSUM_VISIT.timeVariationMs,fromLeft:!leftFirst},
+  ]};
+ }
+ const visits=opossumNightPlan.visits;
+ const index=visits.findIndex(({start})=>nightAge>=start&&nightAge<start+OPOSSUM_VISIT.durationMs);
+ if(index<0)return null;
+ const visit=visits[index];
+ return {kind:'gamba',round,index,duration:OPOSSUM_VISIT.durationMs,age:nightAge-visit.start,fromLeft:visit.fromLeft};
+}
 function updateVisitors(dt){
  if(currentScreen==='evolve'){visitors=[];return;}
  if(transition)return; // preservar moradores durante a passagem Casa/Jardim
@@ -2228,26 +2260,40 @@ function updateVisitors(dt){
  const nightMs=GARDEN_SKY_PHASE_MS+daylightMs;
  const turns=garden?gardenFaunaTurns(gardenArrivalTime()).flatMap(turn=>{
   if(!night)return turn;
-  if(turn.kind==='patinho')return {...turn,kind:'gamba'};
+  if(turn.kind==='patinho')return [];
   if(turn.kind==='coelho')return {...turn,kind:'coruja'};
   return turn;
  }):[];
+ if(garden&&night){
+  const opossumTurn=gardenOpossumTurn(now,GARDEN_SKY_PHASE_MS-nightMs);
+  if(opossumTurn)turns.push(opossumTurn);
+ }
  const turnsByKind=new Map(turns.map(turn=>[turn.kind,turn]));
  const turnKey=turn=>turn&&turn.round+':'+turn.index;
  for(const turn of turns){
   const {kind}=turn;
-  if((kind!=='patinho'&&kind!=='gamba')||(night?nightMs:daylightMs)<=(turn.duration-turn.age)/GARDEN_FREQUENCY+1000||
-     (kind==='gamba'&&turn.age>300&&!visitors.some(v=>v.kind===kind))||!faunaPresent(kind)||!assets.visitors[kind]||
-     turn.age>=VISITOR_SPEC[kind].duration||visitors.some(v=>v.kind===kind&&v.turnKey===turnKey(turn)))continue;
-  const sides=kind==='gamba'&&Math.random()<.70?[false,true]:[false];
-  for(const fromLeft of sides){
+  if((kind!=='patinho'&&kind!=='gamba')||!faunaPresent(kind)||!assets.visitors[kind])continue;
+  const key=turnKey(turn);
+  const remainingLight=night?nightMs:daylightMs;
+  if(remainingLight<=(turn.duration-turn.age)/GARDEN_FREQUENCY+1000)continue;
+  if(visitors.some(v=>v.kind===kind&&(kind==='gamba'||v.turnKey===key)))continue;
+  if(kind==='gamba'&&turn.age>300)continue;
+  const fromLeft=turn.fromLeft??false;
+  const family=kind==='gamba'&&!fromLeft;
+  if(turn.age>=turn.duration)continue;
+  const stop=fromLeft?230+Math.random()*155:602+Math.random()*40;
+  const groundY=fromLeft?466+Math.random()*27:GARDEN_DUCK_Y;
+  for(const isPup of (family?[false,true]:[false])){
    const v=newVisitor(kind);
-   const margin=(v.spec.frameSize??FAUNA_FRAME_W)*v.scale/2+12;
+   const scale=v.scale*(isPup?.45:family?1.16:1);
+   const delay=isPup?OPOSSUM_VISIT.pupDelayMs:0;
+   const margin=(v.spec.frameSize??FAUNA_FRAME_W)*scale/2+12;
    const edge=fromLeft?-margin:W+margin;
-   Object.assign(v,{turnKey:turnKey(turn),fromLeft,x0:edge,x1:edge,x:edge,
-    left:fromLeft?0:v.left,right:fromLeft?200:v.right,
-    stop:fromLeft?82+Math.random()*30:616+Math.random()*26,
-    facing:fromLeft?1:-1});
+   const y=groundY+(isPup?20:0);
+   Object.assign(v,{turnKey:key,turnDelay:delay,duration:turn.duration-delay,fromLeft,
+    x0:edge,x1:edge,x:edge,y,laneY:y,drawY:y,scale,
+    left:fromLeft?0:v.left,right:fromLeft?430:v.right,
+    stop:stop+(isPup?30:0),facing:fromLeft?1:-1,opossumPup:isPup});
    visitors.push(v);visitCount++;
   }
  }
@@ -2262,8 +2308,8 @@ function updateVisitors(dt){
   if(v.residentPond){updatePondFrog(v,sceneTime,reduced,dt);continue;}
   if(v.kind==='joao_de_barro'){updateResidentBird(v,sceneTime,dt,reduced);continue;}
   if(v.kind==='corvo'){updateCrow(v,reduced);continue;}
-  if(v.kind==='caracol'){
-   const route=MEADOW_WALKS.caracol;
+  const route=MEADOW_WALKS[v.kind];
+  if(route?.offscreenMs){
    const period=route.delay+2*route.leg+route.wait+route.offscreenMs;
    const age=((sceneTime-v.started)/.90)%period;
    updateMeadowWalker(v,age,sceneTime,reduced);continue;
@@ -2290,7 +2336,7 @@ function updateVisitors(dt){
    v.visible=false;v.phase='fora_do_turno';v.puddleSplash=null;continue;
   }
   if(!FIXED_VISITORS[v.kind]&&v.turnKey!==turnKey(turn)){visitors.splice(i,1);continue;}
-  const age=turn.age;
+  const age=turn.age-(v.turnDelay??0);
   if(v.residentRabbit&&v.rabbitDayTurnKey!==turnKey(turn)){
    if(age>300||daylightMs<=(turn.duration-age)/GARDEN_FREQUENCY+1000){v.visible=false;continue;}
    v.rabbitDayTurnKey=turnKey(turn);
@@ -2300,10 +2346,7 @@ function updateVisitors(dt){
    v.turnEntrySide=v.residentX<W/2?-1:1;
    v.turnExitSide=null;
   }
-  if(v.residentRabbit||v.residentCycle){
-   const secondLeg=v.residentCycle&&turn.round%2?turn.duration:0;
-   updateMeadowWalker(v,age+secondLeg,sceneTime,reduced);continue;
-  }
+  if(v.residentRabbit){updateMeadowWalker(v,age,sceneTime,reduced);continue;}
   if(v.kind==='libelula'){
    updateDragonfly(v,(turn.round*turn.duration+age)*.90,reduced);continue;
   }
@@ -2400,7 +2443,7 @@ function updateVisitors(dt){
  }
  if(garden){
   for(const v of visitors){
-   if(FIXED_VISITORS[v.kind]?.screen==='garden'&&!v.residentFlutter&&!v.residentPond&&v.kind!=='joao_de_barro'&&v.kind!=='coruja'&&v.kind!=='caracol'&&v.kind!=='corvo')applyGardenTurnEdges(v,turnsByKind.get(v.kind),reduced);
+   if(FIXED_VISITORS[v.kind]?.screen==='garden'&&!v.residentFlutter&&!v.residentPond&&v.kind!=='joao_de_barro'&&v.kind!=='coruja'&&!MEADOW_WALKS[v.kind]?.offscreenMs&&v.kind!=='corvo')applyGardenTurnEdges(v,turnsByKind.get(v.kind),reduced);
   }
   updateGardenBees(reduced,night,daylightMs);updateGardenBees(reduced,night,nightMs,'vagalume');
   updateGardenAnts(reduced,night,daylightMs);updateGardenAnts(reduced,night,nightMs,'aranha');
@@ -2480,6 +2523,13 @@ function drawFrogPuddle(){
  }
  ctx.restore();
 }
+function visitorEdgeOpacity(v){
+ if(v.screen!=='garden'&&!v.clipped&&!v.indoorBee)return 1;
+ const left=v.clipped?v.left:0,right=v.clipped?v.right:W;
+ const distance=Math.min(v.x-left,right-v.x);
+ const spread=clamp((v.spec.frameSize??FAUNA_FRAME_W)*v.scale*.72,26,60);
+ return ease((distance+8)/spread);
+}
 function drawVisitors(ctx,accept){
  for(const v of visitors){
   if(accept&&!accept(v))continue;
@@ -2505,8 +2555,9 @@ function drawVisitors(ctx,accept){
    }
   }
   const fw=v.spec.frameSize??FAUNA_FRAME_W,fh=v.spec.frameSize??FAUNA_FRAME_H,w=fw*v.scale,h=fh*v.scale;
+  const opacity=(v.opacity??1)*visitorEdgeOpacity(v);
+  if(opacity<=0)continue;
   ctx.save();
-  const opacity=v.opacity??1;
   ctx.globalAlpha=opacity;
   if(v.puddleClip){
    ctx.beginPath();
@@ -2551,6 +2602,10 @@ function drawVisitors(ctx,accept){
   ctx.translate(Math.round(v.x),0);
   ctx.scale(v.facing*(v.residentFlutter?(v.turnScale??1):1),1);
   if(v.kind==='gatinho')img=catCoatSheet(img);
+  if(v.kind==='coruja'&&v.phase==='pousada'){
+   const footX=4*v.scale,footY=v.drawY+(49-anchor)*v.scale;
+   ctx.translate(footX,footY);ctx.rotate(-Math.PI/7);ctx.translate(-footX,-footY);
+  }
   ctx.drawImage(img,frame*fw,0,fw,fh,-Math.round(w/2),
    Math.round(v.drawY-anchor*v.scale),Math.round(w),Math.round(h));
   ctx.restore();
@@ -2562,6 +2617,9 @@ function drawFireflyLights(){
  ctx.save();
  for(const v of visitors){
   if(!v.visible||v.kind!=='vagalume')continue;
+  const opacity=visitorEdgeOpacity(v);
+  if(opacity<=0)continue;
+  ctx.globalAlpha=opacity;
   const pulse=reduced?.92:.78+.22*Math.sin((sceneTime+v.id*157)/210)**2;
   const x=Math.round(v.x-8*v.scale*v.facing),y=Math.round(v.drawY+3*v.scale);
   // Clareie os pixels já escurecidos ao redor do abdômen.
@@ -3503,7 +3561,7 @@ function resolveActorCollisions(previousPetX,previousVisitors){
  for(const v of visible){
   const previous=previousVisitors.get(v.id);
   const box=visitorCollisionBox(v);
-  if(v.kind==='caracol'){occupied.push(box);continue;}
+  if(MEADOW_WALKS[v.kind]?.offscreenMs||v.kind==='gamba'){occupied.push(box);continue;}
   const x=resolveCollisionX(box,previous?.x,occupied);
   if(x===undefined){
    if(previous){v.x=previous.x;v.drawY=v.laneY=previous.y;occupied.push(previous);}

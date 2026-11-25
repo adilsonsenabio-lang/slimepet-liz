@@ -14,7 +14,7 @@ const GARDEN_FREQUENCY=1.30;
 const GARDEN_FAUNA_TRACKS=[
  {offset:0,turns:[
   [null,5500],['coelho',29000],
-  [null,13000],['tartaruga',33000],
+  [null,13000],[null,33000],
  ]},
  {offset:2400,turns:[
   [null,16000],[null,5000],[null,33000],
@@ -41,5 +41,5 @@ function gardenFaunaTurns(elapsed){
 const MEADOW_WALKS={
  coelho:{from:-51,to:658,delay:600,leg:12800,wait:2200,stride:36},
  caracol:{from:-45,to:144,delay:900,leg:30500,wait:2300,offscreenMs:10000,stride:19},
- tartaruga:{from:-46,to:662,delay:900,leg:30000,wait:1800,stride:54},
+ tartaruga:{from:-51,to:662,delay:900,leg:52000,wait:1800,offscreenMs:14000,stride:54},
 };

@@ -366,3 +366,7 @@ O MP3 fornecido toca no começo da noite e novamente um minuto depois, na metade
 ## Rotas do corvo, insetos e aranhas (2026-11-25)
 
 O corvo entra pela direita e sorteia a cada visita entre cruzar direto para a esquerda ou pousar na rocha e sair por qualquer lado, tanto de dia como de noite. Aranhas sorteiam um tamanho entre 20% menor e 20% maior que seu tamanho-base. As abelhas usam os 20 quadros da folha em voo também com movimento reduzido. As formigas ocupam mais faixas do gramado e contornam a água.
+
+## Gambá, tartaruga, áudio no celular e tamanhos (2026-11-25)
+
+À direita, mãe e filhote chegam juntos. O gambá da esquerda tem uma visita separada, com horário sorteado e percurso mais longo pelo gramado. A coruja fica mais ereta pousada no galho. Os bichos aparecem e somem aos poucos nas bordas, incluindo sombras e luzes. A tartaruga faz o percurso inteiro em ritmo próprio e volta pela borda. O áudio é liberado ao completar um toque e o uivo usa o canal de efeitos para ficar mais audível, respeitando o botão de som. Abelhas, formigas e aranhas têm mais indivíduos próximos ao tamanho-base e exemplos extremos mais raros.
