@@ -326,3 +326,7 @@ O sapo permanece no Jardim e repete suas ações na poça e na lagoa. O joão-de
 ## Ajustes na fauna do Jardim (2026-11-25)
 
 A coruja pousa no galho do joão-de-barro por cinco segundos. As abelhas do Jardim encerram as visitas antes da Lua. Pode aparecer um segundo gambá pela esquerda, além do gambá da direita. A ponta do abdômen do vaga-lume pulsa com luz amarela. A joaninha permanece no Jardim e voa em um circuito curto entre a flor e o arbusto.
+
+## João-de-barro no galho (2026-11-25)
+
+O joão-de-barro permanece no galho e repete apenas a entrada na casinha e o retorno ao galho. Passa 20 segundos no galho, fica um minuto na casinha de dia e espera o amanhecer quando se abriga à noite.

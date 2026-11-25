@@ -1824,27 +1824,20 @@ function wildlifeFrame(progress){return Math.min(FAUNA_FRAMES-1,Math.floor(progr
 function updateResidentBird(v,time,dt,reduced){
  const rule=BIRD_HOUSE_TIMER;
  const hideAt=rule.perch+rule.enter;
- const basePeriod=2*rule.perch+rule.enter+rule.inside+rule.exit;
- advanceShelterCycle(v,dt,hideAt,basePeriod+FAUNA_TURN_GAP_MS,rule.inside);
- if(v.shelterAge>=basePeriod){v.visible=false;return;}
+ const period=hideAt+rule.inside+rule.exit;
+ advanceShelterCycle(v,dt,hideAt,period,rule.inside);
  updateBirdHouse(v,time,v.shelterAge-rule.perch,reduced);
- v.turnEntrySide=1;
- applyGardenTurnEdges(v,{age:v.shelterAge,duration:basePeriod},reduced);
  if(v.visible&&v.phase==='repouso')reactToResidentIdle(v);
 }
 function updateBirdHouse(v,time,elapsed,reduced){
  const rule=BIRD_HOUSE_TIMER;
- const exitAt=rule.enter+rule.inside,perchAt=exitAt+rule.exit;
+ const exitAt=rule.enter+rule.inside;
  const t=elapsed;
  v.x=v.residentX;v.drawY=v.laneY=v.residentY;v.scale=v.spec.scale;
  v.facing=v.residentFacing;
  v.frame=reduced?0:faunaFrame(v,time,false);
  v.visible=true;v.phase='repouso';v.activity=null;v.birdHouseClip=false;v.opacity=1;
  if(t<0)return;
- if(t>=perchAt){
-  if(!reduced)v.facing=-v.residentFacing;
-  return;
- }
  if(t>=rule.enter&&t<exitAt){
   v.visible=false;v.phase='na_casinha';return;
  }

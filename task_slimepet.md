@@ -61,3 +61,5 @@
 - [x] Integrar vaga-lume, aranha, gambá e coruja à fauna noturna do Jardim (2026-11-25).
 
 - [x] Ajustar pouso da coruja, horários das abelhas, laterais do gambá, luz do vaga-lume e rota da joaninha (2026-11-25).
+
+- [x] Manter o joão-de-barro entre o galho e a casinha, sem voos pelas bordas (2026-11-25).

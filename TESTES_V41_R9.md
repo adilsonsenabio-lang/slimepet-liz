@@ -283,3 +283,7 @@ O Edge carregou as quatro folhas com as dimensões originais e um save V30. Em 3
 ## Ajustes na fauna do Jardim (2026-11-25)
 
 Em 490 segundos simulados no Edge, a coruja pousou no galho por 5.000 ms, o gambá apareceu pelos dois lados e nenhuma abelha ficou visível sob a Lua. A joaninha permaneceu visível e dentro do trecho local. A renderização acionou o halo do vaga-lume. O HTML offline abriu em 320, 390 e 430 px sem rolagem horizontal e carregou um save V30. Android físico não foi testado.
+
+## João-de-barro no galho (2026-11-25)
+
+No Edge, dois ciclos diurnos simulados passaram pelo galho, entrada na casinha, abrigo e volta ao galho, sem deslocamento até as bordas. O teste noturno confirmou o abrigo até o amanhecer e a saída pela casinha. O HTML abriu em 320, 390 e 430 px e carregou um save V30. Android físico não foi testado.
